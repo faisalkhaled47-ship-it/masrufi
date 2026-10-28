@@ -757,6 +757,17 @@ html[data-skin=pro] .tab[aria-current="page"] svg{fill-opacity:.25}
     </form>
   </div>
 </div>
+<div id="catSheet" class="sheet" hidden>
+  <div class="panel" role="dialog" aria-modal="true" aria-labelledby="catQTitle">
+    <div class="grab"></div>
+    <div class="panel-h"><h2 id="catQTitle">فئة جديدة</h2><button type="button" class="link" data-close>إغلاق</button></div>
+    <form id="catQuick" class="view" style="gap:10px" novalidate>
+      <div><label for="catQName" class="lbl">اسم الفئة</label><input id="catQName" class="field" maxlength="24" autocomplete="off" enterkeyhint="done"></div>
+      <p id="catQErr" class="ferr" role="alert"></p>
+      <button class="primary" type="submit">إضافة</button>
+    </form>
+  </div>
+</div>
 
 <div id="recSheet" class="sheet" hidden>
   <div class="panel" role="dialog" aria-modal="true" aria-labelledby="recTitle">
@@ -1459,6 +1470,7 @@ function renderCatChips(){
   var h=list.map(function(c){return pick('data-cat',c,c,S.form.cat===c,catIcon(c),hueOf(c))}).join('');
   if(more)h+='<button type="button" class="pk more" data-act="cat-more" aria-expanded="false"><span class="ico"><span dir="ltr">+'+more+'</span></span><span class="nm">كل الفئات</span></button>';
   else if(S.form.allCats&&cats.length>LIMIT+1)h+='<button type="button" class="pk more" data-act="cat-more" aria-expanded="true"><span class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 15l6-6 6 6"/></svg></span><span class="nm">أقل</span></button>';
+  if(!more)h+='<button type="button" class="pk more" data-act="cat-add"><span class="ico"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></span><span class="nm">فئة جديدة</span></button>';
   box.innerHTML=h;
 }
 function renderBankChips(){
@@ -2030,7 +2042,7 @@ function renderSettings(){
 var _lastFocus=null;
 function openSheet(sel){_lastFocus=document.activeElement;var s=$(sel);s.hidden=false;document.body.style.overflow='hidden';var f=s.querySelector('[data-close]');if(f)f.focus()}
 function closeSheet(sel){var s=$(sel);if(s.hidden)return;s.hidden=true;if($$('.sheet').every(function(x){return x.hidden}))document.body.style.overflow='';if(_lastFocus&&_lastFocus.focus)try{_lastFocus.focus()}catch(e){}}
-function closeAll(){['#editSheet','#recSheet','#setSheet','#planSheet','#remSheet'].forEach(closeSheet)}
+function closeAll(){['#editSheet','#recSheet','#setSheet','#planSheet','#remSheet','#catSheet'].forEach(closeSheet)}
 function syncEditType(cat){
   var t=$('#eType').value;
   $('#eCatWrap').hidden=t==='trf';$('#ePayWrap').hidden=t!=='exp';$('#eToWrap').hidden=t!=='trf';
@@ -2422,6 +2434,7 @@ document.addEventListener('click',function(e){
   if(d.type){if(S.form.type!==d.type){S.form.type=d.type;S.form.cat=null;S.form.to=null;$('#formErr').textContent='';$('#catChips').classList.remove('err');renderAdd();renderSaveState()}return}
   if(d.themeSet){pref('theme',d.themeSet);applyTheme();renderSettings();return}
   if(d.skinSet){pref('skin',d.skinSet);document.documentElement.setAttribute('data-skin',d.skinSet==='classic'?'classic':'pro');renderSettings();render();return}
+  if(d.act==='cat-add'){if(S.demo){demoBlock().catch(function(){});return}var inc=S.form.type==='inc';$('#catQTitle').textContent=inc?'فئة دخل جديدة':'فئة مصروف جديدة';$('#catQName').value='';$('#catQErr').textContent='';openSheet('#catSheet');$('#catQName').focus();return}
   if(d.act==='cat-more'){S.form.allCats=!S.form.allCats;pref('allCats',S.form.allCats?1:0);renderCatChips();return}
   if(d.cat!==undefined){S.form.cat=S.form.cat===d.cat?null:d.cat;$('#catChips').classList.remove('err');$('#formErr').textContent='';renderCatChips();return}
   if(d.pay!==undefined){S.form.pay=d.pay;pref('lastPay',d.pay);renderPayChips();renderBankChips();return}
@@ -2617,6 +2630,13 @@ function addCat(input,key){
   var v=input.value.trim().slice(0,24);if(!v)return;if(S.settings[key].indexOf(v)>=0){toast('الفئة موجودة.');return}
   S.settings[key].push(v);input.value='';saveSettings().then(renderSettings).catch(failToast);
 }
+$('#catQuick').addEventListener('submit',function(e){
+  e.preventDefault();var v=$('#catQName').value.trim().replace(/\s+/g,' ').slice(0,24),key=S.form.type==='inc'?'incCats':'cats',list=S.settings[key];
+  if(!v){$('#catQErr').textContent='اكتب اسم الفئة.';return}
+  var pickIt=function(){S.form.cat=v;$('#catChips').classList.remove('err');$('#formErr').textContent='';closeSheet('#catSheet');renderCatChips();renderSaveState()};
+  if(list.indexOf(v)>=0){pickIt();toast('الفئة موجودة، اخترتها لك.');return}
+  list.push(v);saveSettings().then(function(){pickIt();toast('أُضيفت فئة «'+v+'»')}).catch(function(err){list.splice(list.indexOf(v),1);failToast(err)});
+});
 $('#catForm').addEventListener('submit',function(e){e.preventDefault();addCat($('#newCat'),'cats')});
 $('#incCatForm').addEventListener('submit',function(e){e.preventDefault();addCat($('#newIncCat'),'incCats')});
 function bankImage(file){ // square, small, stored with the settings
