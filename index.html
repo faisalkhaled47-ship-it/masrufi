@@ -221,6 +221,11 @@ summary::-webkit-details-marker{display:none}
 /* fixed items list */
 .fx-tiles{margin:2px 0 6px}
 .fx-tiles .v.neg{color:var(--bad)}
+#remTop .tile .u{white-space:normal;line-height:1.35}
+.wed-tbl td{white-space:normal}
+.wed-tbl tr.now td{background:var(--surface-2)}
+.wed-tbl small{color:var(--muted);font-size:11px}
+#remTop .fx-h{margin-top:10px}
 .fx-plan{display:inline-flex;align-items:center;gap:6px;appearance:none;border:1px solid var(--line);background:var(--surface-2);color:var(--accent);border-radius:999px;padding:6px 14px;font-size:13.5px;font-weight:600;cursor:pointer;min-height:34px}
 .fx-plan svg{width:17px;height:17px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
 .fx-h{display:flex;justify-content:space-between;align-items:baseline;gap:8px;margin-top:14px;padding:8px 0 6px;border-bottom:1px solid var(--line);font-size:13px;font-weight:700;color:var(--ink);text-align:right}
@@ -1864,7 +1869,15 @@ function renderReminders(){
   var up=list.filter(function(r){return WED_RE.test(r.cat||'')||WED_RE.test(r.name||'')}),cur=cycleOfN(tN),nx=cycleOfN(cur.e+1);
   function part(f){var a=up.filter(f);return {n:a.length,t:a.reduce(function(x,r){return x+(+r.amt||0)},0)}}
   var all=part(function(){return true}),pc=part(function(r){return dnum(r.date)<=cur.e}),pn=part(function(r){var n=dnum(r.date);return n>=nx.s&&n<=nx.e});
-  $('#remTop').innerHTML=up.length?'<div class="tiles fx-tiles"><div class="tile"><div class="k">العانيات القادمة</div><div class="v">'+money(all.t)+'</div><div class="u">'+wedTxt(all.n)+'</div></div><div class="tile"><div class="k">هذه الدورة</div><div class="v">'+money(pc.t)+'</div><div class="u">'+(pc.n?wedTxt(pc.n):'لا يوجد')+'</div></div><div class="tile"><div class="k">الدورة الجاية</div><div class="v">'+money(pn.t)+'</div><div class="u">'+(pn.n?wedTxt(pn.n):'لا يوجد')+'</div></div></div>':'';
+  var Y0=parseYmd(todayStr()).getFullYear(),rng=function(c,from){var e=fromN(c.e),y=parseYmd(e).getFullYear();return (from===false?'حتى ':dayLabel(fromN(c.s))+' – ')+dayLabel(e)+(y!==Y0?' '+y:'')};
+  // which cycle each coming wedding falls in (an overdue one counts in this cycle)
+  var groups={};up.forEach(function(r){var n=dnum(r.date),c=n<=cur.e?cur:cycleOfN(n);(groups[c.s]=groups[c.s]||{c:c,list:[]}).list.push(r)});
+  var gk=Object.keys(groups).map(Number).sort(function(x,y){return x-y});
+  $('#remTop').innerHTML=up.length?'<div class="tiles fx-tiles"><div class="tile"><div class="k">العانيات القادمة</div><div class="v">'+money(all.t)+'</div><div class="u">'+wedTxt(all.n)+'</div></div><div class="tile"><div class="k">هذه الدورة</div><div class="v">'+money(pc.t)+'</div><div class="u">'+rng(cur,false)+'</div></div><div class="tile"><div class="k">الدورة الجاية</div><div class="v">'+money(pn.t)+'</div><div class="u">'+rng(nx,false)+'</div></div></div>'+
+    '<div class="fx-h"><span>العانيات حسب الدورة</span></div><div class="tbl-wrap"><table class="tbl wed-tbl"><thead><tr><th>الدورة</th><th>موعد الزواج</th><th class="n">المبلغ</th></tr></thead><tbody>'+
+    gk.map(function(k){var g=groups[k],t=g.list.reduce(function(x,r){return x+(+r.amt||0)},0);
+      return '<tr'+(g.c===cur?' class="now"':'')+'><td>'+rng(g.c)+(g.c===cur?'<br><small>الدورة الحالية</small>':'')+'</td><td>'+g.list.map(function(r){return esc(dayLabel(r.date))}).join('، ')+'</td><td class="n" dir="ltr">'+fmt(t)+'</td></tr>'}).join('')+
+    '</tbody></table></div>':'';
   // weddings so far
   var wed=expItems().filter(function(it){return WED_RE.test(it.cat)||WED_RE.test(it.note||'')}).sort(function(a,b){return b.n-a.n}),box=$('#wedBox');
   if(!wed.length&&!catsFor('exp').some(function(c){return WED_RE.test(c)})){box.innerHTML='';return}
