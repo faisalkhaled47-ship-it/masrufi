@@ -1123,7 +1123,7 @@ function normSettings(s){
   o.cycleDay=Math.min(28,Math.max(1,parseInt(o.cycleDay,10)||27));
   o.cycleRec=typeof o.cycleRec==='string'?o.cycleRec.slice(0,24):'';
   o.eduReg=['std','west','off'].indexOf(o.eduReg)>=0?o.eduReg:'std';
-  ['smsBanks','smsCats'].forEach(function(k){var src=o[k]&&typeof o[k]==='object'?o[k]:{},out={};Object.keys(src).slice(-200).forEach(function(x){if(typeof src[x]==='string')out[String(x).slice(0,40)]=src[x].slice(0,40)});o[k]=out});
+  ['smsBanks','smsCats','smsSigs'].forEach(function(k){var src=o[k]&&typeof o[k]==='object'?o[k]:{},out={};Object.keys(src).slice(-200).forEach(function(x){if(typeof src[x]==='string')out[String(x).slice(0,40)]=src[x].slice(0,40)});o[k]=out});
   o.budget=+o.budget||0;o.saveGoal=Math.min(90,Math.max(0,+o.saveGoal||0));
   if(!o.catBudgets||typeof o.catBudgets!=='object')o.catBudgets={};
   if(!Array.isArray(o.recurring))o.recurring=[];
@@ -2054,11 +2054,11 @@ function renderReminders(){
     (wed.length?'<p class="foot" style="margin:6px 0 2px">دفعت <b>'+money(tot)+'</b> ر.س في '+wedTxt(wed.length)+' منذ '+esc(dayLabel(first)+' '+parseYmd(first).getFullYear())+'، بمتوسط '+money(tot/wed.length)+' ر.س.</p>'+wed.slice(0,30).map(function(it){return rowHtml(it,true)}).join(''):'<p class="foot">لا توجد عمليات زواج مسجلة بعد. سجّلها في فئة «'+esc(catsFor('exp').filter(function(c){return WED_RE.test(c)})[0]||'زواجات')+'» لتظهر هنا.</p>');
 }
 /* ---------- reading a bank text message (on the device, no AI) ---------- */
-function smsNorm(t){return String(t||'').replace(/[‎‏‪-‮⁦-⁩]/g,'').replace(/[٠-٩]/g,function(d){return String('٠١٢٣٤٥٦٧٨٩'.indexOf(d))}).replace(/[۰-۹]/g,function(d){return String('۰۱۲۳۴۵۶۷۸۹'.indexOf(d))}).replace(/٫/g,'.').replace(/٬/g,',').replace(/\r/g,'').replace(/：/g,':')}
+function smsNorm(t){return String(t||'').replace(/[\u061c\u200b-\u200f\u202a-\u202e\u2066-\u2069\ufeff]/g,'').replace(/[٠-٩]/g,function(d){return String('٠١٢٣٤٥٦٧٨٩'.indexOf(d))}).replace(/[۰-۹]/g,function(d){return String('۰۱۲۳۴۵۶۷۸۹'.indexOf(d))}).replace(/٫/g,'.').replace(/٬/g,',').replace(/\r/g,'').replace(/：/g,':')}
 var SMS_BANKS=[[/راجحي|rajhi/i,/راجحي/],[/الأهلي|الاهلي|\bsnb\b|al\s*ahli|alahli/i,/أهلي|اهلي/],[/stc\s*bank|stcbank|اس\s*تي\s*سي\s*بنك/i,/stc/i],[/برق|\bbarq\b/i,/برق/],[/الجزيرة|aljazira|\bajb\b/i,/جزيرة/],[/الإنماء|الانماء|alinma/i,/إنماء|انماء/],[/بنك\s*الرياض|riyad\s*bank/i,/رياض/],[/البلاد|albilad/i,/بلاد/],[/\bsab\b|ساب/i,/ساب/],[/الفرنسي|fransi|\bbsf\b/i,/فرنسي/],[/البنك\s*العربي|\banb\b/i,/العربي/],[/\bd360\b|دال\s*360/i,/360/],[/urpay|يور\s*باي/i,/يور|urpay/i]];
-var SMS_CAT=[[/jahez|جاهز|hunger\s*station|هنقر|mrsool|مرسول|chefz|شفز|keeta|كيتا|toyou|تويو|restaurant|مطعم|burger|برجر|pizza|بيتزا|\bkfc\b|mcdonald|ماكدونالد|albaik|البيك|kudu|كودو|shawarma|شاورما|grill|مشويات|مندي/i,/مطاعم|مطعم/],
+var SMS_CAT=[[/jahez|جاهز|hunger\s*sta|هنقر|mrsool|مرسول|chefz|شفز|keeta|كيتا|toyou|تويو|restaurant|مطعم|burger|برجر|pizza|بيتزا|\bkfc\b|mcdonald|ماكدونالد|albaik|البيك|kudu|كودو|shawarma|شاورما|grill|مشويات|مندي/i,/مطاعم|مطعم/],
   [/starbucks|ستاربكس|\bcaf[eé]\b|coffee|كوفي|قهوة|كافيه|dunkin|دانكن|barn'?s|بارنز|hortons|هورتنز|half\s*million|كيان/i,/قهو|كافي|كوفي/],
-  [/panda|بنده|danube|الدانوب|othaim|العثيم|tamimi|التميمي|\blulu\b|لولو|carrefour|كارفور|nesto|نستو|farm\s*super|سوبر\s*ماركت|supermarket|hyper|هايبر|بقالة|تموينات|grocery|ماركت/i,/بقال|تموين|سوبر/],
+  [/panda|بنده|danube|الدانوب|othaim|العثيم|tamimi|التميمي|\blulu\b|لولو|carrefour|كارفور|nesto|نستو|farm\s*super|سوبر\s*ماركت|supermarket|hyper|هايبر|بقالة|تموينات|grocery|ماركت|\bmart\b/i,/بقال|تموين|سوبر/],
   [/aldrees|الدريس|sasco|ساسكو|petromin|بترومين|\bnaft\b|نفط|محطة|\bfuel\b|petrol|gas\s*station|محروقات|بنزين/i,/وقود|بنزين|محروقات/],
   [/\bstc\b(?!\s*pay)|mobily|موبايلي|\bzain\b|زين|electric|الكهرباء|كهرباء|المياه|\bwater\b|فاتورة|virgin|lebara|ليبارا|salam\s*mobile/i,/فواتير|فاتورة/],
   [/netflix|نتفلكس|shahid|شاهد|spotify|سبوتيفاي|apple\.com|itunes|icloud|youtube|يوتيوب|\bosn\b|anghami|أنغامي|انغامي|openai|chatgpt|anthropic|claude\.ai|playstation|xbox|steam/i,/اشتراك/],
@@ -2068,40 +2068,60 @@ var SMS_CAT=[[/jahez|جاهز|hunger\s*station|هنقر|mrsool|مرسول|chefz|
   [/amazon|امازون|أمازون|\bnoon\b|shein|شي\s*ان|namshi|نمشي|centrepoint|سنتربوينت|ikea|ايكيا|\bextra\b|اكسترا|jarir|جرير|\bh&m\b|\bzara\b|زارا|\bmall\b|مول/i,/تسوق|مشتريات/],
   [/barber|حلاق|صالون|salon/i,/حلاق|صالون/],[/laundry|مغسلة|dry\s*clean/i,/مغسل/]];
 function smsKey(m){return String(m||'').toLowerCase().replace(/[^a-z0-9؀-ۿ]+/g,' ').trim().slice(0,30)}
+function smsSig(raw){var l=smsNorm(raw).trim().split('\n')[0]||'';return l.replace(/ـ/g,'').replace(/SAR|SR|ر\.\s?س|ريال/gi,'').replace(/[\d\s.,:;*#+\-\/]+/g,'').toLowerCase().slice(0,40)}
+function bankNorm(x){return String(x||'').toLowerCase().replace(/bank|بنك|مصرف/g,'').replace(/[^a-z0-9ء-ي]+/g,'')}
 function parseSms(raw){
-  var t=smsNorm(raw).trim();if(!t)return null;var o={warn:[]},st=settings();
+  var t=smsNorm(raw).trim();if(!t)return null;var o={warn:[],to:''},st=settings();
   var NUM='(\\d{1,3}(?:,\\d{3})+(?:\\.\\d{1,2})?|\\d+(?:\\.\\d{1,2})?)',CUR='(?:SAR|SR|ر\\.\\s?س|ريال|رس)\\.?';
+  // amount: after a label, else next to the currency, never a balance
   var bad=/(رصيد\S*|المتاح|متاح|balance|available|limit|الحد)\s*[:\-]?\s*(?:SAR|SR|ريال)?\s*$/i,amt=null;
   var m=new RegExp('(?:مبلغ|بمبلغ|المبلغ|بقيمة|قيمة|خصم|amount|amt|purchase\\s+of|payment\\s+of|withdrawal\\s+of|transfer\\s+of)\\s*[:\\-]?\\s*(?:'+CUR+'\\s*)?'+NUM,'i').exec(t);
   if(m)amt=m[1];
   if(!amt){var re=new RegExp('(?:'+CUR+'\\s*'+NUM+')|(?:'+NUM+'\\s*'+CUR+')','gi'),x;while((x=re.exec(t))){if(bad.test(t.slice(Math.max(0,x.index-18),x.index)))continue;amt=x[1]||x[2];break}}
   o.amt=amt?Math.round(parseFloat(amt.replace(/,/g,''))*100)/100:null;
-  var inc=/حوالة\s*واردة|واردة|وارد|إيداع|ايداع|استلام|مستلمة|راتب|credited|received|deposit|incoming|استرداد|مسترد|refund/i.test(t)&&!/شراء|مشتريات|purchase|سحب/i.test(t);
+  var inc=/واردة|وارد|إيداع|ايداع|إضافة\s*أموال|اضافة\s*اموال|استلام|مستلمة|راتب|رواتب|credited|received|deposit|incoming|استرداد|مسترد|refund/i.test(t)&&!/شراء|مشتريات|purchase|سحب/i.test(t);
+  var out=/صادرة|صادر|outgoing/i.test(t);
   o.type=inc?'inc':'exp';
   o.pay=/apple\s*pay|ابل\s*باي|أبل\s*باي/i.test(t)?'أبل باي':/سحب\s*(?:نقدي|صراف|من\s*الصراف)|صراف|\batm\b|cash\s*withdrawal/i.test(t)?'نقدي':/ائتمان|credit\s*card|\bvisa\b|mastercard|ماستر\s*كارد|فيزا/i.test(t)&&!/مدى|mada/i.test(t)?'بطاقة ائتمانية':/حوالة|تحويل|transfer|سداد|sadad/i.test(t)?'تحويل':'مدى';
   if(o.pay==='نقدي')o.warn.push('سحب من الصراف: إذا بتسجّل مصاريفك النقدية وقت ما تصرفها، لا تحفظ هذا مصروفاً حتى ما يتكرر.');
-  // who was paid, or who sent it
-  var lab=function(re){var mm=re.exec(t);return mm?mm[1].trim():''},merchant=lab(/(?:^|\n)\s*(?:لدى|عند|التاجر|المتجر|merchant|at)\s*:?\s*([^\n]+)/i)||lab(/لدى\s+([^\n،,]+?)(?:\s+(?:في|بتاريخ|on)\s|\s*$|\n)/)||lab(/\bat\s+([^\n,]+?)(?:\s+(?:on|with|via|using|by|card)\s|[.,]|\s*$|\n)/i);
-  if(!merchant)merchant=inc?lab(/(?:^|\n)\s*(?:من|المرسل|from)\s*:\s*([^\n]+)/i):lab(/(?:^|\n)\s*(?:إلى|الى|المستفيد|to)\s*:\s*([^\n]+)/i);
+  // the lines banks use: «لـ/ل» to whom, «من» from whom, «لدى» or «ب» the shop
+  var L=function(re){var mm=re.exec(t);return mm?mm[1].trim():''},strip=function(v){return v.replace(/^[*x]*\d{2,}\s*[;:،,]?\s*/i,'')};
+  var toLine=L(/(?:^|\n)\s*لـ\s*:?\s*([^\n]+)/)||L(/(?:^|\n)\s*ل\s*:?\s*([A-Za-z0-9*][^\n]*)/),fromLine=L(/(?:^|\n)\s*من\s*:?\s*([^\n]+)/);
+  var merchant=inc?strip(fromLine):(L(/(?:^|\n)\s*(?:لدى|عند|التاجر|المتجر|merchant|at)\s*:?\s*([^\n]+)/i)||strip(toLine)||L(/(?:^|\n)\s*بـ?\s*:?\s*((?!SAR\b|SR\b)[A-Za-z][^\n]*)/i)||L(/لدى\s+([^\n،,]+?)(?:\s+(?:في|بتاريخ|on)\s|\s*$|\n)/)||L(/\bat\s+([^\n,]+?)(?:\s+(?:on|with|via|using|by|card)\s|[.,]|\s*$|\n)/i));
   if(/^[x\*\d\s#-]+$/i.test(merchant))merchant='';
-  o.merchant=merchant.replace(/[\s.،,;:]+$/,'').slice(0,40);
-  // card or account, to remember which bank it belongs to
-  var c4=/(?:\*{2,}|x{2,}|بطاقة\s*:?\s*\**)(\d{4})\b/i.exec(t)||/(?:من|حساب|account)\s*:?\s*[x\*]+(\d{3,4})\b/i.exec(t);o.key=c4?c4[1]:'';
-  // bank: what was learned for this card, then the bank's name in the text
-  var bk=o.key&&st.smsBanks[o.key];if(bk&&st.banks.indexOf(bk)<0)bk='';
+  o.merchant=merchant.replace(/\*+$/,'').replace(/[\s.،,;:]+$/,'').slice(0,40);
+  // your own card or account in the message, and the other side's account number
+  var num=function(re){var mm=re.exec(t);return mm?mm[1]:''};
+  var own=num(/عبر\s*:?\s*[*x]*(\d{4})/i)||num(/حساب\s*:?\s*[*x]*(\d{3,4})/i)||num(/بطاقة\s*:?\s*[*x]*(\d{4})/i)||num(/(?:\*{2,}|x{2,})(\d{4})\b/i);
+  var toNum=num(/(?:^|\n)\s*لـ?\s*:?\s*[*x]*(\d{3,4})\b/),fromNum=num(/(?:^|\n)\s*من\s*:?\s*[*x]*(\d{3,4})\b/);
+  if(inc&&!own)own=toNum;                // money came into this account
+  if(!inc&&!out&&!own)own=fromNum;       // a purchase naming the paying account
+  o.key=own;o.sig=smsSig(raw);
+  var known=function(k){var b=k&&st.smsBanks[k];return b&&st.banks.indexOf(b)>=0?b:''};
+  // bank: the card or account learned before, then the bank's name, then how this bank words its messages
+  var bk=known(own);
   if(!bk)for(var i=0;i<SMS_BANKS.length&&!bk;i++)if(SMS_BANKS[i][0].test(t))st.banks.forEach(function(b){if(!bk&&SMS_BANKS[i][1].test(b))bk=b});
+  if(!bk){var sg=st.smsSigs[o.sig];if(sg&&sg!=='*'&&st.banks.indexOf(sg)>=0)bk=sg}
   o.bank=bk||'';
+  // money between your own accounts
+  if(out&&known(toNum)&&known(toNum)!==o.bank){o.type='trf';o.to=known(toNum);o.merchant=''}
+  else if(!inc&&o.merchant){var mn=bankNorm(o.merchant);if(mn.length>=3)st.banks.forEach(function(b){var bn=bankNorm(b);if(!o.to&&bn&&b!==o.bank&&(bn.indexOf(mn)===0||mn.indexOf(bn)===0))o.to=b});
+    if(o.to){o.type='trf';o.warn.push('اعتبرتها تحويلاً لحسابك في «'+o.to+'». إذا كانت فاتورة أو شراء غيّر النوع إلى مصروف.');o.merchant=''}}
+  if(inc&&known(fromNum))o.warn.push('هذه الحوالة من حسابك في «'+known(fromNum)+'». إذا سجّلت التحويل من هناك لا تحفظها مرة ثانية.');
+  if(inc&&/إضافة\s*أموال|اضافة\s*اموال/.test(t))o.warn.push('«إضافة أموال»: إذا جاءت من حسابك في بنك آخر فهي تحويل بين حساباتك؛ غيّر النوع إلى تحويل، أو تجاهلها إذا سجّلتها من البنك الآخر.');
   // date: years first or last; two-digit groups are read the way that lands in the last 90 days
   var tN=dnum(todayStr()),pick=null,ok=function(y,mo,d){if(y<100)y+=2000;if(mo<1||mo>12||d<1||d>31)return null;var ds=y+'-'+pad(mo)+'-'+pad(d),n=dnum(ds);return n<=tN&&n>=tN-90?ds:null};
   var dm=/(\d{4})[-\/.](\d{1,2})[-\/.](\d{1,2})/.exec(t);if(dm)pick=ok(+dm[1],+dm[2],+dm[3]);
   if(!pick){dm=/(\d{1,2})[-\/.](\d{1,2})[-\/.](\d{4})/.exec(t);if(dm)pick=ok(+dm[3],+dm[2],+dm[1])}
   if(!pick){dm=/(?:^|[^\d.])(\d{2})[-\/.](\d{1,2})[-\/.](\d{2})(?![\d.])/.exec(t);if(dm){var a1=ok(+dm[1],+dm[2],+dm[3]),a2=ok(+dm[3],+dm[2],+dm[1]);pick=a1&&a2?(dnum(a1)>=dnum(a2)?a1:a2):(a1||a2)}}
   o.date=pick||todayStr();o.dateFound=!!pick;
-  // category: what was chosen before for this payee, then common names
-  var cats=inc?st.incCats:st.cats,mk=smsKey(o.merchant),cat=mk&&st.smsCats[mk];if(cat&&cats.indexOf(cat)<0)cat='';
-  if(!cat&&inc){if(/راتب|salary|payroll/i.test(t)&&cats.indexOf(SALARY_CAT)>=0)cat=SALARY_CAT}
-  if(!cat&&!inc)for(var j=0;j<SMS_CAT.length&&!cat;j++)if(SMS_CAT[j][0].test(o.merchant+' '+t))cats.forEach(function(c2){if(!cat&&SMS_CAT[j][1].test(c2))cat=c2});
-  o.cat=cat||'';
+  // category: what you chose before for this payee, then common names
+  if(o.type!=='trf'){
+    var cats=inc?st.incCats:st.cats,mk=smsKey(o.merchant),cat=mk&&st.smsCats[mk];if(cat&&cats.indexOf(cat)<0)cat='';
+    if(!cat&&inc&&/راتب|رواتب|salary|payroll/i.test(t)&&cats.indexOf(SALARY_CAT)>=0)cat=SALARY_CAT;
+    if(!cat&&!inc)for(var j=0;j<SMS_CAT.length&&!cat;j++)if(SMS_CAT[j][0].test(o.merchant+' '+t))cats.forEach(function(c2){if(!cat&&SMS_CAT[j][1].test(c2))cat=c2});
+    o.cat=cat||'';
+  }else o.cat='';
   if(o.amt==null)o.warn.unshift('ما لقيت المبلغ في الرسالة.');
   return o;
 }
@@ -2109,23 +2129,28 @@ function smsPreview(){
   var o=parseSms($('#smsText').value),out=$('#smsOut'),use=$('#smsUse');S.smsParsed=o;
   if(!o){out.innerHTML='';use.hidden=true;return}
   var row=function(k,v,miss){return '<div class="sms-r"><span>'+k+'</span><b class="'+(miss?'miss':'')+'">'+v+'</b></div>'};
-  out.innerHTML='<div class="sms-card">'+row('النوع',o.type==='inc'?'دخل':'مصروف')+row('المبلغ',o.amt!=null?fmt(o.amt)+' ر.س':'غير موجود',o.amt==null)+row('البنك',o.bank?esc(o.bank):'اختره في النموذج',!o.bank)+(o.type==='exp'?row('طريقة الدفع',esc(o.pay)):'')+row(o.type==='inc'?'من':'الجهة',o.merchant?esc(o.merchant):'—',!o.merchant)+row('الفئة',o.cat?esc(o.cat):'اخترها في النموذج',!o.cat)+row('التاريخ',esc(dayLabel(o.date)+' '+parseYmd(o.date).getFullYear())+(o.dateFound?'':' (اليوم)'))+'</div>'+
+  var trf=o.type==='trf';out.innerHTML='<div class="sms-card">'+row('النوع',trf?'تحويل بين حساباتك':o.type==='inc'?'دخل':'مصروف')+row('المبلغ',o.amt!=null?fmt(o.amt)+' ر.س':'غير موجود',o.amt==null)+row(trf?'من حساب':'البنك',o.bank?esc(o.bank):'اختره في النموذج',!o.bank)+(trf?row('إلى حساب',esc(o.to)):'')+(o.type==='exp'?row('طريقة الدفع',esc(o.pay)):'')+(trf?'':row(o.type==='inc'?'من':'الجهة',o.merchant?esc(o.merchant):'—',!o.merchant)+row('الفئة',o.cat?esc(o.cat):'اخترها في النموذج',!o.cat))+row('التاريخ',esc(dayLabel(o.date)+' '+parseYmd(o.date).getFullYear())+(o.dateFound?'':' (اليوم)'))+'</div>'+
     o.warn.map(function(w){return '<p class="foot sms-w">'+esc(w)+'</p>'}).join('');
+  // already recorded? fixed items such as the salary or an installment are entered automatically
+  var dup=null;if(o.amt!=null){var dn=dnum(o.date);data().list.forEach(function(it){if(!dup&&Math.abs(it.amt-o.amt)<0.005&&Math.abs(it.n-dn)<=3&&((it.type||'exp')===o.type||it.type==='trf'||o.type==='trf'))dup=it})}
+  if(dup)out.innerHTML+='<p class="foot sms-w">يبدو أنها مسجّلة: «'+esc(dup.note||dup.cat)+'» '+fmt(dup.amt)+' ر.س يوم '+esc(dayLabel(dup.date))+(dup.rec?' (ثابت يُسجَّل تلقائياً)':'')+'. لا تحفظها مرة ثانية.</p>';
+  use.textContent=dup?'تعبئة النموذج على أي حال':'تعبئة النموذج';
   use.hidden=o.amt==null;
 }
 function smsUse(){
   var o=S.smsParsed;if(!o||o.amt==null)return;
-  S.form.type=o.type;S.form.cat=o.cat||null;S.form.to=null;if(o.type==='exp')S.form.pay=o.pay;if(o.bank)S.form.bank=o.bank;S.form.fromSav=false;
+  S.form.type=o.type;S.form.cat=o.cat||null;S.form.to=o.type==='trf'?o.to:null;if(o.type==='exp')S.form.pay=o.pay;S.form.bank=o.bank||null; // an unknown bank is left for you to pick, not carried over from the last entryS.form.fromSav=false;
   $('#amt').value=String(o.amt);$('#note').value=o.merchant||'';$('#dt').value=o.date;S.form.dateTouched=o.date!==todayStr();
-  S.smsCtx={amt:o.amt,key:o.key,mk:smsKey(o.merchant)};
+  S.smsCtx={amt:o.amt,key:o.key,mk:smsKey(o.merchant),sig:o.sig};
   closeSheet('#smsSheet');setTab('add');renderAdd();renderSaveState();$('#formErr').textContent='';
   try{window.scrollTo({top:0,behavior:'smooth'})}catch(e){window.scrollTo(0,0)}
-  toast(o.cat&&o.bank?'راجع العملية واضغط حفظ':'كمّل '+(!o.bank&&!o.cat?'البنك والفئة':!o.bank?'البنك':'الفئة')+' ثم احفظ');
+  var need=[];if(!o.bank)need.push(o.type==='trf'?'الحساب المحوَّل منه':'البنك');if(o.type!=='trf'&&!o.cat)need.push('الفئة');toast(need.length?'كمّل '+need.join(' و')+' ثم احفظ':'راجع العملية واضغط حفظ');
 }
 function smsLearn(ctx,item){ // remember this card's bank and this payee's category for the next message
   var st=S.settings,ch=false;
   if(ctx.key&&item.bank&&st.smsBanks[ctx.key]!==item.bank){st.smsBanks[ctx.key]=item.bank;ch=true}
   if(ctx.mk&&item.cat&&item.type!=='trf'&&st.smsCats[ctx.mk]!==item.cat){st.smsCats[ctx.mk]=item.cat;ch=true}
+  if(ctx.sig&&item.bank){var was=st.smsSigs[ctx.sig],nv=was&&was!==item.bank?'*':item.bank;if(was!==nv){st.smsSigs[ctx.sig]=nv;ch=true}} // a wording two banks share is not used to guess
   if(ch)saveSettings().catch(function(){});
 }
 function hijriOf(ds){ // Umm al-Qura date, or null where the browser has no Islamic calendar
@@ -2854,6 +2879,7 @@ $('#addForm').addEventListener('submit',function(e){
   var trf=S.form.type==='trf';
   if(trf){if(!S.form.to){err.textContent='اختر الحساب المحوَّل إليه.';return}if(S.form.bank===S.form.to){err.textContent='الحساب المحوَّل منه وإليه نفسه.';return}}
   else if(!S.form.cat){err.textContent='اختر الفئة.';$('#catChips').classList.add('err');return}
+  if(S.smsCtx&&!S.form.bank&&!$('#bankWrap').hidden){err.textContent=trf?'اختر الحساب المحوَّل منه.':'اختر البنك اللي جات منه الرسالة.';return}
   var item={id:newId(),amt:amt,cat:trf?'تحويل':S.form.cat,pay:(inc||trf)?'':(S.form.pay||PAYS[0]),note:$('#note').value.trim().slice(0,200),date:$('#dt').value||todayStr(),ts:Date.now()};
   if(S.form.bank&&!$('#bankWrap').hidden)item.bank=S.form.bank;
   if(inc)item.type='inc';
