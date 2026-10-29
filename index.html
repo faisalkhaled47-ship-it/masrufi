@@ -244,6 +244,48 @@ summary::-webkit-details-marker{display:none}
 .fx-meta.warn{color:var(--warn);font-weight:600}
 .fx-meta .nw{white-space:nowrap}
 .tile.wide{grid-column:1/-1}
+.cal-h{display:flex;align-items:center;justify-content:space-between;gap:10px}
+.cal-nav{display:flex;gap:6px}
+.cal-nav button{width:34px;height:34px;border-radius:50%;border:0;background:var(--surface-2);color:var(--ink);display:grid;place-items:center;padding:0;cursor:pointer}
+.cal-nav button:disabled{opacity:.3;cursor:default}
+.cal-nav svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+.cal-name{font-size:13px;color:var(--muted);margin:-6px 0 10px}
+.cal-sum{display:flex;align-items:center;gap:10px;font-size:12.5px;color:var(--ink-2);margin-bottom:14px;white-space:nowrap}
+.cal-sum b{font-size:15px;color:var(--ink);font-variant-numeric:tabular-nums}
+.cal-bar{flex:1;height:6px;border-radius:999px;background:var(--surface-2);overflow:hidden}
+.cal-bar i{display:block;height:100%;background:var(--accent);border-radius:999px}
+.cal-wk,.cal-grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:5px}
+.cal-wk span{font-size:11px;color:var(--muted);text-align:center;padding-bottom:6px}
+.cal-wk .we{opacity:.65}
+.cal-d{position:relative;aspect-ratio:1/1.24;border:0;border-radius:14px;background:var(--surface-2);color:var(--ink);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:1px;padding:2px 0;font:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:transform .12s}
+.cal-d:active{transform:scale(.94)}
+.cal-d b{font-size:17px;font-weight:600;line-height:1.15;font-variant-numeric:tabular-nums}
+.cal-d small{font-size:10px;color:var(--muted);line-height:1.25;white-space:nowrap;max-width:94%;overflow:hidden;text-overflow:ellipsis}
+.cal-d small.mo{color:var(--accent);font-weight:600;font-size:9.5px}
+.cal-d.we:not(.today) b{color:var(--ink-2)}
+.cal-d.past{background:transparent;box-shadow:inset 0 0 0 1px var(--line)}
+.cal-d.past b{color:var(--muted);font-weight:500}
+.cal-d.past small{opacity:.7}
+.cal-d.today{background:var(--accent);box-shadow:0 8px 18px -8px var(--accent)}
+.cal-d.today b,.cal-d.today small,.cal-d.today small.mo{color:var(--accent-ink)}
+.cal-d.sel:not(.today){box-shadow:inset 0 0 0 2px var(--accent)}
+.cal-d .dots{display:flex;justify-content:center;gap:3px;height:6px;margin-top:2px}
+.cal-d .dots i,.cal-leg i[class^="d-"],.cal-det .ln i{width:6px;height:6px;border-radius:50%;display:inline-block;flex:none}
+.cal-d.today .dots i{box-shadow:0 0 0 1.5px var(--accent-ink)}
+.d-inc{background:var(--good)}.d-exp{background:var(--bad)}.d-rem{background:var(--warn)}
+.cal-pad{visibility:hidden}
+.cal-det{margin-top:14px;padding:12px 14px;border-radius:16px;background:var(--surface-2);text-align:right}
+.cal-det-h{display:flex;justify-content:space-between;align-items:baseline;gap:10px;margin-bottom:6px}
+.cal-det-h b{font-size:14.5px}.cal-det-h span{font-size:12px;color:var(--muted);white-space:nowrap}
+.cal-det .ln{display:flex;justify-content:space-between;align-items:center;gap:10px;font-size:13px;padding:4px 0}
+.cal-det .ln .t{display:flex;align-items:center;gap:7px;min-width:0}
+.cal-det .ln .a{font-weight:600;font-variant-numeric:tabular-nums;white-space:nowrap}
+.cal-det .ln .a.d-inc{color:var(--good);background:none}.cal-det .ln .a.d-exp{color:var(--bad);background:none}.cal-det .ln .a.d-rem{color:var(--warn);background:none}
+.cal-det .ln.spent{border-top:1px solid var(--line);margin-top:4px;padding-top:8px;color:var(--ink-2)}
+.cal-leg{display:flex;flex-wrap:wrap;justify-content:center;gap:6px 14px;font-size:11.5px;color:var(--muted);margin-top:12px}
+.cal-leg span{display:inline-flex;align-items:center;gap:5px}
+.cal-leg .sw{width:12px;height:12px;border-radius:4px;display:inline-block}
+.sw.past{box-shadow:inset 0 0 0 1px var(--muted);opacity:.6}.sw.today{background:var(--accent)}.sw.next{background:var(--surface-2);box-shadow:inset 0 0 0 1px var(--line)}
 .tag.sav{background:var(--good-soft);color:var(--good);border-color:transparent}
 .sav-bal{display:flex;align-items:baseline;justify-content:space-between;gap:10px}
 .sav-bal b{font-family:var(--f-display);font-size:26px;font-weight:600}
@@ -692,6 +734,10 @@ html[data-skin=pro] .tab[aria-current="page"] svg{fill-opacity:.25}
         <button class="btn accent" type="submit">حفظ</button>
       </form>
       <div id="budgetStatus"></div>
+    </div>
+    <div class="card" id="calCard">
+      <div class="card-h cal-h"><h2>تقويم الدورة</h2><div class="cal-nav"><button type="button" data-calnav="-1" aria-label="الدورة السابقة"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></button><button type="button" data-calnav="1" aria-label="الدورة التالية"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg></button></div></div>
+      <div id="calBody"></div>
     </div>
     <div class="card" id="savCard">
       <div class="card-h"><h2>المدخرات</h2><button type="button" class="link" data-sav="set" id="savEditBtn" hidden>تعديل الرصيد</button></div>
@@ -1962,6 +2008,44 @@ function renderReminders(){
   box.innerHTML='<div class="fx-h"><span>الزواجات منذ بداية التسجيل</span>'+(wed.length?'<span class="t">'+wed.length+' · <b dir="ltr">'+fmt(tot)+'</b></span>':'')+'</div>'+
     (wed.length?'<p class="foot" style="margin:6px 0 2px">دفعت <b>'+money(tot)+'</b> ر.س في '+wedTxt(wed.length)+' منذ '+esc(dayLabel(first)+' '+parseYmd(first).getFullYear())+'، بمتوسط '+money(tot/wed.length)+' ر.س.</p>'+wed.slice(0,30).map(function(it){return rowHtml(it,true)}).join(''):'<p class="foot">لا توجد عمليات زواج مسجلة بعد. سجّلها في فئة «'+esc(catsFor('exp').filter(function(c){return WED_RE.test(c)})[0]||'زواجات')+'» لتظهر هنا.</p>');
 }
+function hijriOf(ds){ // Umm al-Qura date, or null where the browser has no Islamic calendar
+  try{if(!hijriOf.f)hijriOf.f={d:new Intl.DateTimeFormat('en-u-ca-islamic-umalqura',{day:'numeric'}),m:new Intl.DateTimeFormat('ar-SA-u-ca-islamic-umalqura-nu-latn',{month:'long'})};
+    var p=ds.split('-').map(Number),dt=new Date(p[0],p[1]-1,p[2],12),d=parseInt(hijriOf.f.d.format(dt),10);return isFinite(d)?{d:d,m:hijriOf.f.m.format(dt)}:null}catch(e){return null}}
+function hjShort(m){return m.replace('ربيع الأول','ربيع 1').replace('ربيع الآخر','ربيع 2').replace('جمادى الأولى','جمادى 1').replace('جمادى الآخرة','جمادى 2').replace(/^ذو /,'')}
+function renderCalendar(){
+  var cur=curIdx(),c=cycleByIdx(cur+(S.calOff||0));S.calOff=c.idx-cur;
+  var st=settings(),tN=dnum(todayStr()),mk={},get=function(n){return mk[n]||(mk[n]={inc:[],exp:[],rem:[],spent:0,cnt:0})};
+  planOcc(c).forEach(function(o){get(dnum(o.date))[o.r.type==='inc'?'inc':'exp'].push({name:o.r.name,amt:o.amt,done:o.done})});
+  (st.reminders||[]).forEach(function(r){var n=dnum(r.date);if(n>=c.s&&n<=c.e)get(n).rem.push({name:r.name,amt:r.amt})});
+  expItems().forEach(function(it){if(it.n>=c.s&&it.n<=c.e){var m=get(it.n);m.spent+=it.amt;m.cnt++}});
+  var sn=S.calSel?dnum(S.calSel):NaN,sel=sn>=c.s&&sn<=c.e?sn:(tN>=c.s&&tN<=c.e?tN:c.s);
+  var passed=Math.max(0,Math.min(c.days,tN-c.s)),left=c.days-passed;
+  $$('[data-calnav]').forEach(function(b){b.disabled=+b.dataset.calnav<0?c.first:cycleByIdx(c.idx+1).idx===c.idx});
+  var h='<div class="cal-name">'+esc(cycleName(c))+(c.isCurrent?'':' · '+(c.e<tN?'دورة سابقة':'دورة قادمة'))+'</div>';
+  if(c.e<tN)h+='<div class="cal-sum"><span>انتهت الدورة</span><span class="cal-bar"><i style="width:100%"></i></span><span><b>'+c.days+'</b> يوماً</span></div>';
+  else if(c.s>tN)h+='<div class="cal-sum"><span>تبدأ بعد <b>'+(c.s-tN)+'</b> '+(c.s-tN===1?'يوم':'يوماً')+'</span><span class="cal-bar"><i style="width:0"></i></span><span><b>'+c.days+'</b> يوماً</span></div>';
+  else h+='<div class="cal-sum"><span>مضى <b>'+passed+'</b></span><span class="cal-bar"><i style="width:'+(passed/c.days*100).toFixed(1)+'%"></i></span><span>باقي <b>'+left+'</b> مع اليوم</span></div>';
+  h+='<div class="cal-wk">'+AR_DAYS_S.map(function(d,i){return '<span'+(i>=5?' class="we"':'')+'>'+d+'</span>'}).join('')+'</div><div class="cal-grid">';
+  for(var i=0,f=parseYmd(c.start).getDay();i<f;i++)h+='<span class="cal-pad" aria-hidden="true"></span>';
+  for(var n=c.s;n<=c.e;n++){
+    var ds=fromN(n),d=parseYmd(ds),g=d.getDate(),hj=hijriOf(ds),m=mk[n],cls=n<tN?'past':n===tN?'today':'next';
+    if(d.getDay()>=5)cls+=' we';if(n===sel)cls+=' sel';
+    var sub=g===1||n===c.s?'<small class="mo">'+AR_MONTHS[d.getMonth()]+'</small>':hj?(hj.d===1?'<small class="mo hj">'+esc(hjShort(hj.m))+'</small>':'<small>'+hj.d+'</small>'):'';
+    var dots=m?(m.inc.length?'<i class="d-inc"></i>':'')+(m.exp.length?'<i class="d-exp"></i>':'')+(m.rem.length?'<i class="d-rem"></i>':''):'';
+    h+='<button type="button" class="cal-d '+cls+'" data-calday="'+ds+'" aria-pressed="'+(n===sel)+'" aria-label="'+AR_DAYS[d.getDay()]+' '+g+' '+AR_MONTHS[d.getMonth()]+'"><b>'+g+'</b>'+sub+'<span class="dots">'+dots+'</span></button>';
+  }
+  h+='</div>';
+  // the chosen day
+  var sd=fromN(sel),sdd=parseYmd(sd),hs=hijriOf(sd),m2=mk[sel]||{inc:[],exp:[],rem:[],spent:0,cnt:0},dd=sel-tN;
+  var rel=dd===0?'اليوم':dd===1?'بكرة':dd===-1?'أمس':dd>0?'بعد '+daysTxt(dd):'قبل '+daysTxt(-dd);
+  var ln=function(cl,t,a){return '<div class="ln"><span class="t"><i class="'+cl+'"></i>'+esc(t)+'</span><span class="a '+cl+'" dir="ltr">'+a+'</span></div>'};
+  var body=m2.inc.map(function(o){return ln('d-inc',o.name,'+'+fmt(o.amt))}).join('')+m2.exp.map(function(o){return ln('d-exp',o.name+(o.done?' ✓':''),fmt(o.amt))}).join('')+m2.rem.map(function(o){return ln('d-rem',o.name,o.amt?fmt(o.amt):'—')}).join('');
+  if(sel<=tN)body+='<div class="ln spent"><span class="t">'+(m2.cnt?'صرفت في هذا اليوم ('+ops(m2.cnt)+')':'ما سجّلت صرفاً في هذا اليوم')+'</span><span class="a" dir="ltr">'+(m2.cnt?fmt(m2.spent):'')+'</span></div>';
+  else if(!body)body='<div class="ln"><span class="t muted">لا مواعيد ثابتة في هذا اليوم</span></div>';
+  h+='<div class="cal-det"><div class="cal-det-h"><b>'+AR_DAYS[sdd.getDay()]+' '+sdd.getDate()+' '+AR_MONTHS[sdd.getMonth()]+'</b><span>'+(hs?hs.d+' '+esc(hs.m)+' · ':'')+rel+'</span></div>'+body+'</div>';
+  h+='<div class="cal-leg"><span><i class="sw past"></i>مضى</span><span><i class="sw today"></i>اليوم</span><span><i class="sw next"></i>باقي</span><span><i class="d-inc"></i>دخل</span><span><i class="d-exp"></i>التزام</span><span><i class="d-rem"></i>مناسبة</span></div>';
+  $('#calBody').innerHTML=h;
+}
 function renderSavings(){
   var st=settings(),box=$('#savBody'),on=savOn();$('#savEditBtn').hidden=!on;
   if(!on){box.innerHTML='<p class="foot" style="margin:0">حدد رصيد مدخراتك، ويبقى خارج حساب الدورة. تصرف منه بتفعيل «من المدخرات» وقت التسجيل، أو تنقل منه مبلغاً للدورة.</p><button type="button" class="btn accent full" data-sav="set" style="margin-top:12px">تحديد رصيد المدخرات</button>';return}
@@ -2015,7 +2099,7 @@ function renderBudget(){
     if(a.free<0)bs+='<p class="foot"><b style="color:var(--bad)">تجاوزت الحد بـ '+fmt(-a.free)+' ر.س</b></p>';
   }else bs='';
   $('#budgetStatus').innerHTML=bs;
-  renderSavings();
+  renderCalendar();renderSavings();
 
   var msA=mainSalary(),c0d=msA?msA.day:parseYmd(c.start).getDate(),cpos=function(r){var L=r.link?recById(r.link):null,d=L&&L.id!==r.id?L.day:r.day;return (d-c0d+31)%31};
   ['inc','exp','trf'].forEach(function(type){
@@ -2532,6 +2616,8 @@ document.addEventListener('click',function(e){
   if(d.type){if(S.form.type!==d.type){S.form.type=d.type;S.form.cat=null;S.form.to=null;$('#formErr').textContent='';$('#catChips').classList.remove('err');renderAdd();renderSaveState()}return}
   if(d.themeSet){pref('theme',d.themeSet);applyTheme();renderSettings();return}
   if(d.skinSet){pref('skin',d.skinSet);document.documentElement.setAttribute('data-skin',d.skinSet==='classic'?'classic':'pro');renderSettings();render();return}
+  if(d.calday){S.calSel=d.calday;renderCalendar();return}
+  if(d.calnav){S.calOff=(S.calOff||0)+(+d.calnav);S.calSel=null;renderCalendar();return}
   if(d.sav)return openSav(d.sav);
   if(d.savdel){if(S.demo)return demoBlock().catch(function(){});var st1=S.settings,gone=null;st1.savMoves=(st1.savMoves||[]).filter(function(m){if(m.id===d.savdel){gone=m;return false}return true});
     if(gone)saveSettings().then(function(){toast('حُذفت الحركة',{action:{label:'تراجع',fn:function(){st1.savMoves=st1.savMoves.concat([gone]);saveSettings().catch(failToast)}}})}).catch(failToast);return}
