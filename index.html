@@ -247,7 +247,7 @@ summary::-webkit-details-marker{display:none}
 .sms-btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:11px 14px;border-radius:14px;border:1px dashed var(--accent);background:var(--accent-soft);color:var(--accent);font:inherit;font-weight:600;font-size:14px;cursor:pointer}
 .sms-btn svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2;stroke-linejoin:round;stroke-linecap:round}
 .sms-in{position:relative}
-#smsText{min-height:76px;max-height:140px;resize:none;line-height:1.5;text-align:right;font:inherit;font-size:13px;letter-spacing:normal;padding:10px 12px 10px 64px}
+#smsText{min-height:76px;max-height:140px;resize:none;line-height:1.5;text-align:right;font:inherit;font-size:16px;letter-spacing:normal;padding:10px 12px 10px 64px;text-align-last:right;direction:rtl} /* under 16px, iOS zooms the page in on focus */
 .sms-paste{position:absolute;left:8px;top:8px;border:0;border-radius:999px;padding:5px 12px;background:var(--accent-soft);color:var(--accent);font:inherit;font-size:12.5px;font-weight:600;cursor:pointer}
 .sms-paste.gone{display:none}
 .sms-sum{border-radius:14px;background:var(--surface-2);padding:10px 12px}
@@ -2804,7 +2804,7 @@ document.addEventListener('click',function(e){
   if(d.type){if(S.form.type!==d.type){S.form.type=d.type;S.form.cat=null;S.form.to=null;$('#formErr').textContent='';$('#catChips').classList.remove('err');renderAdd();renderSaveState()}return}
   if(d.themeSet){pref('theme',d.themeSet);applyTheme();renderSettings();return}
   if(d.skinSet){pref('skin',d.skinSet);document.documentElement.setAttribute('data-skin',d.skinSet==='classic'?'classic':'pro');renderSettings();render();return}
-  if(d.act==='sms'){if(S.demo){demoBlock().catch(function(){});return}$('#smsText').value='';$('#smsPaste').classList.remove('gone');$('#smsOut').innerHTML='';$('#smsUse').hidden=true;$('#smsPaste').hidden=!(navigator.clipboard&&navigator.clipboard.readText);openSheet('#smsSheet');$('#smsText').focus();return}
+  if(d.act==='sms'){if(S.demo){demoBlock().catch(function(){});return}$('#smsText').value='';$('#smsPaste').classList.remove('gone');$('#smsOut').innerHTML='';$('#smsUse').hidden=true;var canPaste=!!(navigator.clipboard&&navigator.clipboard.readText);$('#smsPaste').hidden=!canPaste;openSheet('#smsSheet');if(!canPaste)$('#smsText').focus();return} // with a paste button, the keyboard waits until you tap the box
   if(d.act==='sms-paste'){navigator.clipboard.readText().then(function(tx){$('#smsText').value=tx||'';$('#smsPaste').classList.toggle('gone',!!tx);smsPreview()}).catch(function(){toast('ما قدرت أقرأ الحافظة. الصق الرسالة بنفسك في المربع.')});return}
   if(d.calday){S.calSel=d.calday;renderCalendar();return}
   if(d.calnav){S.calOff=(S.calOff||0)+(+d.calnav);S.calSel=null;renderCalendar();return}
