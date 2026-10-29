@@ -860,6 +860,9 @@ html[data-skin=pro] .tab[aria-current="page"] svg{fill-opacity:.25}
         <input id="newBank" class="field" maxlength="24" placeholder="بنك جديد" aria-label="بنك جديد">
         <button class="btn accent" type="submit">إضافة</button>
       </form>
+      <h3 style="margin-top:6px"><label for="savAcc">حساب المدخرات</label></h3>
+      <select id="savAcc" class="field"></select>
+      <p class="foot" style="margin-top:6px">رصيده لا يدخل في الدورة. التحويل منه إلى حساب آخر يُضاف لمتاح الدورة، والتحويل إليه يُخصم منه.</p>
       <h3 style="margin-top:6px">رصيد البداية</h3>
       <form id="openForm" class="openform" novalidate>
         <div><label for="openDate" class="lbl">رصيد كل حساب في بداية يوم</label><input id="openDate" type="date" class="field"></div>
@@ -983,6 +986,7 @@ function normSettings(s){
   var obl={};if(o.openBal&&typeof o.openBal==='object')Object.keys(o.openBal).forEach(function(b){var v=+o.openBal[b];if(o.banks.indexOf(b)>=0&&isFinite(v)&&v!==0)obl[b]=Math.round(v*100)/100});
   o.payOrder=Array.isArray(o.payOrder)?o.payOrder.filter(function(x,i,a){return PAYS.indexOf(x)>=0&&a.indexOf(x)===i}):[];o.catManual=!!o.catManual;
   o.reminders=Array.isArray(o.reminders)?o.reminders.filter(function(x){return x&&typeof x.id==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(x.date||'')}).map(function(x){return {id:x.id.slice(0,24),name:String(x.name||'دفعة').slice(0,40),amt:Math.max(0,Math.round((+x.amt||0)*100)/100),date:x.date,cat:String(x.cat||'أخرى').slice(0,40),rep:x.rep==='once'?'once':'yearly'}}).slice(0,100):[];
+  o.savAcc=typeof o.savAcc==='string'&&o.banks.indexOf(o.savAcc)>=0?o.savAcc:'';
   o.openBal=obl;o.openDate=/^\d{4}-\d{2}-\d{2}$/.test(o.openDate||'')?o.openDate:'';
   if(['salary','day','month'].indexOf(o.cycleMode)<0)o.cycleMode='salary';
   o.cycleDay=Math.min(28,Math.max(1,parseInt(o.cycleDay,10)||27));
@@ -1110,10 +1114,10 @@ function runRecurring(){
   _genBusy=true;
   bulkMerge(add).catch(function(){}).then(function(){_genBusy=false});
 }
-function upcoming(c){ // fixed items due after today inside range c, not yet recorded
+function upcoming(c,withTrf){ // fixed items due after today inside range c, not yet recorded
   var st=settings(),tN=dnum(todayStr()),D=data(),out=[];
   st.recurring.forEach(function(r){
-    if(!r.active||r.type==='trf')return;
+    if(!r.active||(r.type==='trf'&&!withTrf))return;
     var sd=parseYmd(c.start),endKey=c.end.slice(0,7);
     for(var M=sd.getMonth(),g=0;g<14;g++,M++){
       var key=monthKeyOf(sd.getFullYear(),M);if(key>endKey)break;if(!recHas(r,key))continue;
@@ -1336,16 +1340,26 @@ function hbars(rows,total){
 }
 
 /* ---------- money logic ---------- */
+function savFlow(c){ // the savings account sits outside the cycle: money taken from it joins the cycle, money put into it leaves
+  var sa=settings().savAcc,o={inn:0,out:0,net:0};if(!sa)return o;
+  inCycle(trfItems(),c).forEach(function(it){if(it.bank===sa&&it.to!==sa)o.inn+=it.amt;else if(it.to===sa&&it.bank!==sa)o.out+=it.amt});
+  inCycle(expItems(),c).forEach(function(it){if(it.bank===sa)o.inn+=it.amt}); // paid straight from savings
+  inCycle(incItems(),c).forEach(function(it){if(it.bank===sa)o.out+=it.amt}); // income that lands in savings stays there
+  if(c.e>dnum(todayStr()))upcoming(c,true).forEach(function(u){var r=u.r;
+    if(r.type==='trf'){if(r.bank===sa&&r.to!==sa)o.inn+=u.amt;else if(r.to===sa&&r.bank!==sa)o.out+=u.amt}
+    else if(r.bank===sa){if(r.type==='exp')o.inn+=u.amt;else o.out+=u.amt}});
+  o.inn=Math.round(o.inn*100)/100;o.out=Math.round(o.out*100)/100;o.net=Math.round((o.inn-o.out)*100)/100;return o}
 function allowance(c){
   var st=settings(),spent=sum(inCycle(expItems(),c)),incomeGot=sum(inCycle(incItems(),c)),up=upcoming(c);
   var upExp=0,upInc=0;up.forEach(function(u){if(u.r.type==='inc')upInc+=u.amt;else upExp+=u.amt});
   var tN=dnum(todayStr()),daysLeft=Math.max(1,c.e-Math.max(tN,c.s)+1);
-  var basis=st.budget>0?'budget':(incomeGot+upInc>0?'income':null);
-  var limit=st.budget>0?st.budget:(incomeGot+upInc)*(1-st.saveGoal/100);
+  var sv=savFlow(c),sav=sv.net;
+  var basis=st.budget>0?'budget':(incomeGot+upInc+sav>0?'income':null);
+  var limit=(st.budget>0?st.budget:(incomeGot+upInc)*(1-st.saveGoal/100))+sav;
   var free=limit-spent-upExp;
-  return {basis:basis,limit:limit,spent:spent,upExp:upExp,upInc:upInc,incomeGot:incomeGot,daysLeft:daysLeft,free:free,perDay:free/daysLeft,goal:st.saveGoal};
+  return {basis:basis,limit:limit,spent:spent,upExp:upExp,upInc:upInc,incomeGot:incomeGot,daysLeft:daysLeft,free:free,perDay:free/daysLeft,goal:st.saveGoal,sav:sav};
 }
-function basisText(a){return a.basis==='budget'?'حسب ميزانيتك':'حسب دخل الدورة'+(a.goal?' بعد ادخار '+fmt0(a.goal)+'%':'')}
+function basisText(a){return (a.basis==='budget'?'حسب ميزانيتك':'حسب دخل الدورة'+(a.goal?' بعد ادخار '+fmt0(a.goal)+'%':''))+(a.sav>0?' + '+fmt(a.sav)+' من المدخرات':a.sav<0?' − '+fmt(-a.sav)+' للمدخرات':'')}
 
 /* ---------- rendering ---------- */
 var _fitRaf=0;
@@ -1599,13 +1613,13 @@ function renderStats(){
   h+='</div>';
 
   // summary and advice
-  var adv=(!custom&&c.isCurrent)?advice(c,{income:income,upInc:upInc,upExp:upExp,fixedPaid:fixedPaid,variable:variable,elapsed:elapsed,remainingDays:remainingDays,cur:cur}):[];
+  var adv=(!custom&&c.isCurrent)?advice(c,{sav:a?a.sav:0,income:income,upInc:upInc,upExp:upExp,fixedPaid:fixedPaid,variable:variable,elapsed:elapsed,remainingDays:remainingDays,cur:cur}):[];
   var notes=adv.concat(insights(cur,curInc,st,c,elapsed,total,variable,fixedPaid,forecast,hasFuture,income,upInc,a,adv.length>0)).slice(0,5);
   if(notes.length)h+='<div class="card"><div class="card-h"><h2>'+(adv.length?'الخلاصة والنصائح':'ملاحظات على هذه الفترة')+'</h2></div><ul class="ins">'+notes.map(function(x){return '<li><span class="dot '+(x.s||'')+'"></span><span>'+x.h+'</span></li>'}).join('')+'</ul></div>';
   // tiles
   var net=income-total;
   h+='<div class="tiles two">';
-  h+='<div class="tile"><div class="k">الدخل</div><div class="v inc">'+money(income)+'</div><div class="u">'+(upInc>0?'ومتوقع '+fmt(upInc)+' قبل نهاية الدورة':(curInc.length?ops(curInc.length)+'':'لم يُسجَّل دخل'))+'</div></div>';
+  h+='<div class="tile"><div class="k">الدخل</div><div class="v inc">'+money(income)+'</div><div class="u">'+(upInc>0?'ومتوقع '+fmt(upInc)+' قبل نهاية الدورة':(curInc.length?ops(curInc.length)+'':'لم يُسجَّل دخل'))+(a&&a.sav?'<br>'+(a.sav>0?'+ '+fmt(a.sav)+' من المدخرات':'− '+fmt(-a.sav)+' للمدخرات'):'')+'</div></div>';
   h+='<div class="tile"><div class="k">المتبقي من الدخل</div><div class="v '+(net<0?'bad':'good')+'">'+(income>0?smoney(net):'—')+'</div><div class="u">'+(income>0?(net>=0?'ادخرت '+Math.round(net/income*100)+'% من الدخل':'المصروف تجاوز الدخل'):'')+'</div></div>';
   h+='<div class="tile"><div class="k">المتوسط اليومي</div><div class="v">'+money(avg)+'</div><div class="u">ر.س / يوم</div></div>';
   if(hasFuture)h+='<div class="tile"><div class="k">التوقع لنهاية الفترة</div><div class="v">'+(elapsed>=3?money(forecast):'—')+'</div><div class="u">'+''+'</div></div>';
@@ -1663,7 +1677,7 @@ function renderStats(){
     order.sort(function(x,y){return (bb[y].e+bb[y].i+Math.abs(bb[y].t))-(bb[x].e+bb[x].i+Math.abs(bb[x].t))});
     var balN=Math.min(c.e,tN),hasOB=Object.keys(st.openBal||{}).length>0;
     var sn=function(v){return '<span dir="ltr" class="num">'+(v<-0.004?'−':v>0.004?'+':'')+fmt(Math.abs(v))+'</span>'};
-    h+='<div class="card"><div class="card-h"><h2>حسب البنك</h2><span class="hint">ر.س</span></div><div class="tbl-wrap"><table class="tbl"><thead><tr><th>البنك</th><th class="n">الدخل</th><th class="n">المصروف</th>'+(hasT?'<th class="n">تحويلات</th>':'')+'<th class="n">الرصيد</th></tr></thead><tbody>'+order.map(function(k){var v=bb[k],nv=k==='غير محدد'?v.i-v.e+v.t:bankBalance(k,balN);return '<tr><td>'+esc(k)+'</td><td class="n inc">'+(v.i?fmt(v.i):'—')+'</td><td class="n">'+(v.e?fmt(v.e):'—')+'</td>'+(hasT?'<td class="n">'+(v.t?sn(v.t):'—')+'</td>':'')+'<td class="n'+(nv<0?' bad':'')+'">'+sn(nv)+'</td></tr>'}).join('')+'</tbody></table></div><p class="foot">الدخل والمصروف والتحويلات لهذه الفترة، والرصيد '+(balN>=tN?'الآن':'في '+esc(dayLabel(fromN(balN))))+(hasOB?' محسوب من رصيد البداية في '+esc(dayLabel(st.openDate)):'')+'.'+(hasOB?'':' أضف رصيد البداية لكل حساب من الإعدادات ليطابق رصيدك الفعلي.')+'</p></div>';
+    h+='<div class="card"><div class="card-h"><h2>حسب البنك</h2><span class="hint">ر.س</span></div><div class="tbl-wrap"><table class="tbl"><thead><tr><th>البنك</th><th class="n">الدخل</th><th class="n">المصروف</th>'+(hasT?'<th class="n">تحويلات</th>':'')+'<th class="n">الرصيد</th></tr></thead><tbody>'+order.map(function(k){var v=bb[k],nv=k==='غير محدد'?v.i-v.e+v.t:bankBalance(k,balN);return '<tr><td>'+esc(k)+(k===st.savAcc&&!/مدخر|ادخار|توفير/.test(k)?'<br><small class="muted">مدخرات</small>':'')+'</td><td class="n inc">'+(v.i?fmt(v.i):'—')+'</td><td class="n">'+(v.e?fmt(v.e):'—')+'</td>'+(hasT?'<td class="n">'+(v.t?sn(v.t):'—')+'</td>':'')+'<td class="n'+(nv<0?' bad':'')+'">'+sn(nv)+'</td></tr>'}).join('')+'</tbody></table></div><p class="foot">الدخل والمصروف والتحويلات لهذه الفترة، والرصيد '+(balN>=tN?'الآن':'في '+esc(dayLabel(fromN(balN))))+(hasOB?' محسوب من رصيد البداية في '+esc(dayLabel(st.openDate)):'')+'.'+(hasOB?'':' أضف رصيد البداية لكل حساب من الإعدادات ليطابق رصيدك الفعلي.')+'</p></div>';
   }
 
   var ob=!custom?obligations():[];
@@ -1744,7 +1758,7 @@ function obligations(){ // fixed income and expenses per cycle from now to the e
 function advice(c,o){ // data-backed points for the current cycle: what to expect and what to do
   var st=settings(),out=[],tN=dnum(todayStr());
   // 1) money left for variable spending, and the pace once a week has passed
-  var I=o.income+o.upInc,fixAll=o.fixedPaid+o.upExp,free=I-fixAll,daysLeft=Math.max(1,c.e-tN+1),leftVar=free-o.variable,perDay=leftVar/daysLeft;
+  var I=o.income+o.upInc+(o.sav||0),fixAll=o.fixedPaid+o.upExp,free=I-fixAll,daysLeft=Math.max(1,c.e-tN+1),leftVar=free-o.variable,perDay=leftVar/daysLeft;
   if(I>0){
     if(o.elapsed>=7&&o.remainingDays>0){var rate=o.variable/o.elapsed,proj=rate*c.days;
       if(proj>free)out.push({s:'warn',h:'بمعدل صرفك المتغيّر الحالي ('+money(rate)+' يومياً) يصل إلى <b>'+money(proj)+'</b> ر.س، فوق المتاح بعد الثابت بـ '+money(proj-free)+'. لتبقى ضمنه لا تتجاوز <b>'+money(Math.max(0,perDay))+'</b> ر.س يومياً حتى '+esc(dayLabel(c.end))+'.'});
@@ -1918,6 +1932,7 @@ function renderBudget(){
     bs+='<div class="tiles" style="margin-top:12px"><div class="tile"><div class="k">صرفت</div><div class="v exp">'+money(a.spent)+'</div><div class="u">من '+fmt(a.limit)+'</div></div><div class="tile"><div class="k">التزامات قادمة</div><div class="v">'+money(a.upExp)+'</div><div class="u">قبل نهاية الدورة</div></div><div class="tile"><div class="k">المتاح يومياً</div><div class="v'+(a.perDay<0?' bad':'')+'">'+smoney(a.perDay)+'</div><div class="u">باقي '+daysTxt(a.daysLeft)+'</div></div></div>';
     if(a.free<0)bs+='<p class="foot"><b style="color:var(--bad)">تجاوزت الحد بـ '+fmt(-a.free)+' ر.س</b></p>';
   }else bs='';
+  if(st.savAcc){var sb=bankBalance(st.savAcc,tN);bs+='<p class="foot" style="margin-top:10px">رصيد المدخرات'+(/مدخر|ادخار|توفير/.test(st.savAcc)?'':' ('+esc(st.savAcc)+')')+': <b>'+money(sb)+'</b> ر.س · '+(a.sav>0?'أضفت منه '+fmt(a.sav)+' ر.س لهذه الدورة':a.sav<0?'حوّلت إليه '+fmt(-a.sav)+' ر.س من هذه الدورة':'لا يدخل في الدورة إلا بالتحويل منه')+'</p>'}
   $('#budgetStatus').innerHTML=bs;
 
   var msA=mainSalary(),c0d=msA?msA.day:parseYmd(c.start).getDate(),cpos=function(r){var L=r.link?recById(r.link):null,d=L&&L.id!==r.id?L.day:r.day;return (d-c0d+31)%31};
@@ -2027,6 +2042,7 @@ function renderSettings(){
   $('#cycleDayLbl').textContent=st.cycleMode==='salary'?'يوم الراتب المتوقع':'يوم بداية الدورة';
   if($('#cyclesAhead').open)renderCyclesAhead();
   $('#catEdit').innerHTML=st.cats.map(function(c){return '<button type="button" class="chip" data-rmcat="'+esc(c)+'" aria-label="إزالة '+esc(c)+'">'+esc(c)+'<span aria-hidden="true">×</span></button>'}).join('');
+  if(document.activeElement!==$('#savAcc')){$('#savAcc').innerHTML='<option value="">لا يوجد</option>'+st.banks.map(function(b){return '<option>'+esc(b)+'</option>'}).join('');$('#savAcc').value=st.savAcc||''}
   $('#bankEdit').innerHTML=st.banks.map(function(c){var img=st.bankImg[c];
     return '<div class="bankrow"><span class="ico '+hueOf(c)+'">'+(img?'<img src="'+img+'" alt="">':monogram(c))+'</span><span class="bn">'+esc(c)+'</span>'+
       '<label class="btn filelbl">'+(img?'تغيير الصورة':'إضافة صورة')+'<input type="file" accept="image/*" data-bankimg="'+esc(c)+'"></label>'+
@@ -2479,7 +2495,7 @@ document.addEventListener('click',function(e){
   if(d.act==='open-settings'){renderSettings();openSheet('#setSheet');return}
   if(d.delCb!==undefined){if(S.demo)return demoBlock().catch(function(){});delete S.settings.catBudgets[d.delCb];saveSettings().catch(failToast);return}
   if(d.rmbankimg!==undefined){if(S.demo)return demoBlock().catch(function(){});delete S.settings.bankImg[d.rmbankimg];saveSettings().then(renderSettings).catch(failToast);return}
-  if(d.rmbank!==undefined){if(S.demo)return demoBlock().catch(function(){});delete S.settings.bankImg[d.rmbank];S.settings.banks=S.settings.banks.filter(function(c){return c!==d.rmbank});saveSettings().catch(failToast);return}
+  if(d.rmbank!==undefined){if(S.demo)return demoBlock().catch(function(){});delete S.settings.bankImg[d.rmbank];S.settings.banks=S.settings.banks.filter(function(c){return c!==d.rmbank});if(S.settings.savAcc===d.rmbank)S.settings.savAcc='';saveSettings().catch(failToast);return}
   if(d.rmcat!==undefined||d.rminc!==undefined){
     if(S.demo)return demoBlock().catch(function(){});
     var key=d.rmcat!==undefined?'cats':'incCats',v=d.rmcat!==undefined?d.rmcat:d.rminc;
@@ -2666,6 +2682,7 @@ $('#openForm').addEventListener('submit',function(e){
 });
 $('#cyclesAhead').addEventListener('toggle',function(){if(this.open)renderCyclesAhead()});
 $('#cycleRec').addEventListener('change',function(){var v=this.value;if(S.demo){S.demo.settings.cycleRec=v;bump();render();return}S.settings.cycleRec=v;S.cycleOffset=0;saveSettings().catch(failToast)});
+$('#savAcc').addEventListener('change',function(){if(S.demo){demoBlock().catch(function(){});return}S.settings.savAcc=this.value;saveSettings().then(renderSettings).catch(failToast)});
 $('#cycleMode').addEventListener('change',function(){var v=this.value;if(S.demo){S.demo.settings.cycleMode=v;bump();render();return}S.settings.cycleMode=v;S.cycleOffset=0;saveSettings().catch(failToast)});
 $('#cycleDay').addEventListener('change',function(){var v=+this.value;if(S.demo){S.demo.settings.cycleDay=v;bump();render();return}S.settings.cycleDay=v;saveSettings().catch(failToast)});
 $('#expCsv').addEventListener('click',function(){exportData('csv')});
