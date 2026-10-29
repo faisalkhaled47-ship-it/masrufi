@@ -244,6 +244,13 @@ summary::-webkit-details-marker{display:none}
 .fx-meta.warn{color:var(--warn);font-weight:600}
 .fx-meta .nw{white-space:nowrap}
 .tile.wide{grid-column:1/-1}
+.sms-btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:11px 14px;border-radius:14px;border:1px dashed var(--accent);background:var(--accent-soft);color:var(--accent);font:inherit;font-weight:600;font-size:14px;cursor:pointer}
+.sms-btn svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2;stroke-linejoin:round;stroke-linecap:round}
+#smsText{min-height:120px;resize:vertical;line-height:1.6;text-align:right;font:inherit;font-size:14px;letter-spacing:normal}
+.sms-card{border-radius:14px;background:var(--surface-2);padding:6px 14px}
+.sms-r{display:flex;justify-content:space-between;align-items:baseline;gap:12px;padding:7px 0;border-bottom:1px solid var(--line);font-size:13.5px}
+.sms-r:last-child{border-bottom:0}.sms-r span{color:var(--muted)}.sms-r b{font-weight:600;text-align:left}.sms-r b.miss{color:var(--warn);font-weight:500}
+.sms-w{color:var(--warn);margin:6px 2px 0}
 :root{--k-we:#E4F3EA;--k-we-i:#2C7A52;--k-off:#DDEAF9;--k-off-i:#1F5FA6;--k-extra:#ECE4FA;--k-extra-i:#6640BD;--k-eid:#FBE1EC;--k-eid-i:#B0255C;--k-ram:#C4900F;--k-mark:#D4651A}
 @media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--k-we:#304A3F;--k-we-i:#8FD8B1;--k-off:#2F4566;--k-off-i:#9CC6F6;--k-extra:#463A6B;--k-extra-i:#C9B2F6;--k-eid:#5E3348;--k-eid-i:#F4A2C4;--k-ram:#E9C35C;--k-mark:#F39A55}}
 :root[data-theme="dark"]{--k-we:#304A3F;--k-we-i:#8FD8B1;--k-off:#2F4566;--k-off-i:#9CC6F6;--k-extra:#463A6B;--k-extra-i:#C9B2F6;--k-eid:#5E3348;--k-eid-i:#F4A2C4;--k-ram:#E9C35C;--k-mark:#F39A55}
@@ -683,6 +690,7 @@ html[data-skin=pro] .tab[aria-current="page"] svg{fill-opacity:.25}
   <section id="v-add" class="view">
     <form id="addForm" class="card entry" novalidate autocomplete="off">
       <div class="seg" role="group" aria-label="نوع العملية"><button type="button" data-type="exp" aria-pressed="true">مصروف</button><button type="button" data-type="inc" aria-pressed="false">دخل</button><button type="button" data-type="trf" aria-pressed="false">تحويل</button></div>
+      <button type="button" class="sms-btn" data-act="sms"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 5h16v11H8l-4 4z"/><path d="M8 9h8M8 12h5"/></svg>لصق رسالة البنك</button>
       <div>
         <label for="amt" class="lbl">المبلغ</label>
         <div class="amt-row"><input id="amt" name="amt" inputmode="decimal" enterkeyhint="done" placeholder="0.00" aria-describedby="formErr"><span class="cur">ر.س</span></div>
@@ -845,6 +853,19 @@ html[data-skin=pro] .tab[aria-current="page"] svg{fill-opacity:.25}
       <button class="primary" type="submit">حفظ</button>
       <button class="btn danger full" type="button" id="remDel">حذف</button>
     </form>
+  </div>
+</div>
+<div id="smsSheet" class="sheet" hidden>
+  <div class="panel" role="dialog" aria-modal="true" aria-labelledby="smsTitle">
+    <div class="grab"></div>
+    <div class="panel-h"><h2 id="smsTitle">رسالة البنك</h2><button type="button" class="link" data-close>إغلاق</button></div>
+    <div class="view" style="gap:10px">
+      <p class="foot" style="margin:0">انسخ رسالة العملية من الرسائل والصقها هنا. القراءة تتم على جوالك فقط.</p>
+      <textarea id="smsText" class="field" rows="6" dir="auto" placeholder="الصق الرسالة هنا"></textarea>
+      <button type="button" class="btn full" data-act="sms-paste" id="smsPaste" hidden>لصق من الحافظة</button>
+      <div id="smsOut"></div>
+      <button type="button" class="primary" id="smsUse" hidden>تعبئة النموذج</button>
+    </div>
   </div>
 </div>
 <div id="savSheet" class="sheet" hidden>
@@ -1102,6 +1123,7 @@ function normSettings(s){
   o.cycleDay=Math.min(28,Math.max(1,parseInt(o.cycleDay,10)||27));
   o.cycleRec=typeof o.cycleRec==='string'?o.cycleRec.slice(0,24):'';
   o.eduReg=['std','west','off'].indexOf(o.eduReg)>=0?o.eduReg:'std';
+  ['smsBanks','smsCats'].forEach(function(k){var src=o[k]&&typeof o[k]==='object'?o[k]:{},out={};Object.keys(src).slice(-200).forEach(function(x){if(typeof src[x]==='string')out[String(x).slice(0,40)]=src[x].slice(0,40)});o[k]=out});
   o.budget=+o.budget||0;o.saveGoal=Math.min(90,Math.max(0,+o.saveGoal||0));
   if(!o.catBudgets||typeof o.catBudgets!=='object')o.catBudgets={};
   if(!Array.isArray(o.recurring))o.recurring=[];
@@ -2031,6 +2053,81 @@ function renderReminders(){
   box.innerHTML='<div class="fx-h"><span>الزواجات منذ بداية التسجيل</span>'+(wed.length?'<span class="t">'+wed.length+' · <b dir="ltr">'+fmt(tot)+'</b></span>':'')+'</div>'+
     (wed.length?'<p class="foot" style="margin:6px 0 2px">دفعت <b>'+money(tot)+'</b> ر.س في '+wedTxt(wed.length)+' منذ '+esc(dayLabel(first)+' '+parseYmd(first).getFullYear())+'، بمتوسط '+money(tot/wed.length)+' ر.س.</p>'+wed.slice(0,30).map(function(it){return rowHtml(it,true)}).join(''):'<p class="foot">لا توجد عمليات زواج مسجلة بعد. سجّلها في فئة «'+esc(catsFor('exp').filter(function(c){return WED_RE.test(c)})[0]||'زواجات')+'» لتظهر هنا.</p>');
 }
+/* ---------- reading a bank text message (on the device, no AI) ---------- */
+function smsNorm(t){return String(t||'').replace(/[‎‏‪-‮⁦-⁩]/g,'').replace(/[٠-٩]/g,function(d){return String('٠١٢٣٤٥٦٧٨٩'.indexOf(d))}).replace(/[۰-۹]/g,function(d){return String('۰۱۲۳۴۵۶۷۸۹'.indexOf(d))}).replace(/٫/g,'.').replace(/٬/g,',').replace(/\r/g,'').replace(/：/g,':')}
+var SMS_BANKS=[[/راجحي|rajhi/i,/راجحي/],[/الأهلي|الاهلي|\bsnb\b|al\s*ahli|alahli/i,/أهلي|اهلي/],[/stc\s*bank|stcbank|اس\s*تي\s*سي\s*بنك/i,/stc/i],[/برق|\bbarq\b/i,/برق/],[/الجزيرة|aljazira|\bajb\b/i,/جزيرة/],[/الإنماء|الانماء|alinma/i,/إنماء|انماء/],[/بنك\s*الرياض|riyad\s*bank/i,/رياض/],[/البلاد|albilad/i,/بلاد/],[/\bsab\b|ساب/i,/ساب/],[/الفرنسي|fransi|\bbsf\b/i,/فرنسي/],[/البنك\s*العربي|\banb\b/i,/العربي/],[/\bd360\b|دال\s*360/i,/360/],[/urpay|يور\s*باي/i,/يور|urpay/i]];
+var SMS_CAT=[[/jahez|جاهز|hunger\s*station|هنقر|mrsool|مرسول|chefz|شفز|keeta|كيتا|toyou|تويو|restaurant|مطعم|burger|برجر|pizza|بيتزا|\bkfc\b|mcdonald|ماكدونالد|albaik|البيك|kudu|كودو|shawarma|شاورما|grill|مشويات|مندي/i,/مطاعم|مطعم/],
+  [/starbucks|ستاربكس|\bcaf[eé]\b|coffee|كوفي|قهوة|كافيه|dunkin|دانكن|barn'?s|بارنز|hortons|هورتنز|half\s*million|كيان/i,/قهو|كافي|كوفي/],
+  [/panda|بنده|danube|الدانوب|othaim|العثيم|tamimi|التميمي|\blulu\b|لولو|carrefour|كارفور|nesto|نستو|farm\s*super|سوبر\s*ماركت|supermarket|hyper|هايبر|بقالة|تموينات|grocery|ماركت/i,/بقال|تموين|سوبر/],
+  [/aldrees|الدريس|sasco|ساسكو|petromin|بترومين|\bnaft\b|نفط|محطة|\bfuel\b|petrol|gas\s*station|محروقات|بنزين/i,/وقود|بنزين|محروقات/],
+  [/\bstc\b(?!\s*pay)|mobily|موبايلي|\bzain\b|زين|electric|الكهرباء|كهرباء|المياه|\bwater\b|فاتورة|virgin|lebara|ليبارا|salam\s*mobile/i,/فواتير|فاتورة/],
+  [/netflix|نتفلكس|shahid|شاهد|spotify|سبوتيفاي|apple\.com|itunes|icloud|youtube|يوتيوب|\bosn\b|anghami|أنغامي|انغامي|openai|chatgpt|anthropic|claude\.ai|playstation|xbox|steam/i,/اشتراك/],
+  [/pharma|صيدلي|nahdi|النهدي|dawaa|الدواء|hospital|مستشفى|clinic|عيادة|medical|طبي/i,/صحة|صحي|علاج|صيدل/],
+  [/\buber\b|اوبر|أوبر|careem|كريم|\bbolt\b|بولت|jeeny|جيني|saptco|سابتكو|parking|مواقف|taxi|تاكسي|metro|مترو/i,/مواصل|نقل|تاكسي/],
+  [/tabby|تابي|tamara|تمارا/i,/قسط|اقساط|أقساط/],
+  [/amazon|امازون|أمازون|\bnoon\b|shein|شي\s*ان|namshi|نمشي|centrepoint|سنتربوينت|ikea|ايكيا|\bextra\b|اكسترا|jarir|جرير|\bh&m\b|\bzara\b|زارا|\bmall\b|مول/i,/تسوق|مشتريات/],
+  [/barber|حلاق|صالون|salon/i,/حلاق|صالون/],[/laundry|مغسلة|dry\s*clean/i,/مغسل/]];
+function smsKey(m){return String(m||'').toLowerCase().replace(/[^a-z0-9؀-ۿ]+/g,' ').trim().slice(0,30)}
+function parseSms(raw){
+  var t=smsNorm(raw).trim();if(!t)return null;var o={warn:[]},st=settings();
+  var NUM='(\\d{1,3}(?:,\\d{3})+(?:\\.\\d{1,2})?|\\d+(?:\\.\\d{1,2})?)',CUR='(?:SAR|SR|ر\\.\\s?س|ريال|رس)\\.?';
+  var bad=/(رصيد\S*|المتاح|متاح|balance|available|limit|الحد)\s*[:\-]?\s*(?:SAR|SR|ريال)?\s*$/i,amt=null;
+  var m=new RegExp('(?:مبلغ|بمبلغ|المبلغ|بقيمة|قيمة|خصم|amount|amt|purchase\\s+of|payment\\s+of|withdrawal\\s+of|transfer\\s+of)\\s*[:\\-]?\\s*(?:'+CUR+'\\s*)?'+NUM,'i').exec(t);
+  if(m)amt=m[1];
+  if(!amt){var re=new RegExp('(?:'+CUR+'\\s*'+NUM+')|(?:'+NUM+'\\s*'+CUR+')','gi'),x;while((x=re.exec(t))){if(bad.test(t.slice(Math.max(0,x.index-18),x.index)))continue;amt=x[1]||x[2];break}}
+  o.amt=amt?Math.round(parseFloat(amt.replace(/,/g,''))*100)/100:null;
+  var inc=/حوالة\s*واردة|واردة|وارد|إيداع|ايداع|استلام|مستلمة|راتب|credited|received|deposit|incoming|استرداد|مسترد|refund/i.test(t)&&!/شراء|مشتريات|purchase|سحب/i.test(t);
+  o.type=inc?'inc':'exp';
+  o.pay=/apple\s*pay|ابل\s*باي|أبل\s*باي/i.test(t)?'أبل باي':/سحب\s*(?:نقدي|صراف|من\s*الصراف)|صراف|\batm\b|cash\s*withdrawal/i.test(t)?'نقدي':/ائتمان|credit\s*card|\bvisa\b|mastercard|ماستر\s*كارد|فيزا/i.test(t)&&!/مدى|mada/i.test(t)?'بطاقة ائتمانية':/حوالة|تحويل|transfer|سداد|sadad/i.test(t)?'تحويل':'مدى';
+  if(o.pay==='نقدي')o.warn.push('سحب من الصراف: إذا بتسجّل مصاريفك النقدية وقت ما تصرفها، لا تحفظ هذا مصروفاً حتى ما يتكرر.');
+  // who was paid, or who sent it
+  var lab=function(re){var mm=re.exec(t);return mm?mm[1].trim():''},merchant=lab(/(?:^|\n)\s*(?:لدى|عند|التاجر|المتجر|merchant|at)\s*:?\s*([^\n]+)/i)||lab(/لدى\s+([^\n،,]+?)(?:\s+(?:في|بتاريخ|on)\s|\s*$|\n)/)||lab(/\bat\s+([^\n,]+?)(?:\s+(?:on|with|via|using|by|card)\s|[.,]|\s*$|\n)/i);
+  if(!merchant)merchant=inc?lab(/(?:^|\n)\s*(?:من|المرسل|from)\s*:\s*([^\n]+)/i):lab(/(?:^|\n)\s*(?:إلى|الى|المستفيد|to)\s*:\s*([^\n]+)/i);
+  if(/^[x\*\d\s#-]+$/i.test(merchant))merchant='';
+  o.merchant=merchant.replace(/[\s.،,;:]+$/,'').slice(0,40);
+  // card or account, to remember which bank it belongs to
+  var c4=/(?:\*{2,}|x{2,}|بطاقة\s*:?\s*\**)(\d{4})\b/i.exec(t)||/(?:من|حساب|account)\s*:?\s*[x\*]+(\d{3,4})\b/i.exec(t);o.key=c4?c4[1]:'';
+  // bank: what was learned for this card, then the bank's name in the text
+  var bk=o.key&&st.smsBanks[o.key];if(bk&&st.banks.indexOf(bk)<0)bk='';
+  if(!bk)for(var i=0;i<SMS_BANKS.length&&!bk;i++)if(SMS_BANKS[i][0].test(t))st.banks.forEach(function(b){if(!bk&&SMS_BANKS[i][1].test(b))bk=b});
+  o.bank=bk||'';
+  // date: years first or last; two-digit groups are read the way that lands in the last 90 days
+  var tN=dnum(todayStr()),pick=null,ok=function(y,mo,d){if(y<100)y+=2000;if(mo<1||mo>12||d<1||d>31)return null;var ds=y+'-'+pad(mo)+'-'+pad(d),n=dnum(ds);return n<=tN&&n>=tN-90?ds:null};
+  var dm=/(\d{4})[-\/.](\d{1,2})[-\/.](\d{1,2})/.exec(t);if(dm)pick=ok(+dm[1],+dm[2],+dm[3]);
+  if(!pick){dm=/(\d{1,2})[-\/.](\d{1,2})[-\/.](\d{4})/.exec(t);if(dm)pick=ok(+dm[3],+dm[2],+dm[1])}
+  if(!pick){dm=/(?:^|[^\d.])(\d{2})[-\/.](\d{1,2})[-\/.](\d{2})(?![\d.])/.exec(t);if(dm){var a1=ok(+dm[1],+dm[2],+dm[3]),a2=ok(+dm[3],+dm[2],+dm[1]);pick=a1&&a2?(dnum(a1)>=dnum(a2)?a1:a2):(a1||a2)}}
+  o.date=pick||todayStr();o.dateFound=!!pick;
+  // category: what was chosen before for this payee, then common names
+  var cats=inc?st.incCats:st.cats,mk=smsKey(o.merchant),cat=mk&&st.smsCats[mk];if(cat&&cats.indexOf(cat)<0)cat='';
+  if(!cat&&inc){if(/راتب|salary|payroll/i.test(t)&&cats.indexOf(SALARY_CAT)>=0)cat=SALARY_CAT}
+  if(!cat&&!inc)for(var j=0;j<SMS_CAT.length&&!cat;j++)if(SMS_CAT[j][0].test(o.merchant+' '+t))cats.forEach(function(c2){if(!cat&&SMS_CAT[j][1].test(c2))cat=c2});
+  o.cat=cat||'';
+  if(o.amt==null)o.warn.unshift('ما لقيت المبلغ في الرسالة.');
+  return o;
+}
+function smsPreview(){
+  var o=parseSms($('#smsText').value),out=$('#smsOut'),use=$('#smsUse');S.smsParsed=o;
+  if(!o){out.innerHTML='';use.hidden=true;return}
+  var row=function(k,v,miss){return '<div class="sms-r"><span>'+k+'</span><b class="'+(miss?'miss':'')+'">'+v+'</b></div>'};
+  out.innerHTML='<div class="sms-card">'+row('النوع',o.type==='inc'?'دخل':'مصروف')+row('المبلغ',o.amt!=null?fmt(o.amt)+' ر.س':'غير موجود',o.amt==null)+row('البنك',o.bank?esc(o.bank):'اختره في النموذج',!o.bank)+(o.type==='exp'?row('طريقة الدفع',esc(o.pay)):'')+row(o.type==='inc'?'من':'الجهة',o.merchant?esc(o.merchant):'—',!o.merchant)+row('الفئة',o.cat?esc(o.cat):'اخترها في النموذج',!o.cat)+row('التاريخ',esc(dayLabel(o.date)+' '+parseYmd(o.date).getFullYear())+(o.dateFound?'':' (اليوم)'))+'</div>'+
+    o.warn.map(function(w){return '<p class="foot sms-w">'+esc(w)+'</p>'}).join('');
+  use.hidden=o.amt==null;
+}
+function smsUse(){
+  var o=S.smsParsed;if(!o||o.amt==null)return;
+  S.form.type=o.type;S.form.cat=o.cat||null;S.form.to=null;if(o.type==='exp')S.form.pay=o.pay;if(o.bank)S.form.bank=o.bank;S.form.fromSav=false;
+  $('#amt').value=String(o.amt);$('#note').value=o.merchant||'';$('#dt').value=o.date;S.form.dateTouched=o.date!==todayStr();
+  S.smsCtx={amt:o.amt,key:o.key,mk:smsKey(o.merchant)};
+  closeSheet('#smsSheet');setTab('add');renderAdd();renderSaveState();$('#formErr').textContent='';
+  try{window.scrollTo({top:0,behavior:'smooth'})}catch(e){window.scrollTo(0,0)}
+  toast(o.cat&&o.bank?'راجع العملية واضغط حفظ':'كمّل '+(!o.bank&&!o.cat?'البنك والفئة':!o.bank?'البنك':'الفئة')+' ثم احفظ');
+}
+function smsLearn(ctx,item){ // remember this card's bank and this payee's category for the next message
+  var st=S.settings,ch=false;
+  if(ctx.key&&item.bank&&st.smsBanks[ctx.key]!==item.bank){st.smsBanks[ctx.key]=item.bank;ch=true}
+  if(ctx.mk&&item.cat&&item.type!=='trf'&&st.smsCats[ctx.mk]!==item.cat){st.smsCats[ctx.mk]=item.cat;ch=true}
+  if(ch)saveSettings().catch(function(){});
+}
 function hijriOf(ds){ // Umm al-Qura date, or null where the browser has no Islamic calendar
   try{if(!hijriOf.f)hijriOf.f={d:new Intl.DateTimeFormat('en-u-ca-islamic-umalqura',{day:'numeric'}),m:new Intl.DateTimeFormat('ar-SA-u-ca-islamic-umalqura-nu-latn',{month:'long'}),n:new Intl.DateTimeFormat('en-u-ca-islamic-umalqura',{month:'numeric'})};
     var p=ds.split('-').map(Number),dt=new Date(p[0],p[1]-1,p[2],12),d=parseInt(hijriOf.f.d.format(dt),10);return isFinite(d)?{d:d,m:hijriOf.f.m.format(dt),mn:parseInt(hijriOf.f.n.format(dt),10)}:null}catch(e){return null}}
@@ -2278,7 +2375,7 @@ function renderSettings(){
 var _lastFocus=null;
 function openSheet(sel){_lastFocus=document.activeElement;var s=$(sel);s.hidden=false;document.body.style.overflow='hidden';var f=s.querySelector('[data-close]');if(f)f.focus()}
 function closeSheet(sel){var s=$(sel);if(s.hidden)return;s.hidden=true;if($$('.sheet').every(function(x){return x.hidden}))document.body.style.overflow='';if(_lastFocus&&_lastFocus.focus)try{_lastFocus.focus()}catch(e){}}
-function closeAll(){['#editSheet','#recSheet','#setSheet','#planSheet','#remSheet','#catSheet','#savSheet'].forEach(closeSheet)}
+function closeAll(){['#editSheet','#recSheet','#setSheet','#planSheet','#remSheet','#catSheet','#savSheet','#smsSheet'].forEach(closeSheet)}
 function syncEditType(cat){
   var t=$('#eType').value;
   $('#eCatWrap').hidden=t==='trf';$('#ePayWrap').hidden=t!=='exp';$('#eToWrap').hidden=t!=='trf';
@@ -2671,6 +2768,8 @@ document.addEventListener('click',function(e){
   if(d.type){if(S.form.type!==d.type){S.form.type=d.type;S.form.cat=null;S.form.to=null;$('#formErr').textContent='';$('#catChips').classList.remove('err');renderAdd();renderSaveState()}return}
   if(d.themeSet){pref('theme',d.themeSet);applyTheme();renderSettings();return}
   if(d.skinSet){pref('skin',d.skinSet);document.documentElement.setAttribute('data-skin',d.skinSet==='classic'?'classic':'pro');renderSettings();render();return}
+  if(d.act==='sms'){if(S.demo){demoBlock().catch(function(){});return}$('#smsText').value='';$('#smsOut').innerHTML='';$('#smsUse').hidden=true;$('#smsPaste').hidden=!(navigator.clipboard&&navigator.clipboard.readText);openSheet('#smsSheet');$('#smsText').focus();return}
+  if(d.act==='sms-paste'){navigator.clipboard.readText().then(function(tx){$('#smsText').value=tx||'';smsPreview()}).catch(function(){toast('ما قدرت أقرأ الحافظة. الصق الرسالة بنفسك في المربع.')});return}
   if(d.calday){S.calSel=d.calday;renderCalendar();return}
   if(d.calnav){S.calOff=(S.calOff||0)+(+d.calnav);S.calSel=null;renderCalendar();return}
   if(d.sav)return openSav(d.sav);
@@ -2764,7 +2863,9 @@ $('#addForm').addEventListener('submit',function(e){
   err.textContent='';
   var btn=$('#saveBtn');btn.dataset.busy='1';btn.disabled=true;btn.textContent='جارٍ الحفظ…';
   var payR=S.payingRem&&item.note===S.payingRem.name&&!inc&&!trf?S.payingRem:null;S.payingRem=null;
+  var smsC=S.smsCtx&&Math.abs(S.smsCtx.amt-item.amt)<0.005?S.smsCtx:null;S.smsCtx=null;
   putItem(item).then(function(){
+    if(smsC)smsLearn(smsC,item);
     if(payR){var st0=S.settings,msgR='';st0.reminders=(st0.reminders||[]).map(function(x){if(x.id!==payR.id)return x;if(x.rep==='yearly'){var nd=addYears(x.date,1);while(nd<=todayStr())nd=addYears(nd,1);msgR=' · موعده القادم '+dayLabel(nd)+' '+parseYmd(nd).getFullYear();return Object.assign({},x,{date:nd,amt:item.amt})}msgR=' · حُذفت من الدفعات القادمة';return null}).filter(Boolean);saveSettings().then(function(){toast('حُفظت الدفعة'+msgR)}).catch(failToast)}
     $('#amt').value='';$('#note').value='';S.form.cat=null;S.form.fromSav=false;S.form.dateTouched=false;$('#dt').value=todayStr();
     $('#amt').blur();$('#note').blur();renderCatChips();renderSavToggle();
@@ -2874,6 +2975,8 @@ function addCat(input,key){
   var v=input.value.trim().slice(0,24);if(!v)return;if(S.settings[key].indexOf(v)>=0){toast('الفئة موجودة.');return}
   S.settings[key].push(v);input.value='';saveSettings().then(renderSettings).catch(failToast);
 }
+var _smsT=0;$('#smsText').addEventListener('input',function(){clearTimeout(_smsT);_smsT=setTimeout(smsPreview,150)});
+$('#smsUse').addEventListener('click',smsUse);
 $('#savForm').addEventListener('submit',function(e){
   e.preventDefault();var mode=S.savMode,raw=$('#savAmt').value.trim(),v=parseAmt(raw),d=$('#savDt').value,err=$('#savErr'),st=S.settings;
   if(!/^\d{4}-\d{2}-\d{2}$/.test(d)){err.textContent='اختر التاريخ.';return}if(d>todayStr()){err.textContent='التاريخ في المستقبل.';return}
