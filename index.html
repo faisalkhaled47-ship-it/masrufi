@@ -244,6 +244,24 @@ summary::-webkit-details-marker{display:none}
 .fx-meta.warn{color:var(--warn);font-weight:600}
 .fx-meta .nw{white-space:nowrap}
 .tile.wide{grid-column:1/-1}
+:root{--k-we:#E4F3EA;--k-we-i:#2C7A52;--k-off:#DDEAF9;--k-off-i:#1F5FA6;--k-extra:#ECE4FA;--k-extra-i:#6640BD;--k-eid:#FBE1EC;--k-eid-i:#B0255C;--k-ram:#C4900F;--k-mark:#D4651A}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--k-we:#304A3F;--k-we-i:#8FD8B1;--k-off:#2F4566;--k-off-i:#9CC6F6;--k-extra:#463A6B;--k-extra-i:#C9B2F6;--k-eid:#5E3348;--k-eid-i:#F4A2C4;--k-ram:#E9C35C;--k-mark:#F39A55}}
+:root[data-theme="dark"]{--k-we:#304A3F;--k-we-i:#8FD8B1;--k-off:#2F4566;--k-off-i:#9CC6F6;--k-extra:#463A6B;--k-extra-i:#C9B2F6;--k-eid:#5E3348;--k-eid-i:#F4A2C4;--k-ram:#E9C35C;--k-mark:#F39A55}
+.cal-d.k-we{background:var(--k-we)}.cal-d.k-off{background:var(--k-off)}.cal-d.k-extra{background:var(--k-extra)}.cal-d.k-eid{background:var(--k-eid)}
+.cal-d.k-we b{color:var(--k-we-i)}.cal-d.k-off b{color:var(--k-off-i)}.cal-d.k-extra b{color:var(--k-extra-i)}.cal-d.k-eid b{color:var(--k-eid-i)}
+.cal-d.past.k-we,.cal-d.past.k-off,.cal-d.past.k-extra,.cal-d.past.k-eid{opacity:.5;box-shadow:none}
+.cal-d.past.k-we b,.cal-d.past.k-off b,.cal-d.past.k-extra b,.cal-d.past.k-eid b{color:var(--muted)}
+.cal-d.ram::before{content:"";position:absolute;top:5px;left:50%;width:14px;height:3px;margin-left:-7px;border-radius:2px;background:var(--k-ram)}
+.cal-d.k-mark{box-shadow:inset 0 0 0 2px var(--k-mark)}
+.cal-d.today.k-mark{box-shadow:0 8px 18px -8px var(--accent),inset 0 0 0 2px var(--k-mark)}
+.cal-next{font-size:12.5px;color:var(--ink-2);background:var(--k-off);border-radius:12px;padding:8px 12px;margin:-4px 0 14px;text-align:center}
+.cal-next b{color:var(--k-off-i)}
+.cal-chips{display:flex;flex-wrap:wrap;gap:6px;margin:2px 0 6px}
+.cc{font-size:12px;font-weight:600;padding:3px 10px;border-radius:999px}
+.cc-we{background:var(--k-we);color:var(--k-we-i)}.cc-off{background:var(--k-off);color:var(--k-off-i)}.cc-extra{background:var(--k-extra);color:var(--k-extra-i)}.cc-eid{background:var(--k-eid);color:var(--k-eid-i)}
+.cc-ram{background:var(--surface);color:var(--k-ram);box-shadow:inset 0 0 0 1px var(--k-ram)}.cc-mark{background:var(--surface);color:var(--k-mark);box-shadow:inset 0 0 0 1px var(--k-mark)}
+.sw.k-we{background:var(--k-we)}.sw.k-off{background:var(--k-off)}.sw.k-extra{background:var(--k-extra)}.sw.k-eid{background:var(--k-eid)}
+.sw.k-ram{background:var(--surface);box-shadow:inset 0 3px 0 var(--k-ram),inset 0 0 0 1px var(--line)}.sw.k-mark{box-shadow:inset 0 0 0 2px var(--k-mark)}
 .cal-h{display:flex;align-items:center;justify-content:space-between;gap:10px}
 .cal-nav{display:flex;gap:6px}
 .cal-nav button{width:34px;height:34px;border-radius:50%;border:0;background:var(--surface-2);color:var(--ink);display:grid;place-items:center;padding:0;cursor:pointer}
@@ -262,7 +280,6 @@ summary::-webkit-details-marker{display:none}
 .cal-d b{font-size:17px;font-weight:600;line-height:1.15;font-variant-numeric:tabular-nums}
 .cal-d small{font-size:10px;color:var(--muted);line-height:1.25;white-space:nowrap;max-width:94%;overflow:hidden;text-overflow:ellipsis}
 .cal-d small.mo{color:var(--accent);font-weight:600;font-size:9.5px}
-.cal-d.we:not(.today) b{color:var(--ink-2)}
 .cal-d.past{background:transparent;box-shadow:inset 0 0 0 1px var(--line)}
 .cal-d.past b{color:var(--muted);font-weight:500}
 .cal-d.past small{opacity:.7}
@@ -931,6 +948,11 @@ html[data-skin=pro] .tab[aria-current="page"] svg{fill-opacity:.25}
       <details id="cyclesAhead"><summary class="link" style="list-style:none;cursor:pointer" id="cyclesSum">عرض الدورات حتى نهاية السنة القادمة</summary><div id="cyclesTbl" class="tbl-wrap" style="margin-top:8px"></div></details>
     </div>
     <div class="sec">
+      <h3><label for="eduReg">التقويم الدراسي في تقويم الدورة</label></h3>
+      <select id="eduReg" class="field"><option value="std">باقي مناطق المملكة</option><option value="west">مكة المكرمة والمدينة المنورة وجدة والطائف</option><option value="off">لا تعرض التقويم الدراسي</option></select>
+      <p class="foot" style="margin-top:6px">مواعيد وزارة التعليم للعام 1448هـ (2026–2027) وبداية 1449هـ. رمضان والأعياد بتقويم أم القرى.</p>
+    </div>
+    <div class="sec">
       <h3>فئات المصروفات</h3>
       <div id="catEdit" class="chips catedit"></div>
       <form id="catForm" class="inline-form" style="grid-template-columns:minmax(0,1fr) auto" novalidate>
@@ -1079,6 +1101,7 @@ function normSettings(s){
   if(['salary','day','month'].indexOf(o.cycleMode)<0)o.cycleMode='salary';
   o.cycleDay=Math.min(28,Math.max(1,parseInt(o.cycleDay,10)||27));
   o.cycleRec=typeof o.cycleRec==='string'?o.cycleRec.slice(0,24):'';
+  o.eduReg=['std','west','off'].indexOf(o.eduReg)>=0?o.eduReg:'std';
   o.budget=+o.budget||0;o.saveGoal=Math.min(90,Math.max(0,+o.saveGoal||0));
   if(!o.catBudgets||typeof o.catBudgets!=='object')o.catBudgets={};
   if(!Array.isArray(o.recurring))o.recurring=[];
@@ -2009,8 +2032,33 @@ function renderReminders(){
     (wed.length?'<p class="foot" style="margin:6px 0 2px">دفعت <b>'+money(tot)+'</b> ر.س في '+wedTxt(wed.length)+' منذ '+esc(dayLabel(first)+' '+parseYmd(first).getFullYear())+'، بمتوسط '+money(tot/wed.length)+' ر.س.</p>'+wed.slice(0,30).map(function(it){return rowHtml(it,true)}).join(''):'<p class="foot">لا توجد عمليات زواج مسجلة بعد. سجّلها في فئة «'+esc(catsFor('exp').filter(function(c){return WED_RE.test(c)})[0]||'زواجات')+'» لتظهر هنا.</p>');
 }
 function hijriOf(ds){ // Umm al-Qura date, or null where the browser has no Islamic calendar
-  try{if(!hijriOf.f)hijriOf.f={d:new Intl.DateTimeFormat('en-u-ca-islamic-umalqura',{day:'numeric'}),m:new Intl.DateTimeFormat('ar-SA-u-ca-islamic-umalqura-nu-latn',{month:'long'})};
-    var p=ds.split('-').map(Number),dt=new Date(p[0],p[1]-1,p[2],12),d=parseInt(hijriOf.f.d.format(dt),10);return isFinite(d)?{d:d,m:hijriOf.f.m.format(dt)}:null}catch(e){return null}}
+  try{if(!hijriOf.f)hijriOf.f={d:new Intl.DateTimeFormat('en-u-ca-islamic-umalqura',{day:'numeric'}),m:new Intl.DateTimeFormat('ar-SA-u-ca-islamic-umalqura-nu-latn',{month:'long'}),n:new Intl.DateTimeFormat('en-u-ca-islamic-umalqura',{month:'numeric'})};
+    var p=ds.split('-').map(Number),dt=new Date(p[0],p[1]-1,p[2],12),d=parseInt(hijriOf.f.d.format(dt),10);return isFinite(d)?{d:d,m:hijriOf.f.m.format(dt),mn:parseInt(hijriOf.f.n.format(dt),10)}:null}catch(e){return null}}
+/* Ministry of Education calendar, 1448 AH (2026–2027), as announced; west = Makkah, Madinah, Jeddah and Taif.
+   Later years go here once the ministry publishes them. */
+var EDU_CAL={
+  both:[['2026-09-23','2026-09-26','off','إجازة اليوم الوطني'],['2026-10-25','2026-10-25','extra','إجازة إضافية'],['2026-11-20','2026-11-28','off','إجازة الخريف'],
+    ['2027-01-07','2027-01-07','end','نهاية الفصل الدراسي الأول'],['2027-01-08','2027-01-16','off','إجازة منتصف العام'],['2027-01-17','2027-01-17','start','بداية الفصل الدراسي الثاني'],
+    ['2027-02-19','2027-02-22','off','إجازة يوم التأسيس'],['2027-02-26','2027-03-13','off','إجازة عيد الفطر']],
+  std:[['2026-08-11','2026-08-11','start','عودة الإداريين'],['2026-08-16','2026-08-16','start','عودة المعلمين'],['2026-08-23','2026-08-23','start','بداية الدراسة'],
+    ['2026-11-29','2026-11-29','extra','إجازة إضافية'],['2027-01-07','2027-01-07','extra','إجازة إضافية'],['2027-04-11','2027-04-11','extra','إجازة إضافية'],
+    ['2027-05-07','2027-05-22','off','إجازة عيد الأضحى'],['2027-06-24','2027-06-24','end','نهاية العام الدراسي'],['2027-06-25','2027-08-21','off','الإجازة الصيفية للطلاب'],['2027-08-22','2027-08-22','start','بداية الدراسة 1449هـ']],
+  west:[['2026-08-16','2026-08-16','start','عودة الإداريين'],['2026-08-23','2026-08-23','start','عودة المعلمين'],['2026-08-30','2026-08-30','start','بداية الدراسة'],
+    ['2027-04-30','2027-05-22','off','إجازة عيد الأضحى'],['2027-07-01','2027-07-01','end','نهاية العام الدراسي'],['2027-07-02','2027-08-28','off','الإجازة الصيفية للطلاب'],['2027-08-29','2027-08-29','start','بداية الدراسة 1449هـ']]
+};
+function eduList(){var r=settings().eduReg||'std';return r==='off'?[]:EDU_CAL.both.concat(EDU_CAL[r]||[])}
+function dayInfo(ds){ // what kind of day it is: weekend, school holiday, Ramadan, Eid, school milestones
+  var d=parseYmd(ds),hj=hijriOf(ds),o={we:d.getDay()>=5,off:null,extra:false,marks:[],ram:0,eid:''};
+  eduList().forEach(function(e){if(ds<e[0]||ds>e[1])return;if(e[2]==='off')o.off=e[3];else if(e[2]==='extra')o.extra=true;else o.marks.push({k:e[2],t:e[3]})});
+  if(hj){if(hj.mn===9)o.ram=hj.d;if(hj.mn===10&&hj.d<=3)o.eid='عيد الفطر';if(hj.mn===12&&hj.d>=10&&hj.d<=13)o.eid='عيد الأضحى'}
+  o.fill=o.eid?'eid':o.off?'off':o.extra?'extra':o.we?'we':'';return o}
+function nextBreak(tN){ // the school holiday under way, or the next one
+  var l=eduList().filter(function(e){return e[2]==='off'||e[2]==='extra'}).sort(function(a,b){return a[0]<b[0]?-1:1});
+  for(var i=0;i<l.length;i++){var a=dnum(l[i][0]),b=dnum(l[i][1]),t=l[i][2]==='off'?l[i][3]:'';
+    // an extra day next to a holiday, or with only a weekend between, lengthens it
+    while(i+1<l.length&&dnum(l[i+1][0])<=b+3){var gap=true;for(var n=b+1;n<dnum(l[i+1][0]);n++)if(parseYmd(fromN(n)).getDay()<5)gap=false;if(!gap)break;i++;b=Math.max(b,dnum(l[i][1]));if(!t&&l[i][2]==='off')t=l[i][3]}
+    if(b>=tN)return {a:a,b:b,t:t||'إجازة إضافية'};}
+  return null}
 function hjShort(m){return m.replace('ربيع الأول','ربيع 1').replace('ربيع الآخر','ربيع 2').replace('جمادى الأولى','جمادى 1').replace('جمادى الآخرة','جمادى 2').replace(/^ذو /,'')}
 function renderCalendar(){
   var cur=curIdx(),c=cycleByIdx(cur+(S.calOff||0));S.calOff=c.idx-cur;
@@ -2025,11 +2073,14 @@ function renderCalendar(){
   if(c.e<tN)h+='<div class="cal-sum"><span>انتهت الدورة</span><span class="cal-bar"><i style="width:100%"></i></span><span><b>'+c.days+'</b> يوماً</span></div>';
   else if(c.s>tN)h+='<div class="cal-sum"><span>تبدأ بعد <b>'+(c.s-tN)+'</b> '+(c.s-tN===1?'يوم':'يوماً')+'</span><span class="cal-bar"><i style="width:0"></i></span><span><b>'+c.days+'</b> يوماً</span></div>';
   else h+='<div class="cal-sum"><span>مضى <b>'+passed+'</b></span><span class="cal-bar"><i style="width:'+(passed/c.days*100).toFixed(1)+'%"></i></span><span>باقي <b>'+left+'</b> مع اليوم</span></div>';
+  var nb=c.isCurrent?nextBreak(tN):null;
+  if(nb)h+='<div class="cal-next">'+(nb.a<=tN?'أنت في <b>'+esc(nb.t)+'</b> حتى '+esc(dayLabel(fromN(nb.b))):'أقرب إجازة: <b>'+esc(nb.t)+'</b> بعد '+daysTxt(nb.a-tN)+' · '+esc(AR_DAYS[parseYmd(fromN(nb.a)).getDay()]+' '+dayLabel(fromN(nb.a))))+(nb.b>nb.a?' ('+daysTxt(nb.b-nb.a+1)+')':'')+'</div>';
   h+='<div class="cal-wk">'+AR_DAYS_S.map(function(d,i){return '<span'+(i>=5?' class="we"':'')+'>'+d+'</span>'}).join('')+'</div><div class="cal-grid">';
+  var seen={};
   for(var i=0,f=parseYmd(c.start).getDay();i<f;i++)h+='<span class="cal-pad" aria-hidden="true"></span>';
   for(var n=c.s;n<=c.e;n++){
-    var ds=fromN(n),d=parseYmd(ds),g=d.getDate(),hj=hijriOf(ds),m=mk[n],cls=n<tN?'past':n===tN?'today':'next';
-    if(d.getDay()>=5)cls+=' we';if(n===sel)cls+=' sel';
+    var ds=fromN(n),d=parseYmd(ds),g=d.getDate(),hj=hijriOf(ds),m=mk[n],cls=n<tN?'past':n===tN?'today':'next',di=dayInfo(ds);
+    if(di.fill)cls+=' k-'+di.fill;if(di.ram)cls+=' ram';if(di.marks.length)cls+=' k-mark';if(n===sel)cls+=' sel';seen[di.fill]=1;if(di.ram)seen.ram=1;if(di.marks.length)seen.mark=1;
     var sub=g===1||n===c.s?'<small class="mo">'+AR_MONTHS[d.getMonth()]+'</small>':hj?(hj.d===1?'<small class="mo hj">'+esc(hjShort(hj.m))+'</small>':'<small>'+hj.d+'</small>'):'';
     var dots=m?(m.inc.length?'<i class="d-inc"></i>':'')+(m.exp.length?'<i class="d-exp"></i>':'')+(m.rem.length?'<i class="d-rem"></i>':''):'';
     h+='<button type="button" class="cal-d '+cls+'" data-calday="'+ds+'" aria-pressed="'+(n===sel)+'" aria-label="'+AR_DAYS[d.getDay()]+' '+g+' '+AR_MONTHS[d.getMonth()]+'"><b>'+g+'</b>'+sub+'<span class="dots">'+dots+'</span></button>';
@@ -2039,11 +2090,14 @@ function renderCalendar(){
   var sd=fromN(sel),sdd=parseYmd(sd),hs=hijriOf(sd),m2=mk[sel]||{inc:[],exp:[],rem:[],spent:0,cnt:0},dd=sel-tN;
   var rel=dd===0?'اليوم':dd===1?'بكرة':dd===-1?'أمس':dd>0?'بعد '+daysTxt(dd):'قبل '+daysTxt(-dd);
   var ln=function(cl,t,a){return '<div class="ln"><span class="t"><i class="'+cl+'"></i>'+esc(t)+'</span><span class="a '+cl+'" dir="ltr">'+a+'</span></div>'};
-  var body=m2.inc.map(function(o){return ln('d-inc',o.name,'+'+fmt(o.amt))}).join('')+m2.exp.map(function(o){return ln('d-exp',o.name+(o.done?' ✓':''),fmt(o.amt))}).join('')+m2.rem.map(function(o){return ln('d-rem',o.name,o.amt?fmt(o.amt):'—')}).join('');
+  var dI=dayInfo(sd),chips=[];
+  if(dI.eid)chips.push(['eid',dI.eid]);if(dI.off)chips.push(['off',dI.off]);if(dI.extra)chips.push(['extra','إجازة إضافية']);dI.marks.forEach(function(x){chips.push(['mark',x.t])});if(dI.ram)chips.push(['ram','رمضان · اليوم '+dI.ram]);if(dI.we&&!dI.off&&!dI.extra&&!dI.eid)chips.push(['we','عطلة نهاية الأسبوع']);
+  var body=(chips.length?'<div class="cal-chips">'+chips.map(function(x){return '<span class="cc cc-'+x[0]+'">'+esc(x[1])+'</span>'}).join('')+'</div>':'')+m2.inc.map(function(o){return ln('d-inc',o.name,'+'+fmt(o.amt))}).join('')+m2.exp.map(function(o){return ln('d-exp',o.name+(o.done?' ✓':''),fmt(o.amt))}).join('')+m2.rem.map(function(o){return ln('d-rem',o.name,o.amt?fmt(o.amt):'—')}).join('');
   if(sel<=tN)body+='<div class="ln spent"><span class="t">'+(m2.cnt?'صرفت في هذا اليوم ('+ops(m2.cnt)+')':'ما سجّلت صرفاً في هذا اليوم')+'</span><span class="a" dir="ltr">'+(m2.cnt?fmt(m2.spent):'')+'</span></div>';
-  else if(!body)body='<div class="ln"><span class="t muted">لا مواعيد ثابتة في هذا اليوم</span></div>';
+  else if(!m2.inc.length&&!m2.exp.length&&!m2.rem.length)body+='<div class="ln"><span class="t muted">لا مواعيد ثابتة في هذا اليوم</span></div>';
   h+='<div class="cal-det"><div class="cal-det-h"><b>'+AR_DAYS[sdd.getDay()]+' '+sdd.getDate()+' '+AR_MONTHS[sdd.getMonth()]+'</b><span>'+(hs?hs.d+' '+esc(hs.m)+' · ':'')+rel+'</span></div>'+body+'</div>';
-  h+='<div class="cal-leg"><span><i class="sw past"></i>مضى</span><span><i class="sw today"></i>اليوم</span><span><i class="sw next"></i>باقي</span><span><i class="d-inc"></i>دخل</span><span><i class="d-exp"></i>التزام</span><span><i class="d-rem"></i>مناسبة</span></div>';
+  var LG=[['we','نهاية الأسبوع'],['off','إجازة دراسية'],['extra','إجازة إضافية'],['eid','عيد'],['ram','رمضان'],['mark','بداية ونهاية']].filter(function(x){return seen[x[0]]});
+  h+='<div class="cal-leg"><span><i class="sw past"></i>مضى</span><span><i class="sw today"></i>اليوم</span>'+LG.map(function(x){return '<span><i class="sw k-'+x[0]+'"></i>'+x[1]+'</span>'}).join('')+'</div><div class="cal-leg"><span><i class="d-inc"></i>دخل</span><span><i class="d-exp"></i>التزام</span><span><i class="d-rem"></i>مناسبة</span></div>';
   $('#calBody').innerHTML=h;
 }
 function renderSavings(){
@@ -2213,6 +2267,7 @@ function renderSettings(){
       '<label class="btn filelbl">'+(img?'تغيير الصورة':'إضافة صورة')+'<input type="file" accept="image/*" data-bankimg="'+esc(c)+'"></label>'+
       (img?'<button type="button" class="xbtn" data-rmbankimg="'+esc(c)+'">إزالة الصورة</button>':'')+
       '<button type="button" class="xbtn" data-rmbank="'+esc(c)+'" aria-label="حذف '+esc(c)+'">×</button></div>'}).join('');
+  $('#eduReg').value=st.eduReg||'std';
   if(document.activeElement!==$('#openDate'))$('#openDate').value=st.openDate||cycleAt(0).start;
   if(!$('#openRows').contains(document.activeElement))$('#openRows').innerHTML=st.banks.map(function(b){var v=(st.openBal||{})[b];return '<label class="openrow"><span class="bn">'+esc(b)+'</span><input class="field" inputmode="decimal" placeholder="0" data-openbal="'+esc(b)+'" value="'+(v?String(v):'')+'"></label>'}).join('');
   $('#incCatEdit').innerHTML=st.incCats.map(function(c){return '<button type="button" class="chip" data-rminc="'+esc(c)+'" aria-label="إزالة '+esc(c)+'">'+esc(c)+'<span aria-hidden="true">×</span></button>'}).join('');
@@ -2868,6 +2923,7 @@ $('#openForm').addEventListener('submit',function(e){
 $('#cyclesAhead').addEventListener('toggle',function(){if(this.open)renderCyclesAhead()});
 $('#cycleRec').addEventListener('change',function(){var v=this.value;if(S.demo){S.demo.settings.cycleRec=v;bump();render();return}S.settings.cycleRec=v;S.cycleOffset=0;saveSettings().catch(failToast)});
 $('#cycleMode').addEventListener('change',function(){var v=this.value;if(S.demo){S.demo.settings.cycleMode=v;bump();render();return}S.settings.cycleMode=v;S.cycleOffset=0;saveSettings().catch(failToast)});
+$('#eduReg').addEventListener('change',function(){if(S.demo){demoBlock().catch(function(){});return}S.settings.eduReg=this.value;saveSettings().catch(failToast)});
 $('#cycleDay').addEventListener('change',function(){var v=+this.value;if(S.demo){S.demo.settings.cycleDay=v;bump();render();return}S.settings.cycleDay=v;saveSettings().catch(failToast)});
 $('#expCsv').addEventListener('click',function(){exportData('csv')});
 $('#expXlsx').addEventListener('click',function(){exportExcel(cycleAt(0),this)});
