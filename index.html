@@ -1560,7 +1560,7 @@ function rowHtml(it,showDate){
 function renderSavToggle(){
   var show=S.form.type==='exp'&&savOn();$('#savWrap').hidden=!show;if(!show)return;
   var on=!!S.form.fromSav;$('#fromSav').setAttribute('aria-pressed',String(on));
-  $('#savHint').textContent=(on?'ما ينخصم من متاح الدورة · ':'')+'الرصيد '+fmt(savBalance(dnum(todayStr())))+' ر.س';
+  $('#savHint').textContent=on?'الرصيد '+fmt(savBalance(dnum(todayStr())))+' ر.س · ما ينخصم من متاح الدورة':'';$('#savHint').hidden=!on;
 }
 function renderAdd(){
   var inc=S.form.type==='inc',trf=S.form.type==='trf';
