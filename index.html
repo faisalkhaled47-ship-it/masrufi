@@ -244,6 +244,11 @@ summary::-webkit-details-marker{display:none}
 .fx-meta.warn{color:var(--warn);font-weight:600}
 .fx-meta .nw{white-space:nowrap}
 .tile.wide{grid-column:1/-1}
+.day-tile .dt-h{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.day-tile .dt-h>div+div{border-inline-start:1px solid var(--line)}
+.day-tile .dt-bar{height:6px;border-radius:999px;background:var(--surface-2);overflow:hidden;margin:10px 6px 2px}
+.day-tile .dt-bar i{display:block;height:100%;border-radius:999px;background:var(--accent)}
+.day-tile .dt-bar i.bad{background:var(--bad)}
 .sms-btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:11px 14px;border-radius:14px;border:1px dashed var(--accent);background:var(--accent-soft);color:var(--accent);font:inherit;font-weight:600;font-size:14px;cursor:pointer}
 .sms-btn svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:2;stroke-linejoin:round;stroke-linecap:round}
 .sms-in{position:relative}
@@ -1507,7 +1512,9 @@ function allowance(c){
   var basis=st.budget>0?'budget':(incomeGot+upInc+sav>0?'income':null);
   var limit=(st.budget>0?st.budget:(incomeGot+upInc)*(1-st.saveGoal/100))+sav;
   var free=limit-spent-upExp;
-  return {basis:basis,limit:limit,spent:spent,upExp:upExp,upInc:upInc,incomeGot:incomeGot,daysLeft:daysLeft,free:free,perDay:free/daysLeft,goal:st.saveGoal,sav:sav};
+  // today's allowance is fixed at the start of the day; what you spend today (fixed payments aside) comes out of it
+  var varToday=tN>=c.s&&tN<=c.e?sum(expItems().filter(function(it){return it.n===tN&&!isFixed(it)})):0,perDay=(free+varToday)/daysLeft;
+  return {basis:basis,limit:limit,spent:spent,upExp:upExp,upInc:upInc,incomeGot:incomeGot,daysLeft:daysLeft,free:free,perDay:perDay,varToday:varToday,leftToday:perDay-varToday,goal:st.saveGoal,sav:sav};
 }
 function basisText(a){return (a.basis==='budget'?'حسب ميزانيتك':'حسب دخل الدورة'+(a.goal?' بعد ادخار '+fmt0(a.goal)+'%':''))+(a.sav>0?' + '+fmt(a.sav)+' من المدخرات':a.sav<0?' − '+fmt(-a.sav)+' للمدخرات':'')}
 
@@ -1689,8 +1696,9 @@ function renderAdd(){
   if(hasInc){var net=a.incomeGot-a.spent;h+=tile('المتبقي من دخل الدورة',smoney(net),net<0?'bad':'good')}
   else if(st0.budget>0)h+=tile('المتبقي من الميزانية',smoney(st0.budget-a.spent),a.free<0?'bad':'good');
   else h+=tile('المتبقي من دخل الدورة','—');
-  // what is left for the cycle, after the fixed payments still to come, spread over the days left (today included)
-  h+='<div class="tile wide"><div class="k">المتاح لكل يوم حتى نهاية الدورة</div><div class="v '+(a.basis?(a.perDay<0?'bad':'good'):'')+'">'+(a.basis?smoney(a.perDay):'—')+'</div><div class="u">'+(a.basis?esc(fmt(a.free))+' ر.س ÷ '+daysTxt(a.daysLeft)+(a.upExp>0?' · بعد التزامات قادمة '+esc(fmt(a.upExp)):''):'يظهر بعد تسجيل دخل الدورة أو تحديد ميزانية')+'</div></div>';
+  // today's share of what is left for the cycle, and what remains of it after today's spending
+  h+='<div class="tile wide day-tile"><div class="dt-h"><div><div class="k">المتاح لكل يوم</div><div class="v">'+(a.basis?smoney(a.perDay):'—')+'</div></div><div><div class="k">المتبقي منه اليوم</div><div class="v '+(a.basis?(a.leftToday<0?'bad':'good'):'')+'">'+(a.basis?smoney(a.leftToday):'—')+'</div></div></div>'+
+    (a.basis&&a.perDay>0?'<div class="dt-bar"><i class="'+(a.leftToday<0?'bad':'')+'" style="width:'+Math.min(100,Math.max(0,a.varToday/a.perDay*100)).toFixed(1)+'%"></i></div>':'')+'</div>';
   $('#addSummary').innerHTML=h;
   var rec=getItems().slice(0,6);
   $('#recent').innerHTML=rec.length?rec.map(function(it){return rowHtml(it,true)}).join(''):'<div class="empty"><b>لا توجد عمليات بعد</b></div>';

@@ -1,5 +1,5 @@
 // مصروفي: keeps the app shell cached so it opens without internet.
-const V='masrufi-e70f7c2044';
+const V='masrufi-19d33ae925';
 const SHELL=['./','index.html','manifest.webmanifest','icon-180.png','icon-192.png','icon-512.png','exceljs.min.js'];
 self.addEventListener('install',e=>{e.waitUntil(caches.open(V).then(c=>c.addAll(SHELL)).then(()=>self.skipWaiting()))});
 self.addEventListener('activate',e=>{e.waitUntil(caches.keys().then(ks=>Promise.all(ks.filter(k=>k!==V).map(k=>caches.delete(k)))).then(()=>self.clients.claim()))});
