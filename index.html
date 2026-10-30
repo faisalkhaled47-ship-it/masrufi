@@ -256,6 +256,13 @@ summary::-webkit-details-marker{display:none}
 .sms-top b.exp{color:var(--bad)}.sms-top b.inc{color:var(--good)}.sms-top b.trf{color:var(--ink-2)}
 .sms-top .sk{font-size:12px;font-weight:600;color:var(--ink-2);background:var(--surface);border-radius:999px;padding:2px 10px}
 .sms-chips{display:flex;flex-wrap:wrap;gap:5px}
+button.sc{border:0;font-family:inherit;color:var(--ink);cursor:pointer}
+.sc.on{box-shadow:inset 0 0 0 2px var(--accent)}
+.sms-top .sk{border:0;font-family:inherit;cursor:pointer}.sms-top .sk.on{box-shadow:inset 0 0 0 2px var(--accent)}
+.sms-pick{display:flex;gap:6px;overflow-x:auto;margin:10px -12px -2px;padding:2px 12px 4px;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+.sms-pick::-webkit-scrollbar{display:none}
+.sp{flex:none;border:0;border-radius:999px;padding:7px 13px;background:var(--surface);color:var(--ink);font:inherit;font-size:13.5px;font-weight:600;white-space:nowrap;cursor:pointer;box-shadow:inset 0 0 0 1px var(--line)}
+.sp.on{background:var(--accent);color:var(--accent-ink);box-shadow:none}
 .sc{display:inline-flex;align-items:baseline;gap:4px;font-size:12.5px;font-weight:600;background:var(--surface);border-radius:8px;padding:3px 8px;max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .sc i{font-style:normal;font-weight:400;color:var(--muted);font-size:11.5px}
 .sc.miss{color:var(--warn);box-shadow:inset 0 0 0 1px var(--warn)}
@@ -2133,18 +2140,33 @@ function parseSms(raw){
   return o;
 }
 function smsPreview(){
-  var o=parseSms($('#smsText').value),out=$('#smsOut'),use=$('#smsUse');S.smsParsed=o;
-  if(!o){out.innerHTML='';use.hidden=true;return}
-  var trf=o.type==='trf',chip=function(k,v,miss){return '<span class="sc'+(miss?' miss':'')+'"><i>'+k+'</i>'+v+'</span>'};
+  var o=parseSms($('#smsText').value),out=$('#smsOut'),use=$('#smsUse'),st=settings(),ov=S.smsOver||(S.smsOver={});
+  if(!o){S.smsParsed=null;out.innerHTML='';use.hidden=true;return}
+  // what you picked here wins over what was read
+  if(ov.type&&ov.type!==o.type){o.type=ov.type;if(o.type!=='trf')o.to='';o.cat=''}
+  if(ov.bank)o.bank=ov.bank;if(ov.to)o.to=ov.to;if(ov.cat)o.cat=ov.cat;
+  if(o.type==='trf'&&o.to===o.bank)o.to='';
+  S.smsParsed=o;
+  var trf=o.type==='trf',chip=function(k,v,miss,pk){return '<button type="button" class="sc'+(miss?' miss':'')+(S.smsPick===pk?' on':'')+'" data-smspick="'+pk+'"><i>'+k+'</i>'+v+'</button>'},still=function(k,v){return '<span class="sc st"><i>'+k+'</i>'+v+'</span>'};
   var kind=trf?'تحويل بين حساباتك':o.type==='inc'?'دخل':'مصروف';
-  out.innerHTML='<div class="sms-sum"><div class="sms-top"><b class="'+(trf?'trf':o.type==='inc'?'inc':'exp')+'">'+(o.amt!=null?fmt(o.amt)+'<small> ر.س</small>':'—')+'</b><span class="sk">'+kind+'</span></div><div class="sms-chips">'+
-    chip(trf?'من':'البنك',o.bank?esc(o.bank):'اختره',!o.bank)+(trf?chip('إلى',esc(o.to)):'')+(o.type==='exp'?chip('الدفع',esc(o.pay)):'')+
-    (trf?'':chip(o.type==='inc'?'من':'الجهة',o.merchant?esc(o.merchant):'—')+chip('الفئة',o.cat?esc(o.cat):'اخترها',!o.cat))+
-    chip('التاريخ',esc(dayLabel(o.date))+(o.dateFound?'':' (اليوم)'))+'</div></div>'+
-    o.warn.map(function(w){return '<p class="sms-w">'+esc(w)+'</p>'}).join('');
-  // already recorded? fixed items such as the salary or an installment are entered automatically
-  var dup=null;if(o.amt!=null){var dn=dnum(o.date);data().list.forEach(function(it){if(!dup&&Math.abs(it.amt-o.amt)<0.005&&Math.abs(it.n-dn)<=3&&((it.type||'exp')===o.type||it.type==='trf'||o.type==='trf'))dup=it})}
-  if(dup)out.innerHTML+='<p class="sms-w">يبدو أنها مسجّلة: «'+esc(dup.note||dup.cat)+'» '+fmt(dup.amt)+' ر.س يوم '+esc(dayLabel(dup.date))+(dup.rec?' (ثابت يُسجَّل تلقائياً)':'')+'. لا تحفظها مرة ثانية.</p>';
+  // the first thing still missing gets its choices shown straight away
+  if(S.smsPick===undefined)S.smsPick=!o.bank?'bank':trf&&!o.to?'to':!trf&&!o.cat?'cat':null;
+  var h='<div class="sms-sum"><div class="sms-top"><b class="'+(trf?'trf':o.type==='inc'?'inc':'exp')+'">'+(o.amt!=null?fmt(o.amt)+'<small> ر.س</small>':'—')+'</b><button type="button" class="sk'+(S.smsPick==='type'?' on':'')+'" data-smspick="type">'+kind+' ▾</button></div><div class="sms-chips">'+
+    chip(trf?'من':'البنك',o.bank?esc(o.bank):'اختره',!o.bank,'bank')+(trf?chip('إلى',o.to?esc(o.to):'اختره',!o.to,'to'):'')+(o.type==='exp'?still('الدفع',esc(o.pay)):'')+
+    (trf?'':still(o.type==='inc'?'من':'الجهة',o.merchant?esc(o.merchant):'—')+chip('الفئة',o.cat?esc(o.cat):'اخترها',!o.cat,'cat'))+
+    still('التاريخ',esc(dayLabel(o.date))+(o.dateFound?'':' (اليوم)'))+'</div>';
+  var opts=null,cur='';
+  if(S.smsPick==='bank'){opts=st.banks;cur=o.bank}
+  else if(S.smsPick==='to'){opts=st.banks.filter(function(b){return b!==o.bank});cur=o.to}
+  else if(S.smsPick==='cat'){var cats=o.type==='inc'?st.incCats:st.cats,cnt=catUsage(o.type==='inc'?'inc':'exp');opts=cats.slice().sort(function(x,y){return (cnt[y]||0)-(cnt[x]||0)});cur=o.cat}
+  else if(S.smsPick==='type'){opts=['exp','inc','trf'];cur=o.type}
+  if(opts){var lbl={exp:'مصروف',inc:'دخل',trf:'تحويل بين حساباتك'};
+    h+='<div class="sms-pick">'+opts.map(function(v){return '<button type="button" class="sp'+(v===cur?' on':'')+'" data-smsset="'+S.smsPick+'" data-v="'+esc(v)+'">'+esc(S.smsPick==='type'?lbl[v]:v)+'</button>'}).join('')+'</div>'}
+  h+='</div>'+o.warn.map(function(w){return '<p class="sms-w">'+esc(w)+'</p>'}).join('');
+  // already recorded? fixed items such as the salary or an installment are entered automatically, sometimes a day or two off
+  var dup=null;if(o.amt!=null){var dn=dnum(o.date);data().list.forEach(function(it){var g=Math.abs(it.n-dn);if(!dup&&Math.abs(it.amt-o.amt)<0.005&&(g<=1||(it.rec&&g<=3))&&((it.type||'exp')===o.type||it.type==='trf'||o.type==='trf'))dup=it})}
+  if(dup)h+='<p class="sms-w">يبدو أنها مسجّلة: «'+esc(dup.note||dup.cat)+'» '+fmt(dup.amt)+' ر.س يوم '+esc(dayLabel(dup.date))+(dup.rec?' (ثابت يُسجَّل تلقائياً)':'')+'. لا تحفظها مرة ثانية.</p>';
+  out.innerHTML=h;
   use.textContent=dup?'تعبئة النموذج على أي حال':'تعبئة النموذج';
   use.hidden=o.amt==null;
 }
@@ -2804,8 +2826,12 @@ document.addEventListener('click',function(e){
   if(d.type){if(S.form.type!==d.type){S.form.type=d.type;S.form.cat=null;S.form.to=null;$('#formErr').textContent='';$('#catChips').classList.remove('err');renderAdd();renderSaveState()}return}
   if(d.themeSet){pref('theme',d.themeSet);applyTheme();renderSettings();return}
   if(d.skinSet){pref('skin',d.skinSet);document.documentElement.setAttribute('data-skin',d.skinSet==='classic'?'classic':'pro');renderSettings();render();return}
-  if(d.act==='sms'){if(S.demo){demoBlock().catch(function(){});return}$('#smsText').value='';$('#smsPaste').classList.remove('gone');$('#smsOut').innerHTML='';$('#smsUse').hidden=true;var canPaste=!!(navigator.clipboard&&navigator.clipboard.readText);$('#smsPaste').hidden=!canPaste;openSheet('#smsSheet');if(!canPaste)$('#smsText').focus();return} // with a paste button, the keyboard waits until you tap the box
-  if(d.act==='sms-paste'){navigator.clipboard.readText().then(function(tx){$('#smsText').value=tx||'';$('#smsPaste').classList.toggle('gone',!!tx);smsPreview()}).catch(function(){toast('ما قدرت أقرأ الحافظة. الصق الرسالة بنفسك في المربع.')});return}
+  if(d.act==='sms'){if(S.demo){demoBlock().catch(function(){});return}$('#smsText').value='';S.smsOver={};S.smsPick=undefined;$('#smsPaste').classList.remove('gone');$('#smsOut').innerHTML='';$('#smsUse').hidden=true;var canPaste=!!(navigator.clipboard&&navigator.clipboard.readText);$('#smsPaste').hidden=!canPaste;openSheet('#smsSheet');if(!canPaste)$('#smsText').focus();return} // with a paste button, the keyboard waits until you tap the box
+  if(d.smspick){S.smsPick=S.smsPick===d.smspick?null:d.smspick;smsPreview();return}
+  if(d.smsset){var ov=S.smsOver||(S.smsOver={});ov[d.smsset]=d.v;if(d.smsset==='type'){delete ov.cat;if(d.v!=='trf')delete ov.to}
+    var o2=parseSms($('#smsText').value);S.smsPick=null;smsPreview();o2=S.smsParsed;
+    if(o2){S.smsPick=!o2.bank?'bank':o2.type==='trf'&&!o2.to?'to':o2.type!=='trf'&&!o2.cat?'cat':null;if(S.smsPick)smsPreview()}return}
+  if(d.act==='sms-paste'){navigator.clipboard.readText().then(function(tx){$('#smsText').value=tx||'';S.smsOver={};S.smsPick=undefined;$('#smsPaste').classList.toggle('gone',!!tx);smsPreview()}).catch(function(){toast('ما قدرت أقرأ الحافظة. الصق الرسالة بنفسك في المربع.')});return}
   if(d.calday){S.calSel=d.calday;renderCalendar();return}
   if(d.calnav){S.calOff=(S.calOff||0)+(+d.calnav);S.calSel=null;renderCalendar();return}
   if(d.sav)return openSav(d.sav);
@@ -3012,7 +3038,7 @@ function addCat(input,key){
   var v=input.value.trim().slice(0,24);if(!v)return;if(S.settings[key].indexOf(v)>=0){toast('الفئة موجودة.');return}
   S.settings[key].push(v);input.value='';saveSettings().then(renderSettings).catch(failToast);
 }
-var _smsT=0;$('#smsText').addEventListener('input',function(){$('#smsPaste').classList.toggle('gone',!!this.value);clearTimeout(_smsT);_smsT=setTimeout(smsPreview,150)});
+var _smsT=0;$('#smsText').addEventListener('input',function(){S.smsOver={};S.smsPick=undefined;$('#smsPaste').classList.toggle('gone',!!this.value);clearTimeout(_smsT);_smsT=setTimeout(smsPreview,150)});
 $('#smsUse').addEventListener('click',smsUse);
 $('#savForm').addEventListener('submit',function(e){
   e.preventDefault();var mode=S.savMode,raw=$('#savAmt').value.trim(),v=parseAmt(raw),d=$('#savDt').value,err=$('#savErr'),st=S.settings;
