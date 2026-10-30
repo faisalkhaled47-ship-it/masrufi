@@ -1689,6 +1689,8 @@ function renderAdd(){
   if(hasInc){var net=a.incomeGot-a.spent;h+=tile('المتبقي من دخل الدورة',smoney(net),net<0?'bad':'good')}
   else if(st0.budget>0)h+=tile('المتبقي من الميزانية',smoney(st0.budget-a.spent),a.free<0?'bad':'good');
   else h+=tile('المتبقي من دخل الدورة','—');
+  // what is left for the cycle, after the fixed payments still to come, spread over the days left (today included)
+  h+='<div class="tile wide"><div class="k">المتاح لكل يوم حتى نهاية الدورة</div><div class="v '+(a.basis?(a.perDay<0?'bad':'good'):'')+'">'+(a.basis?smoney(a.perDay):'—')+'</div><div class="u">'+(a.basis?esc(fmt(a.free))+' ر.س ÷ '+daysTxt(a.daysLeft)+(a.upExp>0?' · بعد التزامات قادمة '+esc(fmt(a.upExp)):''):'يظهر بعد تسجيل دخل الدورة أو تحديد ميزانية')+'</div></div>';
   $('#addSummary').innerHTML=h;
   var rec=getItems().slice(0,6);
   $('#recent').innerHTML=rec.length?rec.map(function(it){return rowHtml(it,true)}).join(''):'<div class="empty"><b>لا توجد عمليات بعد</b></div>';
