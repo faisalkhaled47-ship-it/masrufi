@@ -244,6 +244,14 @@ summary::-webkit-details-marker{display:none}
 .fx-meta.warn{color:var(--warn);font-weight:600}
 .fx-meta .nw{white-space:nowrap}
 .tile.wide{grid-column:1/-1}
+.fund{border-radius:14px;background:var(--warn-soft);padding:12px 12px 10px}
+.fund-q{margin:0 0 8px;font-size:13.5px;color:var(--ink);text-align:right}
+.fund-chips{display:flex;flex-wrap:wrap;gap:6px}
+.fc{display:flex;flex-direction:column;align-items:center;gap:1px;border:0;border-radius:12px;padding:7px 12px;background:var(--surface);color:var(--ink);font:inherit;cursor:pointer;box-shadow:inset 0 0 0 1px var(--line)}
+.fc b{font-size:13.5px;font-weight:600}.fc small{font-size:11px;color:var(--muted)}
+.fc.on{background:var(--accent);box-shadow:none}.fc.on b,.fc.on small{color:var(--accent-ink)}
+.fc.skip b{font-weight:500;color:var(--ink-2)}
+.fund-amt{margin-top:10px}
 .day-tile .dt-h{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .day-tile .dt-h>div+div{border-inline-start:1px solid var(--line)}
 .day-tile .dt-bar{height:6px;border-radius:999px;background:var(--surface-2);overflow:hidden;margin:10px 6px 2px}
@@ -719,6 +727,11 @@ html[data-skin=pro] .tab[aria-current="page"] svg{fill-opacity:.25}
       <div id="catWrap" class="pick-sec"><span class="lbl sec-t" id="catLbl">الفئة</span><div id="catChips" class="cgrid" role="group" aria-labelledby="catLbl"></div></div>
       <div id="payWrap" class="pick-sec"><span class="lbl sec-t" id="payLbl">طريقة الدفع</span><div id="payChips" class="pgrid" role="group" aria-labelledby="payLbl"></div></div>
       <div id="bankWrap" class="pick-sec"><span class="lbl sec-t" id="bankLbl">البنك</span><div id="bankChips" class="pgrid" role="group" aria-labelledby="bankLbl"></div></div>
+      <div id="fundWrap" class="pick-sec fund" hidden>
+        <p class="fund-q" id="fundQ"></p>
+        <div class="fund-chips" id="fundChips"></div>
+        <div id="fundAmtWrap" class="fund-amt" hidden><label for="fundAmt" class="lbl">المبلغ المحوَّل</label><input id="fundAmt" class="field" inputmode="decimal"></div>
+      </div>
       <div id="savWrap" class="pick-sec" hidden><button type="button" class="savtog" data-act="fromsav" id="fromSav" aria-pressed="false"><span class="sw" aria-hidden="true"></span><span class="tx"><b>من المدخرات</b><small id="savHint"></small></span></button></div>
       <div id="toWrap" class="pick-sec" hidden><span class="lbl sec-t" id="toLbl">إلى حساب</span><div id="toChips" class="pgrid" role="group" aria-labelledby="toLbl"></div></div>
       <div class="row2 pick-sec">
@@ -847,6 +860,7 @@ html[data-skin=pro] .tab[aria-current="page"] svg{fill-opacity:.25}
       </div>
       <div><label for="eDate" class="lbl">التاريخ</label><input id="eDate" type="date" class="field"></div>
       <div><label for="eNote" class="lbl">ملاحظة</label><input id="eNote" class="field" maxlength="120"></div>
+      <div id="eFundWrap" hidden><label for="eFund" class="lbl">من وين جا المبلغ؟</label><div class="filters"><div><select id="eFund" class="field"></select></div><div><input id="eFundAmt" class="field" inputmode="decimal" placeholder="المبلغ المحوَّل" aria-label="المبلغ المحوَّل"></div></div><p class="foot" id="eFundTxt" style="margin:4px 2px 0"></p></div>
       <label class="check" id="eSavWrap" hidden><input type="checkbox" id="eFromSav"><span>من المدخرات (لا ينخصم من متاح الدورة)</span></label>
       <p id="editErr" class="ferr" role="alert"></p>
       <button class="primary" type="submit" id="eSave">حفظ التعديل</button>
@@ -1166,6 +1180,7 @@ function cleanItem(it){
   if(it.rec){o.rec=String(it.rec).slice(0,24);o.rk=String(it.rk||it.date.slice(0,7)).slice(0,7)}
   if(it.skip)o.skip=true;
   if(it.fromSav&&it.type!=='inc'&&it.type!=='trf')o.fromSav=true;
+  if(it.funds&&it.type==='trf')o.funds=String(it.funds).slice(0,48);
   return o;
 }
 
@@ -1660,6 +1675,7 @@ function renderBankChips(){
   $('#toWrap').hidden=!trf;
   if(trf){if(S.form.to&&banks.indexOf(S.form.to)<0)S.form.to=null;$('#toChips').innerHTML=banks.map(function(b){return pick('data-to',b,b,S.form.to===b,null,hueOf(b),'',settings().bankImg[b])}).join('')}
   $('#bankChips').innerHTML=banks.map(function(b){return pick('data-bank',b,b,S.form.bank===b,null,hueOf(b),'',settings().bankImg[b])}).join('');
+  renderFund();
 }
 function payList(){var o=(settings().payOrder||[]).slice();PAYS.forEach(function(x){if(o.indexOf(x)<0)o.push(x)});return o}
 function renderPayChips(){
@@ -1674,6 +1690,19 @@ function rowHtml(it,showDate){
   var inc=it.type==='inc',sub=[];
   if(showDate)sub.push(esc(dayLabel(it.date)));if(it.note)sub.push(esc(it.note));if(it.pay&&!inc)sub.push(esc(it.pay));if(it.bank)sub.push(esc(it.bank));
   return '<button type="button" class="row" data-edit="'+esc(it.id)+'"><span class="cb'+(inc?' inc':'')+'" aria-hidden="true">'+esc((it.cat||'؟').charAt(0))+'</span><span class="main"><span class="t">'+esc(it.cat)+(it.rec?'<span class="tag">ثابت</span>':'')+(it.fromSav?'<span class="tag sav">مدخرات</span>':'')+'</span><span class="s">'+(sub.join(' · ')||'&nbsp;')+'</span></span><span class="a'+(inc?' inc':'')+'">'+(inc?pmoney(it.amt):money(it.amt))+'</span></button>';
+}
+function fundsFor(id){return data().list.filter(function(x){return x.type==='trf'&&x.funds===id})}
+function renderFund(){ // a bank without enough balance asks where the money came from, and records that transfer with the expense
+  var st=settings(),w=$('#fundWrap');if(!w)return;var b=S.form.bank,amt=parseAmt($('#amt').value),tN=dnum(todayStr());
+  var on=S.form.type==='exp'&&!!st.openDate&&!!b&&!$('#bankWrap').hidden&&amt>0,bal=on?bankBalance(b,tN):0;
+  if(!on||amt-bal<=0.004){w.hidden=true;S.form.fundFrom=null;S.form.fundFor=null;return}
+  if(S.form.fundFor!==b){S.form.fundFrom=null;S.form.fundFor=b;S.form.fundAmtTouched=false}
+  w.hidden=false;
+  $('#fundQ').innerHTML='رصيد «'+esc(b)+'» <b dir="ltr">'+fmt(bal)+'</b> ر.س ما يكفي. من وين جا المبلغ؟';
+  $('#fundChips').innerHTML=st.banks.filter(function(x){return x!==b}).map(function(x){return '<button type="button" class="fc'+(S.form.fundFrom===x?' on':'')+'" data-fund="'+esc(x)+'"><b>'+esc(x)+'</b><small dir="ltr">'+fmt(bankBalance(x,tN))+'</small></button>'}).join('')+
+    '<button type="button" class="fc skip'+(S.form.fundFrom===''?' on':'')+'" data-fund=""><b>بدون تحويل</b><small>الرصيد يكفي</small></button>';
+  $('#fundAmtWrap').hidden=!S.form.fundFrom;
+  if(S.form.fundFrom&&!S.form.fundAmtTouched&&document.activeElement!==$('#fundAmt'))$('#fundAmt').value=String(Math.round((amt-Math.max(0,bal))*100)/100);
 }
 function renderSavToggle(){
   var show=S.form.type==='exp'&&savOn();$('#savWrap').hidden=!show;if(!show)return;
@@ -2449,12 +2478,22 @@ function syncEditType(cat){
   $('#eCatWrap').hidden=t==='trf';$('#ePayWrap').hidden=t!=='exp';$('#eToWrap').hidden=t!=='trf';
   $('#eBankLbl').textContent=t==='trf'?'من حساب':'البنك';
   $('#eSavWrap').hidden=t!=='exp'||!(savOn()||(S.editing&&S.editing.fromSav));
+  if(t!=='exp')$('#eFundWrap').hidden=true;
   if(t!=='trf'){var cs=catsFor(t);fillSelect($('#eCat'),cs,cat&&cs.indexOf(cat)>=0?cat:cs[0])}
 }
 function openEdit(id){
   var it=findItem(id);if(!it)return;S.editing=it;var inc=it.type==='inc',trf=it.type==='trf';
   closeSheet('#setSheet');
   $('#eAmt').value=String(it.amt);$('#eFromSav').checked=!!it.fromSav;
+  (function(){ // where the money came from: offered when the bank was short, or when a covering transfer exists
+    var st=settings(),lk=fundsFor(it.id)[0]||null,w=$('#eFundWrap');S.editFund=lk;
+    var show=!it.type&&!!it.bank&&!!st.openDate,before=0;
+    if(show){before=bankBalance(it.bank,it.n)+it.amt-(lk&&lk.to===it.bank?lk.amt:0);show=!!lk||it.amt-before>0.004}
+    w.hidden=!show;if(!show)return;
+    fillSelect($('#eFund'),[''].concat(st.banks.filter(function(b){return b!==it.bank})),lk?lk.bank:'');$('#eFund').options[0].textContent='بدون تحويل';
+    $('#eFundAmt').value=String(lk?lk.amt:Math.round((it.amt-Math.max(0,before))*100)/100);
+    $('#eFundTxt').textContent='رصيد «'+it.bank+'» قبل العملية '+fmt(before)+' ر.س'+(lk?' · مغطّاة بتحويل من «'+lk.bank+'»':'');
+  })();
   $('#eType').value=it.type||'exp';$('#eTypeWrap').hidden=!!it.rec;
   fillBankSelect($('#eBank'),it.bank||'');fillBankSelect($('#eTo'),it.to||'');
   syncEditType(it.cat);
@@ -2853,6 +2892,7 @@ document.addEventListener('click',function(e){
   if(d.cat!==undefined){S.form.cat=S.form.cat===d.cat?null:d.cat;$('#catChips').classList.remove('err');$('#formErr').textContent='';renderCatChips();return}
   if(d.pay!==undefined){S.form.pay=d.pay;pref('lastPay',d.pay);renderPayChips();renderBankChips();return}
   if(d.to!==undefined){S.form.to=S.form.to===d.to?null:d.to;$('#formErr').textContent='';renderBankChips();return}
+  if(d.fund!==undefined){S.form.fundFrom=S.form.fundFrom===d.fund?null:d.fund;renderFund();return}
   if(d.bank!==undefined){S.form.bank=S.form.bank===d.bank?null:d.bank;pref('lastBank',S.form.bank||'');renderBankChips();return}
   if(d.qd!==undefined){$('#dt').value=addDays(todayStr(),+d.qd);S.form.dateTouched=+d.qd!==0;return}
   if(d.smode){S.stats.mode=d.smode;renderStats();return}
@@ -2932,17 +2972,20 @@ $('#addForm').addEventListener('submit',function(e){
   if(inc)item.type='inc';
   if(trf){item.type='trf';item.to=S.form.to}
   if(!inc&&!trf&&S.form.fromSav&&savOn())item.fromSav=true;
+  var fund=null;
+  if(!inc&&!trf&&S.form.fundFrom&&item.bank&&!$('#fundWrap').hidden){var fa=parseAmt($('#fundAmt').value);if(!(fa>0)){err.textContent='اكتب المبلغ المحوَّل.';return}
+    fund={id:newId(),type:'trf',amt:fa,cat:'تحويل',pay:'',bank:S.form.fundFrom,to:item.bank,note:'تغطية: '+(item.note||item.cat),date:item.date,ts:Date.now()-1,funds:item.id}}
   if(item.date>todayStr()){err.textContent='التاريخ في المستقبل. اختر اليوم أو تاريخاً سابقاً.';return}
   err.textContent='';
   var btn=$('#saveBtn');btn.dataset.busy='1';btn.disabled=true;btn.textContent='جارٍ الحفظ…';
   var payR=S.payingRem&&item.note===S.payingRem.name&&!inc&&!trf?S.payingRem:null;S.payingRem=null;
   var smsC=S.smsCtx&&Math.abs(S.smsCtx.amt-item.amt)<0.005?S.smsCtx:null;S.smsCtx=null;
-  putItem(item).then(function(){
+  putItem(item).then(function(){return fund?putItem(fund):null}).then(function(){
     if(smsC)smsLearn(smsC,item);
     if(payR){var st0=S.settings,msgR='';st0.reminders=(st0.reminders||[]).map(function(x){if(x.id!==payR.id)return x;if(x.rep==='yearly'){var nd=addYears(x.date,1);while(nd<=todayStr())nd=addYears(nd,1);msgR=' · موعده القادم '+dayLabel(nd)+' '+parseYmd(nd).getFullYear();return Object.assign({},x,{date:nd,amt:item.amt})}msgR=' · حُذفت من الدفعات القادمة';return null}).filter(Boolean);saveSettings().then(function(){toast('حُفظت الدفعة'+msgR)}).catch(failToast)}
-    $('#amt').value='';$('#note').value='';S.form.cat=null;S.form.fromSav=false;S.form.dateTouched=false;$('#dt').value=todayStr();
+    $('#amt').value='';$('#note').value='';S.form.cat=null;S.form.fromSav=false;S.form.fundFrom=null;S.form.fundFor=null;S.form.fundAmtTouched=false;S.form.dateTouched=false;$('#dt').value=todayStr();
     $('#amt').blur();$('#note').blur();renderCatChips();renderSavToggle();
-    toast(trf?'حُفظ تحويل '+fmt(amt)+' ر.س إلى '+item.to:'حُفظ '+(inc?'دخل ':'')+fmt(amt)+' ر.س في '+item.cat+(item.fromSav?' من المدخرات':''),{action:{label:'تراجع',fn:function(){delItem(item).then(function(){toast('أُلغي التسجيل')}).catch(failToast)}}});
+    toast(trf?'حُفظ تحويل '+fmt(amt)+' ر.س إلى '+item.to:'حُفظ '+(inc?'دخل ':'')+fmt(amt)+' ر.س في '+item.cat+(item.fromSav?' من المدخرات':'')+(fund?' · وتحويل '+fmt(fund.amt)+' من '+fund.bank:''),{action:{label:'تراجع',fn:function(){(fund?delItem(fund):Promise.resolve()).then(function(){return delItem(item)}).then(function(){toast('أُلغي التسجيل')}).catch(failToast)}}});
   }).catch(function(er){if(!er||!er.silent)err.textContent=errMsg(er)}).then(function(){delete btn.dataset.busy;renderSaveState()});
 });
 $('#editForm').addEventListener('submit',function(e){
@@ -2954,12 +2997,16 @@ $('#editForm').addEventListener('submit',function(e){
   if(ty==='trf'){if(!$('#eTo').value){err.textContent='اختر الحساب المحوَّل إليه.';return}if($('#eTo').value===$('#eBank').value){err.textContent='الحساب المحوَّل منه وإليه نفسه.';return}}
   var upd=cleanItem(Object.assign({},it,{type:ty,amt:amt,cat:ty==='trf'?'تحويل':$('#eCat').value,pay:ty==='exp'?$('#ePay').value:'',bank:$('#eBank').value,to:ty==='trf'?$('#eTo').value:'',note:$('#eNote').value.trim(),date:date,fromSav:ty==='exp'&&$('#eFromSav').checked}));
   $('#eSave').disabled=true;
-  putItem(upd,it.date).then(function(){closeSheet('#editSheet');toast('حُفظ التعديل')}).catch(function(er){if(!er||!er.silent)err.textContent=errMsg(er)}).then(function(){$('#eSave').disabled=false});
+  var lk=S.editFund,fw=!$('#eFundWrap').hidden&&ty==='exp',fb=fw?$('#eFund').value:'',fa=fw?parseAmt($('#eFundAmt').value):0,job=null;
+  if(fb&&!(fa>0)){err.textContent='اكتب المبلغ المحوَّل.';return}
+  if(fb&&upd.bank&&fb!==upd.bank)job=cleanItem(Object.assign({},lk||{id:newId(),ts:Date.now()},{type:'trf',amt:fa,cat:'تحويل',pay:'',bank:fb,to:upd.bank,note:'تغطية: '+(upd.note||upd.cat),date:upd.date,funds:upd.id}));
+  putItem(upd,it.date).then(function(){if(job)return putItem(job,lk?lk.date:null);if(lk&&(ty!=='exp'||(fw&&!fb)))return delItem(lk)}).then(function(){closeSheet('#editSheet');toast(job&&!lk?'حُفظ التعديل وتحويل '+fmt(job.amt)+' من '+job.bank:'حُفظ التعديل')}).catch(function(er){if(!er||!er.silent)err.textContent=errMsg(er)}).then(function(){$('#eSave').disabled=false});
 });
 $('#eDel').addEventListener('click',function(){
   var b=this,it=S.editing;if(!it)return;
   if(!b.classList.contains('armed')){b.classList.add('armed');var old=b.textContent;b.textContent='اضغط مرة أخرى لتأكيد الحذف';setTimeout(function(){b.classList.remove('armed');b.textContent=old},4000);return}
-  delItem(it).then(function(){closeSheet('#editSheet');toast('حُذفت العملية',{action:{label:'تراجع',fn:function(){putItem(cleanItem(it)).catch(failToast)}}})}).catch(function(er){if(!er||!er.silent)$('#editErr').textContent=errMsg(er)});
+  var linked=fundsFor(it.id);
+  delItem(it).then(function(){return Promise.all(linked.map(delItem))}).then(function(){closeSheet('#editSheet');toast(linked.length?'حُذفت العملية وتحويل تغطيتها':'حُذفت العملية',{action:{label:'تراجع',fn:function(){putItem(cleanItem(it)).then(function(){return Promise.all(linked.map(function(x){return putItem(cleanItem(x))}))}).catch(failToast)}}})}).catch(function(er){if(!er||!er.silent)$('#editErr').textContent=errMsg(er)});
 });
 $('#eType').addEventListener('change',function(){syncEditType($('#eCat').value)});
 $('#rDay').addEventListener('change',function(){updateStartOpts(true);renderMonthPicker()});
@@ -3048,6 +3095,8 @@ function addCat(input,key){
   var v=input.value.trim().slice(0,24);if(!v)return;if(S.settings[key].indexOf(v)>=0){toast('الفئة موجودة.');return}
   S.settings[key].push(v);input.value='';saveSettings().then(renderSettings).catch(failToast);
 }
+$('#amt').addEventListener('input',function(){clearTimeout(_fundT);_fundT=setTimeout(renderFund,200)});var _fundT=0;
+$('#fundAmt').addEventListener('input',function(){S.form.fundAmtTouched=true});
 var _smsT=0;$('#smsText').addEventListener('input',function(){S.smsOver={};S.smsPick=undefined;$('#smsPaste').classList.toggle('gone',!!this.value);clearTimeout(_smsT);_smsT=setTimeout(smsPreview,150)});
 $('#smsUse').addEventListener('click',smsUse);
 $('#savForm').addEventListener('submit',function(e){
