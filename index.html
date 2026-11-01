@@ -702,6 +702,7 @@ html[data-skin=pro] .tab[aria-current="page"] svg{fill-opacity:.25}
 @media (max-width:370px){html[data-skin=pro] #amt{font-size:46px}html[data-skin=pro] .hero .big{font-size:38px}html[data-skin=pro] .ptitle{font-size:27px}}
 @media (prefers-reduced-motion: reduce){*{transition:none!important;animation:none!important}}
 @media (max-width:370px){#amt{font-size:38px}.tile .v{font-size:17px}.hero .big{font-size:34px}}
+.sb-sql{white-space:pre-wrap;word-break:break-all;font:11px/1.5 ui-monospace,Menlo,monospace;border:1px solid currentColor;border-radius:10px;padding:8px;max-height:220px;overflow:auto;opacity:.85;margin:8px 0 0}.sb-how{margin-top:8px}.sb-how ol{padding-inline-start:18px}.sb-how li{margin-bottom:6px}.sb-bad{color:#c62828}#sbSec .lbl{display:block;margin-top:6px}
 </style>
 <script>try{document.documentElement.setAttribute('data-skin',(JSON.parse(localStorage.getItem('masrufi.pref.v1')||'{}').skin==='classic')?'classic':'pro')}catch(e){document.documentElement.setAttribute('data-skin','pro')}</script>
 </head>
@@ -988,6 +989,7 @@ html[data-skin=pro] .tab[aria-current="page"] svg{fill-opacity:.25}
     <div class="grab"></div>
     <div class="panel-h"><h2 id="setTitle">الإعدادات</h2><button type="button" class="link" data-close>إغلاق</button></div>
     <div class="sec" id="storeSec" hidden><div id="migrate" hidden></div></div>
+    <div class="sec" id="sbSec" hidden></div>
     <div class="sec" id="skinSec"><h3>التصميم</h3><div class="seg" role="group" aria-label="التصميم"><button type="button" data-skin-set="pro">الجديد</button><button type="button" data-skin-set="classic">السابق</button></div></div>
     <div class="sec" id="themeSec" hidden><h3>المظهر</h3><div class="seg" role="group" aria-label="المظهر"><button type="button" data-theme-set="auto">تلقائي</button><button type="button" data-theme-set="light">فاتح</button><button type="button" data-theme-set="dark">داكن</button></div></div>
     <div class="sec">
@@ -1341,8 +1343,220 @@ function enterLocal(){
   S.months=d.months||{};S.settings=normSettings(d.settings);
   bump();afterLoad();render();
 }
-function saveLocal(){if(!lsSet(LS_LOCAL,{months:S.months,settings:S.settings}))toast('تعذّر الحفظ على هذا الجهاز. تأكد أن المتصفح لا يعمل في وضع التصفح الخاص.',{bad:true})}
+function saveLocal(){if(!lsSet(LS_LOCAL,{months:S.months,settings:S.settings}))toast('تعذّر الحفظ على هذا الجهاز. تأكد أن المتصفح لا يعمل في وضع التصفح الخاص.',{bad:true});sbDiff()}
 function afterLoad(){if(S.migrateBills&&!S.demo){S.migrateBills=false;saveSettings().catch(function(){})}}
+
+/* ---------- sync between your devices through your own Supabase project (optional) ----------
+   One table, masrufi_kv (user_id, store, k, v jsonb, deleted, updated_at), readable only by its owner (row level security).
+   Each operation is a row (i:<id>) and each setting is a row (s:<name>), so edits on two devices merge; for the same row the newer edit wins.
+   The project URL, the public key and the session stay in this device's storage and are not in the JSON backup. */
+var SB_K='masrufi.sb.v1',SB_QK='masrufi.sbq.v1',SB_SNAPK='masrufi.sbsnap.v1',SB_TABLE='masrufi_kv';
+var SB=lsGet(SB_K)||{},SBQ=lsGet(SB_QK)||{},SNAP=lsGet(SB_SNAPK)||{},SB_ERR='',SB_BUSY=null,SB_TIMER=null,SB_TOK=null,SB_OUT=0;
+function sbSave(){lsSet(SB_K,SB)}
+function sbSaveQ(){lsSet(SB_QK,SBQ);lsSet(SB_SNAPK,SNAP)}
+function sbOn(){return !!(STANDALONE&&SB.url&&SB.key&&SB.rt)}
+function sbErr(code,msg){var e=new Error(msg||String(code));e.code=code;return e}
+function sbAuth(path,body){
+  return fetch(SB.url+'/auth/v1/'+path,{method:'POST',headers:{'content-type':'application/json',apikey:SB.key,Authorization:'Bearer '+SB.key},body:JSON.stringify(body)})
+    .then(function(r){return r.json().catch(function(){return {}}).then(function(j){if(!r.ok)throw sbErr(r.status,j.msg||j.error_description||j.message||j.error||'');return j})},function(){throw sbErr('net')});
+}
+function sbKeep(j){SB.at=j.access_token;SB.rt=j.refresh_token;SB.exp=Date.now()+(j.expires_in||3600)*1000;if(j.user){SB.uid=j.user.id;SB.email=j.user.email}sbSave()}
+function sbToken(){
+  if(SB.at&&SB.exp-Date.now()>90000)return Promise.resolve(SB.at);
+  if(!SB_TOK)SB_TOK=sbAuth('token?grant_type=refresh_token',{refresh_token:SB.rt}).then(function(j){SB_TOK=null;sbKeep(j);return SB.at},function(e){
+    SB_TOK=null;if(e.code===400||e.code===401){SB.rt='';SB.at='';sbSave();SB_ERR='انتهت جلسة الدخول؛ ادخل مرة أخرى من الإعدادات ← المزامنة.'}throw e});
+  return SB_TOK;
+}
+function sbPurge(){ // an older version of the app's worker kept copies of every request; drop any of the sync server's
+  if(!window.caches||!navigator.serviceWorker||!navigator.serviceWorker.controller)return Promise.resolve();
+  return caches.keys().then(function(ks){return Promise.all(ks.filter(function(k){return k.indexOf('masrufi-')===0}).map(function(k){return caches.open(k).then(function(c){return c.keys().then(function(rs){return Promise.all(rs.filter(function(r){return r.url.indexOf(SB.url)===0}).map(function(r){return c.delete(r)}))})})}))}).catch(function(){});
+}
+function sbRest(method,query,body,prefer){
+  return (method==='GET'?sbPurge():Promise.resolve()).then(sbToken).then(function(tok){
+    var h={apikey:SB.key,Authorization:'Bearer '+tok};if(body)h['content-type']='application/json';if(prefer)h.Prefer=prefer;
+    return fetch(SB.url+'/rest/v1/'+SB_TABLE+query,{method:method,cache:'no-store',headers:h,body:body?JSON.stringify(body):undefined})
+      .then(function(r){if(!r.ok)return r.text().then(function(t){var m='';try{m=JSON.parse(t).message}catch(e){m=t.slice(0,160)}throw sbErr(r.status,m)});return method==='GET'?r.json():null},function(){throw sbErr('net')});
+  });
+}
+function sbMsg(e){
+  var c=e&&e.code,m=(e&&e.message)||'';
+  if(c==='net')return 'لا اتصال بالإنترنت أو تعذّر الوصول إلى Supabase. تأكد من رابط المشروع، وأن المشروع ليس متوقفاً.';
+  if(c===400&&/invalid login|credentials/i.test(m))return 'الإيميل أو كلمة المرور غير صحيحة.';
+  if(/confirm/i.test(m))return 'الحساب لم يُفعَّل بعد: أطفئ Confirm email في Supabase أو افتح رسالة التفعيل، ثم «دخول».';
+  if(/signups? not allowed|signup.*disabled/i.test(m))return 'إنشاء الحسابات مطفأ في مشروعك. إن كان حسابك موجوداً (من كتابي مثلاً) فاضغط «دخول».';
+  if(c===401||c===403)return 'رُفض الطلب: تأكد من المفتاح العام (anon أو publishable) ومن تشغيل كود SQL.';
+  if(c===404||new RegExp(SB_TABLE).test(m))return 'الجدول '+SB_TABLE+' غير موجود: شغّل كود SQL في مشروعك (طريقة الإعداد ← نسخ كود SQL).';
+  if(c===422&&/already/i.test(m))return 'هذا الإيميل مسجّل من قبل؛ استعمل «دخول».';
+  return m||String(c);
+}
+function sbUrl(x){
+  x=String(x||'').trim();if(!x)return '';
+  var m=/supabase\.com\/dashboard\/project\/([a-z0-9]{10,40})/i.exec(x);if(m)return 'https://'+m[1].toLowerCase()+'.supabase.co';
+  if(/^[a-z0-9]{15,40}$/i.test(x))return 'https://'+x.toLowerCase()+'.supabase.co';
+  if(!/^https?:\/\//i.test(x))x='https://'+x;
+  try{var u=new URL(x);return u.protocol==='https:'||/^(localhost|127\.0\.0\.1)$/.test(u.hostname)?u.origin:''}catch(e){return ''}
+}
+function hashOf(x){var s=JSON.stringify(x)||'',a=2166136261;for(var i=0;i<s.length;i++){a^=s.charCodeAt(i);a=Math.imul(a,16777619)}return (a>>>0).toString(36)+s.length}
+function sbPieces(){ // the data cut into rows that change separately
+  var o={};
+  for(var m in S.months){var map=S.months[m];if(map)for(var id in map)if(map[id])o['i:'+id]=map[id]}
+  var st=S.settings||{};Object.keys(st).forEach(function(k){o['s:'+k]=st[k]});
+  return o;
+}
+function sbDiff(){ // after every save: what changed since the last look goes to the queue
+  if(!sbOn()||!SB.ready||S.demo)return;
+  var o=sbPieces(),now=Date.now(),any=false;
+  Object.keys(o).forEach(function(k){var h=hashOf(o[k]);if(!SNAP[k]||SNAP[k][0]!==h){SNAP[k]=[h,now];SBQ[k]=1;any=true}});
+  Object.keys(SNAP).forEach(function(k){if(!(k in o)&&SNAP[k][0]!=='x'){SNAP[k]=['x',now];SBQ[k]=1;any=true}});
+  if(any){sbSaveQ();sbSoon()}
+}
+function sbSoon(ms){if(!sbOn())return;clearTimeout(SB_TIMER);SB_TIMER=setTimeout(function(){sbSync()},ms||3000)}
+function sbApply(rows){ // rows from the other device, newer than what is here
+  var where={},n=0,setTouched=false;
+  for(var m in S.months){var map=S.months[m];if(map)for(var id in map)where[id]=m}
+  rows.forEach(function(r){
+    var k=r.k,rt=r.v?+r.v.t||0:0,loc=SNAP[k];
+    if(SBQ[k]&&loc&&loc[1]>=rt)return; // changed here later: this device's edit wins and goes up
+    if(k.indexOf('i:')===0){
+      var id=k.slice(2),pm=where[id],it=r.deleted?null:r.v&&r.v.d;
+      if(it&&!validItem(it))return;
+      if(pm&&S.months[pm]){delete S.months[pm][id];if(!Object.keys(S.months[pm]).length)delete S.months[pm]}
+      if(it){it=cleanItem(it);var nm=it.date.slice(0,7);(S.months[nm]=S.months[nm]||{})[id]=it;where[id]=nm}else delete where[id];
+    }else if(k.indexOf('s:')===0){
+      var sk=k.slice(2);if(!/^[A-Za-z0-9_]{1,30}$/.test(sk))return;
+      if(r.deleted||!r.v||r.v.d==null)delete S.settings[sk];else S.settings[sk]=r.v.d;setTouched=true;
+    }else return;
+    SNAP[k]=[null,rt];delete SBQ[k];n++;
+  });
+  if(!n)return 0;
+  if(setTouched)S.settings=normSettings(S.settings);
+  var o=sbPieces();Object.keys(SNAP).forEach(function(k){if(SNAP[k][0]===null)SNAP[k][0]=k in o?hashOf(o[k]):'x'});
+  lsSet(LS_LOCAL,{months:S.months,settings:S.settings});sbSaveQ();
+  return n;
+}
+function sbSync(manual){
+  if(!sbOn())return Promise.resolve();
+  if(SB_BUSY)return SB_BUSY;
+  if(navigator.onLine===false){SB_ERR='لا اتصال بالإنترنت؛ ستُرفع التغييرات حين يعود.';sbInfo();return Promise.resolve()}
+  var first=!SB.ready,pulled=0,pushed=0,cursor=SB.cursor||'1970-01-01T00:00:00Z';
+  SB_ERR='';sbDiff();sbInfo();
+  function page(){
+    return sbRest('GET','?select=k,v,deleted,updated_at&store=eq.m&updated_at=gt.'+encodeURIComponent(cursor)+'&order=updated_at.asc&limit=1000').then(function(rows){
+      pulled+=sbApply(rows);
+      if(rows.length){cursor=rows[rows.length-1].updated_at;SB.cursor=cursor;sbSave()}
+      if(rows.length===1000)return page();
+    });
+  }
+  SB_BUSY=page().then(function(){
+    if(first){SB.ready=1;sbSave();sbDiff()} // first time on this device: what is only here goes up; what was in the project already came down
+    return sbPush();
+  }).then(function(n){
+    pushed=n||0;SB.last=Date.now();sbSave();
+    if(pulled){bump();if(!$('#setSheet').hidden&&!(document.activeElement&&/input|textarea|select/i.test(document.activeElement.tagName)))renderSettings();render();runRecurring()}
+    if(manual)toast(pulled||pushed?'زُومن: وصل '+pulled+' ورُفع '+pushed:'كل شيء متزامن');
+  },function(e){SB_ERR=sbMsg(e);if(manual)toast(SB_ERR,{bad:true})}).then(function(){SB_BUSY=null;sbInfo()});
+  return SB_BUSY;
+}
+function sbPush(){
+  var keys=Object.keys(SBQ);if(!keys.length)return Promise.resolve(0);
+  var o=sbPieces(),rows=keys.map(function(k){var del=!(k in o);return {store:'m',k:k,v:{d:del?null:o[k],t:(SNAP[k]||[0,Date.now()])[1]},deleted:del}});
+  var batches=[],cur=[],size=0;
+  rows.forEach(function(r){var n=JSON.stringify(r).length;if(cur.length&&size+n>700000){batches.push(cur);cur=[];size=0}cur.push(r);size+=n});
+  if(cur.length)batches.push(cur);
+  return batches.reduce(function(p,b){
+    return p.then(function(){return sbRest('POST','?on_conflict=user_id,store,k',b,'resolution=merge-duplicates,return=minimal')})
+      .then(function(){b.forEach(function(r){if(SNAP[r.k]&&SNAP[r.k][1]===r.v.t)delete SBQ[r.k]});sbSaveQ()});
+  },Promise.resolve()).then(function(){return rows.length});
+}
+function sbWhen(ms){var d=new Date(ms),t=d.getHours()+':'+pad(d.getMinutes());return d.toDateString()===new Date().toDateString()?'اليوم '+t:dayLabel(ymd(d))+' '+t}
+function sbInfoText(){
+  if(SB_ERR)return '<span class="sb-bad">'+esc(SB_ERR)+'</span>';
+  if(SB_BUSY)return 'تجري المزامنة…';
+  var q=Object.keys(SBQ).length;
+  return (SB.last?'آخر مزامنة: '+sbWhen(SB.last):'لم تتم مزامنة بعد')+(q?' · بانتظار الرفع: '+q:'');
+}
+function sbInfo(){var el=$('#sb-info');if(el&&sbOn())el.innerHTML=sbInfoText()}
+var SB_SQL=[
+  'create table if not exists public.masrufi_kv (',
+  '  user_id uuid not null default auth.uid() references auth.users(id) on delete cascade,',
+  '  store text not null,',
+  '  k text not null,',
+  '  v jsonb,',
+  '  deleted boolean not null default false,',
+  '  updated_at timestamptz not null default clock_timestamp(),',
+  '  primary key (user_id, store, k)',
+  ');',
+  'create index if not exists masrufi_kv_sync on public.masrufi_kv (user_id, store, updated_at);',
+  'alter table public.masrufi_kv enable row level security;',
+  'drop policy if exists "masrufi own rows" on public.masrufi_kv;',
+  'create policy "masrufi own rows" on public.masrufi_kv for all to authenticated',
+  '  using ((select auth.uid()) = user_id) with check ((select auth.uid()) = user_id);',
+  'create or replace function public.masrufi_touch() returns trigger language plpgsql set search_path = \'\' as $$',
+  'begin new.updated_at := clock_timestamp(); return new; end $$;',
+  'drop trigger if exists masrufi_touch on public.masrufi_kv;',
+  'create trigger masrufi_touch before insert or update on public.masrufi_kv for each row execute function public.masrufi_touch();',
+  'grant select, insert, update, delete on public.masrufi_kv to authenticated;'
+].join('\n');
+function sbRender(){
+  var el=$('#sbSec');if(!el)return;el.hidden=!STANDALONE;if(!STANDALONE)return;
+  if(sbOn()){
+    el.innerHTML='<h3>المزامنة بين أجهزتك (Supabase)</h3><p class="foot" style="margin:0 0 6px">متصل بحساب <b dir="ltr">'+esc(SB.email||'')+'</b></p><p class="foot" id="sb-info" style="margin:0 0 8px">'+sbInfoText()+'</p>'+
+      '<div class="btns"><button type="button" class="btn accent" data-sb="now">زامن الآن</button><button type="button" class="btn" data-sb="out">'+(SB_OUT&&Date.now()-SB_OUT<5000?'اضغط مرة أخرى للخروج':'خروج')+'</button></div>'+
+      '<p class="foot" style="margin-top:8px">يتزامن كل شيء: العمليات، والفئات والبنوك وطرق الدفع، والدخل والمصاريف الثابتة، والميزانية والحدود، والمدخرات والأرصدة والتذكيرات.</p>';
+    return;
+  }
+  el.innerHTML='<h3>المزامنة بين أجهزتك (Supabase)</h3><p class="foot" style="margin:0 0 8px">اربط مصروفي بمشروعك في Supabase فتظهر عملياتك وإعداداتك على الآيفون والآيباد معاً. الرابط والمفتاح وبيانات الدخول تبقى على هذا الجهاز ولا تدخل في النسخة الاحتياطية.</p>'+
+    '<label class="lbl" for="sb-url">رابط المشروع (Project URL)</label><input id="sb-url" class="field" type="url" dir="ltr" autocapitalize="off" spellcheck="false" placeholder="https://xxxx.supabase.co" value="'+esc(SB.url||'')+'">'+
+    '<label class="lbl" for="sb-key">المفتاح العام (publishable أو anon)</label><input id="sb-key" class="field" dir="ltr" autocapitalize="off" spellcheck="false" placeholder="sb_publishable_… أو eyJ…" value="'+esc(SB.key||'')+'">'+
+    '<label class="lbl" for="sb-email">الإيميل</label><input id="sb-email" class="field" type="email" dir="ltr" autocapitalize="off" value="'+esc(SB.email||'')+'">'+
+    '<label class="lbl" for="sb-pass">كلمة المرور</label><input id="sb-pass" class="field" type="password" dir="ltr" autocomplete="current-password">'+
+    '<div class="btns" style="margin-top:8px"><button type="button" class="btn accent" data-sb="in">دخول</button><button type="button" class="btn" data-sb="up">إنشاء حساب</button></div><p class="foot" id="sb-info">'+(SB_ERR?'<span class="sb-bad">'+esc(SB_ERR)+'</span>':'')+'</p>'+
+    '<details class="sb-how"><summary class="link">طريقة الإعداد</summary><ol class="foot">'+
+    '<li><b>إن كان عندك مشروع Supabase لكتابي</b> فاستعمله نفسه: من <b>SQL Editor</b> ← New query الصق الكود أدناه واضغط <b>Run</b>. ثم الصق هنا الرابط والمفتاح نفسيهما (في كتابي: الإعدادات ← المزامنة ← «انسخ الرابط والمفتاح» والصقهما معاً في خانة الرابط)، واكتب إيميلك وكلمة مرورك نفسها، ثم <b>«دخول»</b>.</li>'+
+    '<li><b>وإن لم يكن:</b> أنشئ مشروعاً مجانياً في <a href="https://supabase.com/dashboard" target="_blank" rel="noopener">supabase.com/dashboard</a> وشغّل الكود أدناه من SQL Editor. الرابط من <b>Project Settings ← Data API ← Project URL</b>، والمفتاح من <b>Project Settings ← API Keys ← Publishable key</b> (أو anon)، لا secret ولا service_role. ومن <b>Authentication ← Sign In / Providers</b> أطفئ <b>Confirm email</b>، ثم «إنشاء حساب» هنا، ثم أطفئ <b>Allow new users to sign up</b>.</li>'+
+    '<li>ابدأ بالجهاز الذي فيه بياناتك، ثم الجهاز الثاني بالبيانات نفسها و«دخول».</li></ol>'+
+    '<button type="button" class="btn" data-sb="sql">نسخ كود SQL</button><pre class="sb-sql" dir="ltr">'+esc(SB_SQL)+'</pre></details>';
+}
+function sbForm(){
+  var info=$('#sb-info');function bad(t){if(info)info.innerHTML='<span class="sb-bad">'+esc(t)+'</span>';return null}
+  var raw=$('#sb-url').value||'',key=($('#sb-key').value||'').replace(/\s+/g,'');
+  var both=/(https?:\/\/[^\s]+)\s+((?:sb_publishable_|eyJ)[^\s]+)/.exec(raw);if(both){raw=both[1];key=both[2];$('#sb-key').value=key}
+  var url=sbUrl(raw),em=($('#sb-email').value||'').trim(),pw=$('#sb-pass').value||'';
+  if(!url)return bad('رابط المشروع غير صحيح. شكله: https://….supabase.co');
+  if(key.length<20)return bad('الصق المفتاح العام كاملاً (publishable أو anon).');
+  if(/^sb_secret_/.test(key)||/service_role/.test(key))return bad('هذا المفتاح السري؛ الصق المفتاح العام (publishable أو anon).');
+  if(!/^\S+@\S+\.\S+$/.test(em))return bad('اكتب الإيميل كاملاً.');
+  if(pw.length<6)return bad('كلمة المرور 6 أحرف فأكثر.');
+  $('#sb-url').value=url;SB={url:url,key:key,email:em};sbSave();return {email:em,password:pw};
+}
+function sbAfterIn(j){
+  sbKeep(j);SB.cursor='';SB.ready=0;SB_ERR='';sbSave();SBQ={};SNAP={};sbSaveQ();
+  sbRender();toast('تم الدخول؛ تجري أول مزامنة…');
+  sbSync(true).then(sbRender);
+}
+function sbCopy(t){
+  function fb(){var ta=document.createElement('textarea');ta.value=t;ta.style.cssText='position:fixed;top:0;opacity:0';document.body.appendChild(ta);ta.select();try{document.execCommand('copy');toast('نُسخ')}catch(e){}document.body.removeChild(ta)}
+  try{navigator.clipboard.writeText(t).then(function(){toast('نُسخ')},fb)}catch(e){fb()}
+}
+var SB_ACT={
+  'in':function(){var f=sbForm();if(!f)return;var o=$('#sb-info');if(o)o.textContent='جارٍ الدخول…';sbAuth('token?grant_type=password',f).then(sbAfterIn,function(e){SB_ERR=sbMsg(e);if(o)o.innerHTML='<span class="sb-bad">'+esc(SB_ERR)+'</span>'})},
+  up:function(){var f=sbForm();if(!f)return;var o=$('#sb-info');if(o)o.textContent='جارٍ إنشاء الحساب…';
+    sbAuth('signup',f).then(function(j){if(j.access_token)sbAfterIn(j);else if(o)o.textContent='أُنشئ الحساب. افتح رسالة التفعيل في بريدك ثم «دخول» (أو أطفئ Confirm email في Supabase).'},function(e){SB_ERR=sbMsg(e);if(o)o.innerHTML='<span class="sb-bad">'+esc(SB_ERR)+'</span>'})},
+  now:function(){SB_ERR='';sbSync(true)},
+  out:function(){
+    if(!SB_OUT||Date.now()-SB_OUT>5000){SB_OUT=Date.now();sbRender();return}
+    SB_OUT=0;var o=SB;if(o.at)fetch(o.url+'/auth/v1/logout',{method:'POST',headers:{apikey:o.key,Authorization:'Bearer '+o.at}}).catch(function(){});
+    SB={url:o.url,key:o.key,email:o.email};sbSave();SBQ={};SNAP={};sbSaveQ();SB_ERR='';sbRender();renderBanner();toast('خرجت من المزامنة؛ بياناتك باقية على هذا الجهاز');
+  },
+  sql:function(){sbCopy(SB_SQL)}
+};
+document.addEventListener('click',function(e){
+  var b=e.target&&e.target.closest?e.target.closest('[data-sb]'):null;if(!b)return;
+  var f=SB_ACT[b.getAttribute('data-sb')];if(f){e.preventDefault();e.stopPropagation();f(b)}
+},true);
+document.addEventListener('visibilitychange',function(){if(!document.hidden)sbSoon(800);else if(Object.keys(SBQ).length)sbSync()});
+window.addEventListener('online',function(){sbSoon(800)});
+setInterval(function(){if(!document.hidden)sbSync()},120000);
 
 /* ---------- storage: cloud (db capability) ---------- */
 var queues={};
@@ -1572,7 +1786,7 @@ function renderBanner(){
   if(S.demo){cls+=' demo';h='<div class="grow"><b>عرض تجريبي:</b> البيانات الظاهرة وهمية ولا تُحفظ. بياناتك الحقيقية لم تتأثر.</div><button type="button" class="btn" data-act="demo-off">إنهاء</button>'}
   else if(S.mode==='cloud'&&S.cloudError&&S.cloudError!=='unavailable'){cls+=' bad';h='<div class="grow">انقطع الاتصال بالتخزين، والتغييرات الجديدة لن تُحفظ. أعد فتح الصفحة.</div>'}
   else if(S.mode==='cloud'&&(n=localPendingCount())>0){h='<div class="grow">لديك '+ops(n)+' محفوظة على هذا الجهاز فقط من قبل. انقلها إلى حسابك لتظهر في كل أجهزتك.</div><button type="button" class="btn accent" data-act="migrate">نقل</button>'}
-  else if(S.mode==='local'&&STANDALONE){
+  else if(S.mode==='local'&&STANDALONE&&!sbOn()){
     var lb=pref('lastBackup')||0,sn=pref('backupSnooze')||0;
     if(getItems().length>=5&&Date.now()-lb>30*864e5&&Date.now()>sn)h='<div class="grow">بياناتك محفوظة على هذا الجوال فقط. '+(lb?'آخر نسخة احتياطية قبل '+Math.floor((Date.now()-lb)/864e5)+' يوماً.':'لم تصدّر نسخة احتياطية بعد.')+'</div><button type="button" class="btn accent" data-act="backup">نسخة الآن</button><button type="button" class="link" data-act="backup-later">لاحقاً</button>';
   }
@@ -2442,6 +2656,7 @@ function renderSettings(){
   var sk=pref('skin')==='classic'?'classic':'pro';$$('[data-skin-set]').forEach(function(b){b.setAttribute('aria-pressed',String(b.dataset.skinSet===sk))});
   $('#cyclesSum').textContent='عرض الدورات حتى نهاية '+(new Date().getFullYear()+1);
   $('#themeSec').hidden=!STANDALONE;var tv=pref('theme')||'auto';$$('[data-theme-set]').forEach(function(b){b.setAttribute('aria-pressed',String(b.dataset.themeSet===tv))});
+  sbRender();
   var st=settings(),ms=mainSalary();
   var n=S.mode==='cloud'?localPendingCount():0,mg=$('#migrate');
   mg.hidden=!n;$('#storeSec').hidden=!n;if(n)mg.innerHTML='<button type="button" class="btn accent" data-act="migrate">نقل '+ops(n)+' من هذا الجهاز إلى حسابك</button>';
@@ -2948,7 +3163,7 @@ function forceUpdate(){ // fetch the newest version and reload on the same page;
   var b=$('#btnRefresh');b.classList.add('spin');b.disabled=true;
   var p=Promise.resolve();
   if('serviceWorker' in navigator)p=p.then(function(){return navigator.serviceWorker.getRegistration()}).then(function(r){return r&&r.update()}).catch(function(){});
-  if(window.caches)p=p.then(function(){return caches.keys()}).then(function(k){return Promise.all(k.map(function(x){return caches.delete(x)}))}).catch(function(){});
+  if(window.caches)p=p.then(function(){return caches.keys()}).then(function(k){return Promise.all(k.filter(function(x){return x.indexOf('masrufi-')===0}).map(function(x){return caches.delete(x)}))}).catch(function(){});
   p.then(function(){location.reload()});
 }
 $('#btnRefresh').addEventListener('click',forceUpdate);
@@ -3212,7 +3427,7 @@ reorderGrid($('#toChips'),'data-to',saveBankOrder);
   }else setTab('add');
   if(STANDALONE){
     applyTheme();
-    enterLocal();
+    enterLocal();sbSoon(800);
     try{if(navigator.storage&&navigator.storage.persist)navigator.storage.persist().catch(function(){})}catch(e){}
     $('#btnRefresh').hidden=false;
     if('serviceWorker' in navigator&&location.protocol!=='file:'){
