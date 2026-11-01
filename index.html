@@ -1499,6 +1499,7 @@ var SB_SQL=[
 ].join('\n');
 function sbRender(){
   var el=$('#sbSec');if(!el)return;el.hidden=!STANDALONE;if(!STANDALONE)return;
+  if(!sbOn()&&$('#sb-url')&&el.contains($('#sb-url')))return; // the form is already there: keep what is typed in it
   if(sbOn()){
     el.innerHTML='<h3>المزامنة بين أجهزتك (Supabase)</h3><p class="foot" style="margin:0 0 6px">متصل بحساب <b dir="ltr">'+esc(SB.email||'')+'</b></p><p class="foot" id="sb-info" style="margin:0 0 8px">'+sbInfoText()+'</p>'+
       '<div class="btns"><button type="button" class="btn accent" data-sb="now">زامن الآن</button><button type="button" class="btn" data-sb="out">'+(SB_OUT&&Date.now()-SB_OUT<5000?'اضغط مرة أخرى للخروج':'خروج')+'</button></div>'+
@@ -1554,6 +1555,12 @@ document.addEventListener('click',function(e){
   var b=e.target&&e.target.closest?e.target.closest('[data-sb]'):null;if(!b)return;
   var f=SB_ACT[b.getAttribute('data-sb')];if(f){e.preventDefault();e.stopPropagation();f(b)}
 },true);
+document.addEventListener('input',function(e){ // keep what is typed, so leaving the app to copy the key loses nothing
+  var t=e.target,id=t&&t.id;if(sbOn()||(id!=='sb-url'&&id!=='sb-key'&&id!=='sb-email'))return;
+  if(id==='sb-url'){var both=/(https?:\/\/[^\s]+)\s+((?:sb_publishable_|eyJ)[^\s]+)/.exec(t.value);if(both){t.value=both[1];$('#sb-key').value=both[2];SB.key=both[2]}SB.url=t.value.trim()}
+  else if(id==='sb-key')SB.key=t.value.replace(/\s+/g,'');else SB.email=t.value.trim();
+  sbSave();
+});
 document.addEventListener('visibilitychange',function(){if(!document.hidden)sbSoon(800);else if(Object.keys(SBQ).length)sbSync()});
 window.addEventListener('online',function(){sbSoon(800)});
 setInterval(function(){if(!document.hidden)sbSync()},120000);
