@@ -703,6 +703,44 @@ html[data-skin=pro] .tab[aria-current="page"] svg{fill-opacity:.25}
 @media (prefers-reduced-motion: reduce){*{transition:none!important;animation:none!important}}
 @media (max-width:370px){#amt{font-size:38px}.tile .v{font-size:17px}.hero .big{font-size:34px}}
 .sb-sql{white-space:pre-wrap;word-break:break-all;font:11px/1.5 ui-monospace,Menlo,monospace;border:1px solid currentColor;border-radius:10px;padding:8px;max-height:220px;overflow:auto;opacity:.85;margin:8px 0 0}.sb-how{margin-top:8px}.sb-how ol{padding-inline-start:18px}.sb-how li{margin-bottom:6px}.sb-bad{color:#c62828}#sbSec .lbl{display:block;margin-top:6px}
+.ai-sheet{position:fixed;inset:0;z-index:90;background:rgba(10,20,18,.42);display:flex;align-items:flex-end;justify-content:center}
+.ai-panel{width:100%;max-width:760px;height:min(92vh,92dvh);background:var(--panel,var(--surface,#fff));color:var(--ink,#13232b);border-radius:20px 20px 0 0;display:flex;flex-direction:column;box-shadow:0 -8px 40px rgba(0,0,0,.18);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (min-width:820px){.ai-sheet{align-items:center}.ai-panel{border-radius:20px;height:min(86vh,860px)}}
+.ai-h{display:flex;align-items:flex-start;gap:12px;padding:16px 18px 10px;border-bottom:1px solid var(--rule,var(--line,#dde3e0))}
+.ai-hd{flex:1;min-width:0;display:flex;flex-direction:column;gap:3px}
+.ai-hd b{font-size:17px}
+.ai-hd span{font-size:13px;color:var(--ink-2,#55636a);overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
+.ai-x{appearance:none;border:0;background:none;color:var(--accent,#0a6a72);font:inherit;font-weight:700;font-size:15px;cursor:pointer;padding:4px 2px}
+.ai-log{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding:14px 18px;display:flex;flex-direction:column;gap:12px;overscroll-behavior:contain}
+.ai-hello{color:var(--ink-2,#55636a);font-size:14.5px;line-height:1.8;background:var(--panel-2,var(--surface-2,#f3f6f5));border-radius:14px;padding:12px 14px}
+.ai-q{align-self:flex-start;max-width:85%;background:var(--accent,#0a6a72);color:#fff;border-radius:16px 16px 16px 4px;padding:9px 13px;font-size:15px;line-height:1.7;white-space:pre-wrap}
+.ai-a{align-self:stretch;font-size:15.5px;line-height:1.85;background:var(--panel-2,var(--surface-2,#f3f6f5));border-radius:16px 16px 4px 16px;padding:10px 14px}
+.ai-a p{margin:0 0 8px}.ai-a p:last-child{margin-bottom:0}
+.ai-a h4{margin:10px 0 4px;font-size:15.5px}
+.ai-a ul,.ai-a ol{margin:4px 0 8px;padding-inline-start:20px}.ai-a li{margin:2px 0}
+.ai-a code{font-size:13px;background:rgba(0,0,0,.06);border-radius:5px;padding:0 4px}
+.ai-err{color:var(--bad,#b8342b);background:none;border:1px solid currentColor}
+.ai-acts{margin-top:6px;display:flex;gap:8px}
+.ai-acts button,.ai-new{appearance:none;border:0;background:none;color:var(--accent,#0a6a72);font:inherit;font-size:13px;font-weight:700;cursor:pointer;padding:0}
+.ai-dots{display:inline-flex;gap:4px;padding:6px 0}.ai-dots i{width:7px;height:7px;border-radius:50%;background:currentColor;opacity:.35;animation:aiDot 1s infinite}.ai-dots i:nth-child(2){animation-delay:.15s}.ai-dots i:nth-child(3){animation-delay:.3s}
+@keyframes aiDot{50%{opacity:1}}
+.ai-chips{display:flex;gap:8px;overflow-x:auto;padding:8px 18px 2px;scrollbar-width:none}.ai-chips::-webkit-scrollbar{display:none}
+.ai-chips button{flex:none;appearance:none;border:1px solid var(--rule,var(--line,#dde3e0));background:var(--panel,var(--surface,#fff));color:var(--ink,#13232b);border-radius:999px;padding:7px 13px;font:inherit;font-size:13.5px;font-weight:600;cursor:pointer;white-space:nowrap}
+.ai-form{display:flex;gap:8px;align-items:flex-end;padding:8px 14px 4px}
+.ai-form textarea{flex:1;resize:none;border:1px solid var(--rule,var(--line,#dde3e0));background:var(--panel-2,var(--surface-2,#f3f6f5));color:var(--ink,#13232b);border-radius:18px;padding:9px 14px;font:inherit;font-size:16px;line-height:1.5;max-height:140px}
+.ai-send{flex:none;width:42px;height:42px;border-radius:50%;border:0;background:var(--accent,#0a6a72);color:#fff;display:grid;place-items:center;cursor:pointer}
+.ai-send svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+.ai-send[data-ai=stop] svg{fill:currentColor;stroke:none}
+.ai-foot{margin:0;padding:2px 18px 10px;font-size:12px;color:var(--ink-2,#55636a);display:flex;gap:6px;align-items:center}
+.ai-setup,.ai-sec{display:flex;flex-direction:column;gap:6px}
+.ai-setup input,.ai-setup select,.ai-sec input,.ai-sec select{border:1px solid var(--rule,var(--line,#dde3e0));background:var(--panel-2,var(--surface-2,#f3f6f5));color:var(--ink,#13232b);border-radius:12px;padding:10px 12px;font:inherit;font-size:16px;width:100%;box-sizing:border-box}
+.ai-lbl{font-size:13px;font-weight:700;margin-top:4px}
+.ai-mut{font-size:13px;color:var(--ink-2,#55636a);line-height:1.7;margin:0}
+.ai-row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:6px}
+.ai-btn{appearance:none;border:0;background:var(--accent,#0a6a72);color:#fff;border-radius:12px;padding:9px 14px;font:inherit;font-weight:700;font-size:14px;cursor:pointer}
+html.ai-open,html.ai-open body{overflow:hidden}
+.ai-card{appearance:none;width:100%;display:flex;align-items:center;gap:12px;text-align:start;border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:16px;padding:12px 14px;margin:0 0 12px;font:inherit;cursor:pointer;box-shadow:var(--shadow)}.ai-card>svg{width:26px;height:26px;color:var(--accent);flex:none}.ai-card span{display:flex;flex-direction:column;gap:2px}.ai-card b{font-size:15px}.ai-card small{font-size:12.5px;color:var(--ink-2)}
+.ai-sec h3{margin-top:0}
 </style>
 <script>try{document.documentElement.setAttribute('data-skin',(JSON.parse(localStorage.getItem('masrufi.pref.v1')||'{}').skin==='classic')?'classic':'pro')}catch(e){document.documentElement.setAttribute('data-skin','pro')}</script>
 </head>
@@ -710,7 +748,7 @@ html[data-skin=pro] .tab[aria-current="page"] svg{fill-opacity:.25}
 <div id="app" dir="rtl" lang="ar">
 <header class="top"><div class="top-in">
   <div class="brand"><span class="logo" aria-hidden="true">م</span><div style="min-width:0"><h1>مصروفي</h1><p id="cycleLbl">…</p><p class="ptitle" id="pageTitle" role="heading" aria-level="1"></p></div></div>
-  <div class="top-btns"><button id="btnRefresh" class="icon-btn" type="button" aria-label="تحديث التطبيق" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11a8 8 0 0 0-14.3-4.9L4 8"/><path d="M4 3v5h5"/><path d="M4 13a8 8 0 0 0 14.3 4.9L20 16"/><path d="M20 21v-5h-5"/></svg></button><button id="btnSettings" class="icon-btn" type="button" aria-label="الإعدادات"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button></div>
+  <div class="top-btns"><button class="icon-btn" type="button" data-ai="money" aria-label="Claude: تحليل مصروفي" title="Claude: تحليل مصروفي"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.8 4.7L18.5 9.5l-4.7 1.8L12 16l-1.8-4.7L5.5 9.5l4.7-1.8z"/><path d="M19 15l.8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8z"/></svg></button><button id="btnRefresh" class="icon-btn" type="button" aria-label="تحديث التطبيق" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11a8 8 0 0 0-14.3-4.9L4 8"/><path d="M4 3v5h5"/><path d="M4 13a8 8 0 0 0 14.3 4.9L20 16"/><path d="M20 21v-5h-5"/></svg></button><button id="btnSettings" class="icon-btn" type="button" aria-label="الإعدادات"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button></div>
 </div><div class="cstrip" id="cycleStrip"></div></header>
 
 <main class="wrap">
@@ -781,6 +819,7 @@ html[data-skin=pro] .tab[aria-current="page"] svg{fill-opacity:.25}
         <button type="button" class="chip sm" data-qr="year">هذه السنة</button><button type="button" class="chip sm" data-qr="all">منذ بداية التسجيل</button>
       </div>
     </div>
+    <button type="button" class="ai-card" data-ai="money"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.8 4.7L18.5 9.5l-4.7 1.8L12 16l-1.8-4.7L5.5 9.5l4.7-1.8z"/><path d="M19 15l.8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8z"/></svg><span><b>حلّل مصروفي مع Claude</b><small>تحليل للدورة ومقارنة بالسابقة ونصائح للتوفير، واسأله ما تريد</small></span></button>
     <div id="statsBody" class="view"></div>
   </section>
 
@@ -990,6 +1029,7 @@ html[data-skin=pro] .tab[aria-current="page"] svg{fill-opacity:.25}
     <div class="panel-h"><h2 id="setTitle">الإعدادات</h2><button type="button" class="link" data-close>إغلاق</button></div>
     <div class="sec" id="storeSec" hidden><div id="migrate" hidden></div></div>
     <div class="sec" id="sbSec" hidden></div>
+    <div class="sec ai-sec" id="aiSec"></div>
     <div class="sec" id="skinSec"><h3>التصميم</h3><div class="seg" role="group" aria-label="التصميم"><button type="button" data-skin-set="pro">الجديد</button><button type="button" data-skin-set="classic">السابق</button></div></div>
     <div class="sec" id="themeSec" hidden><h3>المظهر</h3><div class="seg" role="group" aria-label="المظهر"><button type="button" data-theme-set="auto">تلقائي</button><button type="button" data-theme-set="light">فاتح</button><button type="button" data-theme-set="dark">داكن</button></div></div>
     <div class="sec">
@@ -1345,6 +1385,228 @@ function enterLocal(){
 }
 function saveLocal(){if(!lsSet(LS_LOCAL,{months:S.months,settings:S.settings}))toast('تعذّر الحفظ على هذا الجهاز. تأكد أن المتصفح لا يعمل في وضع التصفح الخاص.',{bad:true});sbDiff()}
 function afterLoad(){if(S.migrateBills&&!S.demo){S.migrateBills=false;saveSettings().catch(function(){})}}
+
+/* ---------- Claude: an assistant that answers inside the app, called from this device with the user's own API key ----------
+   The key and the chosen model stay in this device's storage (masrufi.ai.v1); they are not in the backup or in the sync. */
+var AI_LS = 'masrufi.ai.v1', AI_MODELS = [['claude-sonnet-5-5', 'Sonnet 5.5 · متوازن (مستحسن)'], ['claude-opus-5-5', 'Opus 5.5 · الأدق'], ['claude-haiku-5-5', 'Haiku 5.5 · الأسرع والأرخص']];
+var AI_CHATS = {}, AI_CUR = null, AI_OPENERS = {};
+function aiCfg() { try { return JSON.parse(localStorage.getItem(AI_LS) || '{}') || {}; } catch (e) { return {}; } }
+function aiSetCfg(k, v) { var o = aiCfg(); if (v == null || v === '') delete o[k]; else o[k] = v; try { localStorage.setItem(AI_LS, JSON.stringify(o)); } catch (e) {} }
+function aiModel() { return aiCfg().model || AI_MODELS[0][0]; }
+function aiModelName() { var m = aiModel(), x = AI_MODELS.filter(function (y) { return y[0] === m; })[0]; return x ? x[1].split(' · ')[0] : m; }
+function aiErr(code, msg) { var e = new Error(msg || String(code)); e.code = code; return e; }
+function aiMsg(e) {
+  var c = e && e.code, m = (e && e.message) || '';
+  if (c === 'nokey') return 'أضف مفتاح API أولًا.';
+  if (c === 401) return 'مفتاح API غير صحيح أو أُلغي.';
+  if (c === 403) return 'المفتاح لا يملك صلاحية هذا الطلب.';
+  if (c === 429) return 'تجاوزت حد الطلبات أو نفد الرصيد مؤقتًا. انتظر دقيقة ثم أعد المحاولة.';
+  if (c === 529 || c === 503 || c === 500) return 'خدمة Claude مزدحمة الآن. أعد المحاولة بعد قليل.';
+  if (c === 400) return 'رُفض الطلب: ' + m + (/credit|balance/i.test(m) ? ' (رصيد الحساب غير كافٍ)' : '');
+  if (c === 404) return 'اسم النموذج غير معروف. اختر نموذجًا آخر.';
+  if (c === 'net') return 'لا اتصال بالإنترنت، أو حُجب الطلب.';
+  if (c === 'stop') return 'أُوقف.';
+  return m || String(c);
+}
+function aiCall(system, messages, maxTokens, onText, ctl) { // streams the answer; onText gets the text so far
+  var key = (aiCfg().key || '').trim(); if (!key) return Promise.reject(aiErr('nokey'));
+  var ac = window.AbortController ? new AbortController() : null; if (ctl) ctl.abort = function () { if (ac) ac.abort(); };
+  return fetch('https://api.anthropic.com/v1/messages', {
+    method: 'POST', signal: ac ? ac.signal : undefined, cache: 'no-store',
+    headers: { 'content-type': 'application/json', 'x-api-key': key, 'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' },
+    body: JSON.stringify({ model: aiModel(), max_tokens: maxTokens, stream: true, system: system, messages: messages })
+  }).then(function (r) {
+    if (!r.ok) return r.text().then(function (t) { var m = ''; try { m = JSON.parse(t).error.message; } catch (e) { m = t.slice(0, 200); } throw aiErr(r.status, m); });
+    var rd = r.body.getReader(), dec = new TextDecoder(), buf = '', out = '';
+    function pump() {
+      return rd.read().then(function (x) {
+        if (x.done) return out;
+        buf += dec.decode(x.value, { stream: true });
+        var lines = buf.split('\n'); buf = lines.pop();
+        lines.forEach(function (ln) {
+          if (ln.indexOf('data:') !== 0) return; var ev; try { ev = JSON.parse(ln.slice(5)); } catch (e) { return; }
+          if (ev.type === 'content_block_delta' && ev.delta && ev.delta.type === 'text_delta') { out += ev.delta.text; if (onText) onText(out); }
+          else if (ev.type === 'error') throw aiErr(ev.error && ev.error.type === 'overloaded_error' ? 529 : 'api', ev.error && ev.error.message);
+        });
+        return pump();
+      });
+    }
+    return pump();
+  }, function (e) { throw e && e.name === 'AbortError' ? aiErr('stop') : aiErr('net'); });
+}
+function aiInline(t) { return t.replace(/\*\*([^*\n]+)\*\*/g, '<b>$1</b>').replace(/`([^`\n]+)`/g, '<code>$1</code>'); }
+function aiMd(src) { // the light markdown Claude writes: headings, lists, bold, paragraphs
+  var out = [], list = null, para = [];
+  function flushP() { if (para.length) { out.push('<p>' + aiInline(para.join('<br>')) + '</p>'); para = []; } }
+  function flushL() { if (list) { out.push('<' + list.t + '>' + list.items.map(function (x) { return '<li>' + aiInline(x) + '</li>'; }).join('') + '</' + list.t + '>'); list = null; } }
+  esc(src).split('\n').forEach(function (ln) {
+    var s = ln.trim(), m;
+    if (!s) { flushP(); flushL(); return; }
+    if ((m = /^#{1,4}\s+(.*)$/.exec(s))) { flushP(); flushL(); out.push('<h4>' + aiInline(m[1]) + '</h4>'); return; }
+    if (/^(-{3,}|_{3,})$/.test(s)) { flushP(); flushL(); return; }
+    if ((m = /^[-*•]\s+(.*)$/.exec(s))) { flushP(); if (!list || list.t !== 'ul') { flushL(); list = { t: 'ul', items: [] }; } list.items.push(m[1]); return; }
+    if ((m = /^\d+[.)]\s+(.*)$/.exec(s))) { flushP(); if (!list || list.t !== 'ol') { flushL(); list = { t: 'ol', items: [] }; } list.items.push(m[1]); return; }
+    if (/^\|.*\|$/.test(s)) { if (/^\|[\s:|-]+\|$/.test(s)) return; flushL(); para.push(s.replace(/^\||\|$/g, '').split('|').map(function (c) { return c.trim(); }).join(' · ')); return; }
+    flushL(); para.push(s);
+  });
+  flushP(); flushL();
+  return out.join('');
+}
+function aiSheet() {
+  var el = document.getElementById('ai-sheet'); if (el) return el;
+  el = document.createElement('div'); el.id = 'ai-sheet'; el.className = 'ai-sheet'; el.hidden = true;
+  el.innerHTML = '<div class="ai-panel" role="dialog" aria-modal="true" aria-labelledby="ai-t"><div class="ai-h"><div class="ai-hd"><b id="ai-t"></b><span id="ai-sub"></span></div><button type="button" class="ai-x" data-ai="close">إغلاق</button></div>' +
+    '<div class="ai-log" id="ai-log"></div><div class="ai-chips" id="ai-chips"></div>' +
+    '<form class="ai-form" id="ai-form"><textarea id="ai-q" rows="1" placeholder="اكتب سؤالك…" enterkeyhint="send"></textarea><button type="submit" class="ai-send" id="ai-send" aria-label="إرسال"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h13M12 5l-7 7 7 7"/></svg></button></form>' +
+    '<p class="ai-foot" id="ai-foot"></p></div>';
+  document.body.appendChild(el);
+  el.addEventListener('click', function (e) { if (e.target === el) aiClose(); });
+  document.getElementById('ai-form').addEventListener('submit', function (e) { e.preventDefault(); var q = document.getElementById('ai-q'); if (q.value.trim()) { aiAsk(q.value.trim()); q.value = ''; aiGrow(); } });
+  var q = document.getElementById('ai-q');
+  q.addEventListener('input', aiGrow);
+  q.addEventListener('keydown', function (e) { if (e.key === 'Enter' && !e.shiftKey && !e.isComposing && window.matchMedia('(hover: hover)').matches) { e.preventDefault(); document.getElementById('ai-form').requestSubmit(); } });
+  return el;
+}
+function aiGrow() { var q = document.getElementById('ai-q'); if (!q) return; q.style.height = 'auto'; q.style.height = Math.min(140, q.scrollHeight) + 'px'; }
+function aiOpen(ctx) { // ctx: {id, title, sub, system, context(), chips: [[label, prompt]], hello}
+  var ch = AI_CHATS[ctx.id]; if (!ch) ch = AI_CHATS[ctx.id] = { ctx: ctx, msgs: [], busy: false, ctl: null };
+  ch.ctx = ctx; AI_CUR = ch;
+  var el = aiSheet(); el.hidden = false; document.documentElement.classList.add('ai-open');
+  document.getElementById('ai-t').textContent = ctx.title; document.getElementById('ai-sub').textContent = ctx.sub || '';
+  aiDraw();
+}
+function aiClose() { var el = document.getElementById('ai-sheet'); if (el) el.hidden = true; document.documentElement.classList.remove('ai-open'); }
+function aiKeyForm() {
+  var m = aiModel();
+  return '<div class="ai-setup"><p><b>أضف مفتاح Claude API</b></p><p class="ai-mut">المفتاح من حسابك في منصة المطورين <a href="https://platform.claude.com/" target="_blank" rel="noopener">platform.claude.com</a> (API Keys) برصيد مدفوع مسبقًا. يبقى على هذا الجهاز فقط، ويُرسل منه إلى Anthropic مباشرة مع كل سؤال.</p>' +
+    '<label class="ai-lbl" for="cl-key">مفتاح API</label><input type="password" id="cl-key" dir="ltr" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="sk-ant-…" value="' + esc(aiCfg().key || '') + '">' +
+    '<label class="ai-lbl" for="cl-model">النموذج</label><select id="cl-model">' + AI_MODELS.map(function (x) { return '<option value="' + x[0] + '"' + (x[0] === m ? ' selected' : '') + '>' + x[1] + '</option>'; }).join('') + '</select>' +
+    '<div class="ai-row"><button type="button" class="ai-btn" data-ai="test">احفظ وجرّب المفتاح</button><span class="ai-mut" id="cl-test"></span></div></div>';
+}
+function aiSettingsHtml() { // the section inside the app's settings
+  var on = !!aiCfg().key;
+  return '<h3>المساعد الذكي (Claude)</h3><p class="ai-mut">' + 'من زر ✦ أعلى التطبيق أو من «الإحصائيات»: يحلّل Claude مصروفك ودوراتك ويعطيك نصائح عملية، وتسأله ما تريد عن مصاريفك. يُرسل إليه ملخص أرقامك (الفئات والمبالغ والتواريخ وملاحظات أكبر العمليات) مع كل محادثة.' + '</p>' +
+    '<label class="ai-lbl" for="cl-key">مفتاح API</label><input type="password" id="cl-key" dir="ltr" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="sk-ant-…" value="' + esc(aiCfg().key || '') + '">' +
+    '<label class="ai-lbl" for="cl-model">النموذج</label><select id="cl-model">' + AI_MODELS.map(function (x) { return '<option value="' + x[0] + '"' + (x[0] === aiModel() ? ' selected' : '') + '>' + x[1] + '</option>'; }).join('') + '</select>' +
+    '<div class="ai-row"><button type="button" class="ai-btn" data-ai="test">' + (on ? 'جرّب المفتاح' : 'احفظ وجرّب المفتاح') + '</button><span class="ai-mut" id="cl-test"></span></div>' +
+    '<p class="ai-mut">المفتاح من <a href="https://platform.claude.com/" target="_blank" rel="noopener">platform.claude.com</a> ← API Keys، برصيد مدفوع مسبقًا. يبقى على هذا الجهاز فقط، ولا يدخل في النسخة الاحتياطية ولا في المزامنة.</p>';
+}
+function aiDraw() {
+  var ch = AI_CUR; if (!ch) return;
+  var log = document.getElementById('ai-log'), chips = document.getElementById('ai-chips'), hasKey = !!aiCfg().key;
+  var h = '';
+  if (!hasKey) h = aiKeyForm();
+  else if (!ch.msgs.length) h = '<div class="ai-hello">' + (ch.ctx.hello || 'اختر سؤالًا جاهزًا أو اكتب سؤالك.') + '</div>';
+  ch.msgs.forEach(function (m, k) {
+    if (m.role === 'user') h += '<div class="ai-q">' + esc(m.show || m.text) + '</div>';
+    else h += '<div class="ai-a' + (m.err ? ' ai-err' : '') + '">' + (m.err ? esc(m.err) : aiMd(m.text) || '<span class="ai-dots"><i></i><i></i><i></i></span>') +
+      (m.text && !m.live ? '<div class="ai-acts"><button type="button" data-ai="copy" data-k="' + k + '">نسخ</button></div>' : '') + '</div>';
+  });
+  if (ch.err && hasKey) h += '<div class="ai-a ai-err">' + esc(ch.err) + '</div>';
+  log.innerHTML = h;
+  chips.innerHTML = hasKey && !ch.busy ? (ch.ctx.chips || []).map(function (c, k) { return '<button type="button" data-ai="chip" data-k="' + k + '">' + esc(c[0]) + '</button>'; }).join('') : '';
+  chips.hidden = !chips.innerHTML;
+  document.getElementById('ai-form').hidden = !hasKey;
+  var send = document.getElementById('ai-send');
+  send.setAttribute('data-ai', ch.busy ? 'stop' : ''); send.setAttribute('aria-label', ch.busy ? 'أوقف' : 'إرسال');
+  send.innerHTML = ch.busy ? '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="7" y="7" width="10" height="10" rx="2"/></svg>' : '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h13M12 5l-7 7 7 7"/></svg>';
+  send.type = ch.busy ? 'button' : 'submit';
+  document.getElementById('ai-foot').textContent = hasKey ? 'Claude ' + aiModelName() + ' · من رصيد حسابك' + (ch.msgs.length ? ' · ' : '') : '';
+  if (ch.msgs.length && hasKey) { var nb = document.createElement('button'); nb.type = 'button'; nb.className = 'ai-new'; nb.setAttribute('data-ai', 'new'); nb.textContent = 'محادثة جديدة'; document.getElementById('ai-foot').appendChild(nb); }
+  log.scrollTop = log.scrollHeight;
+}
+function aiAsk(text, show) {
+  var ch = AI_CUR; if (!ch || ch.busy) return;
+  ch.err = ''; var first = !ch.msgs.length, ctx = '';
+  if (first) { try { ctx = ch.ctx.context(); } catch (e) { ctx = ''; } }
+  ch.msgs.push({ role: 'user', text: (first && ctx ? ctx + '\n\n' : '') + text, show: show || text });
+  var a = { role: 'assistant', text: '', live: true }; ch.msgs.push(a); ch.busy = true; ch.ctl = {}; aiDraw();
+  var msgs = ch.msgs.filter(function (m) { return m !== a && !m.err; }).map(function (m) { return { role: m.role, content: m.text }; });
+  var t0 = 0;
+  aiCall(ch.ctx.system, msgs, 2500, function (txt) { a.text = txt; var now = Date.now(); if (now - t0 > 80 && AI_CUR === ch) { t0 = now; var log = document.getElementById('ai-log'), last = log && log.lastElementChild; if (last) { last.innerHTML = aiMd(txt); log.scrollTop = log.scrollHeight; } } }, ch.ctl)
+    .then(function (txt) { a.text = txt; a.live = false; ch.err = ''; }, function (e) {
+      a.live = false; if (e.code === 'stop' && a.text) return;
+      ch.msgs.splice(ch.msgs.indexOf(a) - 1, 2); ch.err = aiMsg(e); // the question can be asked again
+      var q = document.getElementById('ai-q'); if (q && !q.value && !show) q.value = text;
+    })
+    .then(function () { ch.busy = false; ch.ctl = null; if (AI_CUR === ch) aiDraw(); });
+}
+function aiCopy(t) {
+  function fb() { var ta = document.createElement('textarea'); ta.value = t; ta.style.cssText = 'position:fixed;top:0;opacity:0'; document.body.appendChild(ta); ta.select(); try { document.execCommand('copy'); toast('نُسخ'); } catch (e) {} document.body.removeChild(ta); }
+  try { navigator.clipboard.writeText(t).then(function () { toast('نُسخ'); }, fb); } catch (e) { fb(); }
+}
+function aiSaveKeyFields() {
+  var k = document.getElementById('cl-key'), m = document.getElementById('cl-model');
+  if (k) aiSetCfg('key', k.value.replace(/\s+/g, '')); if (m) aiSetCfg('model', m.value);
+}
+var AI_ACT = {
+  close: aiClose,
+  chip: function (b) { var ch = AI_CUR, c = ch && ch.ctx.chips[+b.getAttribute('data-k')]; if (c) aiAsk(c[1], c[0]); },
+  stop: function () { var ch = AI_CUR; if (ch && ch.ctl && ch.ctl.abort) ch.ctl.abort(); },
+  copy: function (b) { var ch = AI_CUR, m = ch && ch.msgs[+b.getAttribute('data-k')]; if (m) aiCopy(m.text); },
+  'new': function () { var ch = AI_CUR; if (!ch || ch.busy) return; ch.msgs = []; aiDraw(); },
+  test: function () {
+    aiSaveKeyFields(); var out = document.getElementById('cl-test');
+    if (!aiCfg().key) { if (out) out.textContent = 'الصق المفتاح أولًا.'; return; }
+    if (out) out.textContent = 'جارٍ التجربة…';
+    aiCall('أجب بكلمة واحدة.', [{ role: 'user', content: 'قل: جاهز' }], 20, null).then(function () {
+      if (out) out.textContent = '✓ المفتاح يعمل (' + aiModelName() + ')';
+      if (AI_CUR && !document.getElementById('ai-sheet').hidden) setTimeout(aiDraw, 700);
+    }, function (e) { if (out) out.textContent = '✗ ' + aiMsg(e); });
+  }
+};
+document.addEventListener('click', function (e) {
+  var b = e.target && e.target.closest ? e.target.closest('[data-ai]') : null; if (!b) return;
+  var a = b.getAttribute('data-ai'); if (!a) return;
+  if (AI_ACT[a]) { e.preventDefault(); e.stopPropagation(); AI_ACT[a](b); }
+  else if (AI_OPENERS[a]) { e.preventDefault(); e.stopPropagation(); AI_OPENERS[a](b); }
+}, true);
+document.addEventListener('input', function (e) { var id = e.target && e.target.id; if (id === 'cl-key') aiSetCfg('key', e.target.value.replace(/\s+/g, '')); }, true);
+document.addEventListener('change', function (e) {
+  var id = e.target && e.target.id; if (id !== 'cl-key' && id !== 'cl-model') return;
+  aiSaveKeyFields(); if (id === 'cl-key') toast(aiCfg().key ? 'حُفظ المفتاح على هذا الجهاز' : 'حُذف المفتاح');
+}, true);
+document.addEventListener('keydown', function (e) { if (e.key === 'Escape') { var el = document.getElementById('ai-sheet'); if (el && !el.hidden) aiClose(); } });
+
+var MONEY_SYS='أنت مستشار مالي شخصي عملي لمستخدم تطبيق «مصروفي» في السعودية (العملة ريال سعودي). في أول رسالة يصلك <بيانات> فيها ملخص من التطبيق: دورته المالية الحالية، والمصروف حسب الفئة وطريقة الدفع، والمصاريف الثابتة، والدورات السابقة، وأكبر العمليات. أجب بالعربية الواضحة باختصار، بفقرات قصيرة وقوائم، ودون جداول. اعتمد على الأرقام الموجودة فقط واذكرها، ولا تخترع أرقامًا؛ وإذا احتجت افتراضًا فصرّح به، وإذا كانت البيانات لا تكفي فقل ذلك. اجعل النصائح عملية ومحددة: ماذا يغيّر، وكم يوفّر تقريبًا في الدورة. لا تمدح ولا تلُم. لا توصِ بأسهم أو منتجات استثمارية بعينها؛ إن سُئلت فأعطِ معلومات عامة واقترح مستشارًا مرخّصًا.';
+function aiMoneyContext(){
+  var st=settings(),tN=dnum(todayStr()),c=cycleAt(0),a=allowance(c),L=[],r2=function(v){return fmt(Math.round(v*100)/100)};
+  L.push('اليوم: '+todayStr());
+  L.push('الدورة الحالية: من '+c.start+' إلى '+c.end+' (اليوم '+Math.max(1,Math.min(c.days,tN-c.s+1))+' من '+c.days+'، باقي '+a.daysLeft+' يومًا). نوع الدورة: '+({salary:'من نزول الراتب إلى التالي',day:'يوم ثابت من الشهر',month:'الشهر الميلادي'}[st.cycleMode]||st.cycleMode)+'.');
+  L.push((st.budget>0?'الميزانية المحددة للدورة: '+r2(st.budget):'لا ميزانية محددة؛ الحد يُحسب من الدخل')+(st.saveGoal?' · هدف الادخار: '+st.saveGoal+'% من الدخل':''));
+  L.push('الحد المتاح للصرف في الدورة: '+r2(a.limit)+' · المصروف حتى الآن: '+r2(a.spent)+' · مصاريف ثابتة قادمة: '+r2(a.upExp)+' · المتبقي للصرف: '+r2(a.free)+' · المسموح يوميًا: '+r2(a.perDay));
+  L.push('الدخل المستلم في الدورة: '+r2(a.incomeGot)+' · دخل قادم: '+r2(a.upInc));
+  if(st.savDate)L.push('رصيد المدخرات: '+r2(savBalance(tN)));
+  var ex=inCycle(expItems(),c),byCat={},byPay={},fixed=0,vari=0;
+  ex.forEach(function(it){var k=it.cat||'أخرى';(byCat[k]=byCat[k]||{v:0,n:0}).v+=it.amt;byCat[k].n++;var p=it.pay||'غير محدد';byPay[p]=(byPay[p]||0)+it.amt;if(isFixed(it))fixed+=it.amt;else vari+=it.amt});
+  L.push('\nالمصروف حسب الفئة في الدورة الحالية:');
+  Object.keys(byCat).sort(function(x,y){return byCat[y].v-byCat[x].v}).forEach(function(k){var lim=st.catBudgets&&st.catBudgets[k];L.push('- '+k+': '+r2(byCat[k].v)+' ('+byCat[k].n+' عملية)'+(lim?' · حدّها '+r2(lim):''))});
+  if(!ex.length)L.push('- لا مصروفات بعد.');
+  else L.push('ثابت: '+r2(fixed)+' · متغيّر: '+r2(vari));
+  if(ex.length)L.push('حسب طريقة الدفع: '+Object.keys(byPay).map(function(k){return k+' '+r2(byPay[k])}).join('، '));
+  var big=ex.filter(function(it){return !isFixed(it)}).sort(function(x,y){return y.amt-x.amt}).slice(0,12);
+  if(big.length){L.push('\nأكبر المصروفات المتغيّرة في الدورة:');big.forEach(function(it){L.push('- '+it.date+' · '+r2(it.amt)+' · '+it.cat+(it.note?' · '+String(it.note).slice(0,40):''))})}
+  L.push('\nالدورات السابقة (الأحدث أولًا):');
+  var seen={};
+  for(var k=1;k<=6;k++){var cc=cycleAt(-k);if(seen[cc.s])break;seen[cc.s]=1;var e2=inCycle(expItems(),cc),i2=inCycle(incItems(),cc);if(!e2.length&&!i2.length)continue;
+    var bc={};e2.forEach(function(it){bc[it.cat]=(bc[it.cat]||0)+it.amt});
+    L.push('- '+cc.start+' إلى '+cc.end+': المصروف '+r2(sum(e2))+' · الدخل '+r2(sum(i2))+' · الفئات: '+Object.keys(bc).sort(function(x,y){return bc[y]-bc[x]}).map(function(x){return x+' '+r2(bc[x])}).join('، '))}
+  var rec=(st.recurring||[]).filter(function(r){return r.active&&!recEnded(r)});
+  if(rec.length){L.push('\nالدخل والمصاريف الثابتة:');rec.forEach(function(r){L.push('- '+(r.type==='inc'?'دخل':r.type==='trf'?'تحويل':'مصروف')+': '+r.name+' · '+(r.sweep?'المتبقي':r2(recAmt(r,curMonthKey(0))))+' · '+recWhen(r)+(r.months?' · باقي '+recLeft(r).length+' شهر':''))})}
+  var rem=(st.reminders||[]).filter(function(x){var n=dnum(x.date);return n>=tN-1&&n<=tN+150});
+  if(rem.length){L.push('\nدفعات قادمة غير شهرية:');rem.forEach(function(x){L.push('- '+x.date+' · '+x.name+' · '+r2(x.amt))})}
+  return '<بيانات>\n'+L.join('\n')+'\n</بيانات>';
+}
+AI_OPENERS.money=function(){
+  if(S.demo){toast('أنهِ العرض التجريبي أولاً.');return}
+  aiOpen({id:'money',title:'Claude: تحليل مصروفي',sub:'يحلّل دورتك الحالية والسابقة ويعطيك نصائح',system:MONEY_SYS,context:aiMoneyContext,
+    hello:'يرى Claude ملخص أرقامك عند أول سؤال. اختر سؤالًا أو اكتب سؤالك:',
+    chips:[['حلّل دورتي الحالية','حلّل دورتي الحالية: أين يذهب مصروفي، وهل أنا ماشٍ على الميزانية، وما أهم ثلاث ملاحظات؟'],
+      ['أين أقدر أوفّر؟','أين أقدر أوفّر في الدورة القادمة؟ أعطني خطوات محددة مع المبلغ التقريبي لكل خطوة.'],
+      ['قارن بالدورات السابقة','قارن دورتي الحالية بالدورات السابقة: ما الذي زاد وما الذي نقص، ولماذا قد يكون ذلك؟'],
+      ['أكمل الدورة بميزانيتي؟','بمعدل صرفي الحالي، هل أكمل الدورة ضمن المتاح؟ وكم أصرف يوميًا لأبقى ضمنه؟'],
+      ['خطة ادخار','اقترح خطة ادخار واقعية للدورة القادمة بناءً على دخلي والتزاماتي.']]});
+};
 
 /* ---------- sync between your devices through your own Supabase project (optional) ----------
    One table, masrufi_kv (user_id, store, k, v jsonb, deleted, updated_at), readable only by its owner (row level security).
@@ -2664,6 +2926,7 @@ function renderSettings(){
   $('#cyclesSum').textContent='عرض الدورات حتى نهاية '+(new Date().getFullYear()+1);
   $('#themeSec').hidden=!STANDALONE;var tv=pref('theme')||'auto';$$('[data-theme-set]').forEach(function(b){b.setAttribute('aria-pressed',String(b.dataset.themeSet===tv))});
   sbRender();
+  var aiS=$('#aiSec');if(aiS&&!aiS.contains(document.activeElement))aiS.innerHTML=aiSettingsHtml();
   var st=settings(),ms=mainSalary();
   var n=S.mode==='cloud'?localPendingCount():0,mg=$('#migrate');
   mg.hidden=!n;$('#storeSec').hidden=!n;if(n)mg.innerHTML='<button type="button" class="btn accent" data-act="migrate">نقل '+ops(n)+' من هذا الجهاز إلى حسابك</button>';
