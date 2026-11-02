@@ -741,6 +741,7 @@ html[data-skin=pro] .tab[aria-current="page"] svg{fill-opacity:.25}
 html.ai-open,html.ai-open body{overflow:hidden}
 .ai-card{appearance:none;width:100%;display:flex;align-items:center;gap:12px;text-align:start;border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:16px;padding:12px 14px;margin:0 0 12px;font:inherit;cursor:pointer;box-shadow:var(--shadow)}.ai-card>svg{width:26px;height:26px;color:var(--accent);flex:none}.ai-card span{display:flex;flex-direction:column;gap:2px}.ai-card b{font-size:15px}.ai-card small{font-size:12.5px;color:var(--ink-2)}
 .ai-sec h3{margin-top:0}
+html.kb nav.tabs{display:none!important}
 </style>
 <script>try{document.documentElement.setAttribute('data-skin',(JSON.parse(localStorage.getItem('masrufi.pref.v1')||'{}').skin==='classic')?'classic':'pro')}catch(e){document.documentElement.setAttribute('data-skin','pro')}</script>
 </head>
@@ -3716,6 +3717,11 @@ reorderGrid($('#toChips'),'data-to',saveBankOrder);
     return safe(user.id()).then(function(uid){if(uid)enterCloud(db,uid);else enterLocal()});
   });
 })();
+})();
+(function () { // typing in a text field: the bottom bar steps aside, as in native apps where the keyboard covers it
+  function typing(el) { return !!el && (el.tagName === 'TEXTAREA' || el.isContentEditable || (el.tagName === 'INPUT' && !/^(button|submit|reset|checkbox|radio|range|color|file|image|hidden)$/i.test(el.type || ''))); }
+  document.addEventListener('focusin', function (e) { if (typing(e.target)) document.documentElement.classList.add('kb'); });
+  document.addEventListener('focusout', function () { setTimeout(function () { if (!typing(document.activeElement)) document.documentElement.classList.remove('kb'); }, 60); });
 })();
 </script>
 </body>
