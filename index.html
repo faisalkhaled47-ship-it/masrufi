@@ -244,6 +244,8 @@ summary::-webkit-details-marker{display:none}
 .fx-meta.warn{color:var(--warn);font-weight:600}
 .fx-meta .nw{white-space:nowrap}
 .tile.wide{grid-column:1/-1}
+.balfix{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr) auto;gap:8px;margin:0 0 12px}
+.balfix .field{min-height:40px;padding:8px 10px}.balfix .btn{min-height:40px;padding:6px 14px}
 .fund{border-radius:14px;background:var(--warn-soft);padding:12px 12px 10px}
 .fund-q{margin:0 0 8px;font-size:13.5px;color:var(--ink);text-align:right}
 .fund-chips{display:flex;flex-wrap:wrap;gap:6px}
@@ -733,6 +735,7 @@ html[data-skin=pro] .tab[aria-current="page"] svg{fill-opacity:.25}
 .ai-send[data-ai=stop] svg{fill:currentColor;stroke:none}
 .ai-foot{margin:0;padding:2px 18px 10px;font-size:12px;color:var(--ink-2,#55636a);display:flex;gap:6px;align-items:center}
 .ai-setup,.ai-sec{display:flex;flex-direction:column;gap:6px}
+.no-ai [data-ai="money"],.no-ai #aiSec{display:none!important}
 .ai-setup input,.ai-setup select,.ai-sec input,.ai-sec select{border:1px solid var(--rule,var(--line,#dde3e0));background:var(--panel-2,var(--surface-2,#f3f6f5));color:var(--ink,#13232b);border-radius:12px;padding:10px 12px;font:inherit;font-size:16px;width:100%;box-sizing:border-box}
 .ai-lbl{font-size:13px;font-weight:700;margin-top:4px}
 .ai-mut{font-size:13px;color:var(--ink-2,#55636a);line-height:1.7;margin:0}
@@ -1194,6 +1197,7 @@ function normSettings(s){
   delete o.savAcc; // an earlier take on savings, replaced by the savings balance below
   o.savBase=Math.round((+o.savBase||0)*100)/100;o.savDate=/^\d{4}-\d{2}-\d{2}$/.test(o.savDate||'')?o.savDate:'';
   o.savMoves=Array.isArray(o.savMoves)?o.savMoves.filter(function(m){return m&&typeof m.id==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(m.date||'')&&+m.amt>0&&(m.dir==='take'||m.dir==='put')}).map(function(m){return {id:m.id.slice(0,48),date:m.date,amt:Math.round(+m.amt*100)/100,dir:m.dir,note:String(m.note||'').slice(0,80),ts:+m.ts||0}}).slice(-500):[];
+  var bfx={};if(o.balFix&&typeof o.balFix==='object')Object.keys(o.balFix).forEach(function(b){var f=o.balFix[b];if(o.banks.indexOf(b)>=0&&f&&isFinite(+f.amt)&&/^\d{4}-\d{2}-\d{2}$/.test(f.date||''))bfx[b]={amt:Math.round(+f.amt*100)/100,date:f.date,ts:+f.ts||0}});o.balFix=bfx;
   o.openBal=obl;o.openDate=/^\d{4}-\d{2}-\d{2}$/.test(o.openDate||'')?o.openDate:'';
   if(['salary','day','month'].indexOf(o.cycleMode)<0)o.cycleMode='salary';
   o.cycleDay=Math.min(28,Math.max(1,parseInt(o.cycleDay,10)||27));
@@ -2358,11 +2362,11 @@ function renderStats(){
     function bk(k){k=k||'غير محدد';if(!bb[k]){bb[k]={i:0,e:0,t:0};order.push(k)}return bb[k]}
     cur.concat(curInc).forEach(function(it){var v=bk(it.bank);if(it.type==='inc')v.i+=it.amt;else v.e+=it.amt});
     curTrf.forEach(function(it){if(it.bank)bk(it.bank).t-=it.amt;bk(it.to).t+=it.amt});
-    Object.keys(st.openBal||{}).forEach(function(b){bk(b)}); // accounts with a starting balance show even without movement
+    Object.keys(st.openBal||{}).concat(Object.keys(st.balFix||{})).forEach(function(b){bk(b)}); // accounts with a starting or entered balance show even without movement
     order.sort(function(x,y){return (bb[y].e+bb[y].i+Math.abs(bb[y].t))-(bb[x].e+bb[x].i+Math.abs(bb[x].t))});
     var balN=Math.min(c.e,tN),hasOB=Object.keys(st.openBal||{}).length>0;
     var sn=function(v){return '<span dir="ltr" class="num">'+(v<-0.004?'−':v>0.004?'+':'')+fmt(Math.abs(v))+'</span>'};
-    h+='<div class="card"><div class="card-h"><h2>حسب البنك</h2><span class="hint">ر.س</span></div><div class="tbl-wrap"><table class="tbl"><thead><tr><th>البنك</th><th class="n">الدخل</th><th class="n">المصروف</th>'+(hasT?'<th class="n">تحويلات</th>':'')+'<th class="n">الرصيد</th></tr></thead><tbody>'+order.map(function(k){var v=bb[k],nv=k==='غير محدد'?v.i-v.e+v.t:bankBalance(k,balN);return '<tr><td>'+esc(k)+'</td><td class="n inc">'+(v.i?fmt(v.i):'—')+'</td><td class="n">'+(v.e?fmt(v.e):'—')+'</td>'+(hasT?'<td class="n">'+(v.t?sn(v.t):'—')+'</td>':'')+'<td class="n'+(nv<0?' bad':'')+'">'+sn(nv)+'</td></tr>'}).join('')+'</tbody></table></div><p class="foot">الدخل والمصروف والتحويلات لهذه الفترة، والرصيد '+(balN>=tN?'الآن':'في '+esc(dayLabel(fromN(balN))))+(hasOB?' محسوب من رصيد البداية في '+esc(dayLabel(st.openDate)):'')+'.'+(hasOB?'':' أضف رصيد البداية لكل حساب من الإعدادات ليطابق رصيدك الفعلي.')+'</p></div>';
+    h+='<div class="card"><div class="card-h"><h2>حسب البنك</h2><span class="hint">ر.س</span></div>'+(custom||!c.isCurrent?'':'<div class="balfix"><select id="bfBank" class="field" aria-label="البنك">'+st.banks.map(function(b){return '<option>'+esc(b)+'</option>'}).join('')+'</select><input id="bfAmt" class="field" inputmode="decimal" placeholder="الرصيد الفعلي" aria-label="الرصيد الفعلي"><button type="button" class="btn accent" data-act="balfix">تحديث</button></div>')+'<div class="tbl-wrap"><table class="tbl"><thead><tr><th>البنك</th><th class="n">الدخل</th><th class="n">المصروف</th>'+(hasT?'<th class="n">تحويلات</th>':'')+'<th class="n">الرصيد</th></tr></thead><tbody>'+order.map(function(k){var v=bb[k],nv=k==='غير محدد'?v.i-v.e+v.t:bankBalance(k,balN);return '<tr><td>'+esc(k)+'</td><td class="n inc">'+(v.i?fmt(v.i):'—')+'</td><td class="n">'+(v.e?fmt(v.e):'—')+'</td>'+(hasT?'<td class="n">'+(v.t?sn(v.t):'—')+'</td>':'')+'<td class="n'+(nv<0?' bad':'')+'">'+sn(nv)+'</td></tr>'}).join('')+'</tbody></table></div><p class="foot">الدخل والمصروف والتحويلات لهذه الفترة، والرصيد '+(balN>=tN?'الآن':'في '+esc(dayLabel(fromN(balN))))+(hasOB?' محسوب من رصيد البداية في '+esc(dayLabel(st.openDate)):'')+'.'+(hasOB?'':' أضف رصيد البداية لكل حساب من الإعدادات ليطابق رصيدك الفعلي.')+Object.keys(st.balFix||{}).map(function(b){var f=st.balFix[b];return '<br>«'+esc(b)+'»: أدخلت رصيده الفعلي '+fmt(f.amt)+' ر.س يوم '+esc(dayLabel(f.date))}).join('')+'</p></div>';
   }
 
   var ob=!custom?obligations():[];
@@ -2427,11 +2431,11 @@ function gauge(o){
   var w=o.v==null?0:Math.max(0,Math.min(100,o.v));
   return '<div class="gz"><div class="gz-h"><span class="gz-k">'+o.k+'</span><span class="gz-v '+(o.cls||'')+'" dir="ltr">'+(o.v==null?'—':Math.round(o.v)+'%')+'</span></div><div class="gz-t"><i class="'+(o.cls||'')+'" style="width:'+w.toFixed(1)+'%"></i>'+(o.marks||[]).map(function(m){return '<b class="mk" style="inset-inline-start:'+Math.min(100,m.p)+'%"><span>'+m.l+'</span></b>'}).join('')+'</div><div class="gz-u">'+o.u+'</div></div>';
 }
-function bankBalance(bank,uptoN){ // opening balance plus every movement from the opening date up to the given day
-  var st=settings(),od=st.openDate?dnum(st.openDate):-1e9,v=+((st.openBal||{})[bank]||0);
-  data().list.forEach(function(it){if(it.n<od||it.n>uptoN)return;
-    if(it.type==='trf'){if(it.bank===bank)v-=it.amt;if(it.to===bank)v+=it.amt}
-    else if((it.bank||'')===bank)v+=it.type==='inc'?it.amt:-it.amt});
+function bankBalance(bank,uptoN){ // the actual balance you entered last, or the opening balance, plus every movement after it up to the given day
+  var st=settings(),fx=(st.balFix||{})[bank],fN=fx?dnum(fx.date):Infinity,v,from;
+  var add=function(it){if(it.type==='trf'){if(it.bank===bank)v-=it.amt;if(it.to===bank)v+=it.amt}else if((it.bank||'')===bank)v+=it.type==='inc'?it.amt:-it.amt};
+  if(fx&&fN<=uptoN){v=fx.amt;data().list.forEach(function(it){if(it.n>uptoN||it.n<fN||(it.n===fN&&(+it.ts||0)<=fx.ts))return;add(it)})}
+  else{from=st.openDate?dnum(st.openDate):-1e9;v=+((st.openBal||{})[bank]||0);data().list.forEach(function(it){if(it.n<from||it.n>uptoN)return;add(it)})}
   return Math.round(v*100)/100;
 }
 function obligations(){ // fixed income and expenses per cycle from now to the end of next year
@@ -3378,6 +3382,10 @@ document.addEventListener('click',function(e){
   if(d.cat!==undefined){S.form.cat=S.form.cat===d.cat?null:d.cat;$('#catChips').classList.remove('err');$('#formErr').textContent='';renderCatChips();return}
   if(d.pay!==undefined){S.form.pay=d.pay;pref('lastPay',d.pay);renderPayChips();renderBankChips();return}
   if(d.to!==undefined){S.form.to=S.form.to===d.to?null:d.to;$('#formErr').textContent='';renderBankChips();return}
+  if(d.act==='balfix'){if(S.demo)return demoBlock().catch(function(){});var bb=$('#bfBank').value,raw=$('#bfAmt').value.trim(),neg=/^[-−]/.test(raw),bv=parseAmt(raw);
+    if(!bb)return;if(!(bv>=0)){toast('اكتب الرصيد رقماً.',{bad:true});$('#bfAmt').focus();return}if(neg)bv=-bv;
+    var was=bankBalance(bb,dnum(todayStr()));S.settings.balFix=Object.assign({},S.settings.balFix);S.settings.balFix[bb]={amt:Math.round(bv*100)/100,date:todayStr(),ts:Date.now()};
+    saveSettings().then(function(){toast('رصيد «'+bb+'» صار '+fmt(bv)+' ر.س'+(Math.abs(was-bv)>0.004?' (كان محسوباً '+fmt(was)+')':''))}).catch(failToast);return}
   if(d.fund!==undefined){S.form.fundFrom=S.form.fundFrom===d.fund?null:d.fund;renderFund();return}
   if(d.bank!==undefined){S.form.bank=S.form.bank===d.bank?null:d.bank;pref('lastBank',S.form.bank||'');renderBankChips();return}
   if(d.qd!==undefined){$('#dt').value=addDays(todayStr(),+d.qd);S.form.dateTouched=+d.qd!==0;return}
@@ -3696,6 +3704,7 @@ reorderGrid($('#toChips'),'data-to',saveBankOrder);
     S.cycleOffset=Math.min(0,+rs.off||0);if(rs.stats&&typeof rs.stats==='object')S.stats=Object.assign(S.stats,rs.stats);
     setTab(rs.tab);setTimeout(function(){window.scrollTo(0,+rs.y||0)},400);
   }else setTab('add');
+  if(!STANDALONE)document.documentElement.classList.add('no-ai'); // inside Claude the page cannot reach the API with a key, so the key-based assistant stays out
   if(STANDALONE){
     applyTheme();
     enterLocal();sbSoon(800);
