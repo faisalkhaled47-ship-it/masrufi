@@ -2326,10 +2326,20 @@ function renderStats(){
     var proj=hasFuture&&elapsed>=3,varProj=proj?variable/elapsed*c.days:variable,free=I-fixAll,pV=free>0?varProj/free*100:null,sav=I-fixAll-varProj,pS=sav/I*100,goal=st.saveGoal||0;
     h+='<div class="card"><div class="card-h"><h2>المؤشرات المالية</h2><span class="hint">'+(hasFuture?'تشمل الثابت القادم':'لهذه الدورة')+'</span></div>';
     h+=gauge({k:'نسبة الأقساط من الدخل',v:pI,cls:capT?(pI>=capT?'bad':pI>=capT*0.8?'warn':'good'):'',marks:capT?[{p:capT,l:'الحد '+capT+'%'}]:[],u:money(instAll)+' من '+money(I)+' ر.س'+(capC&&instCons<instAll?' · غير العقارية '+Math.round(pC)+'% والحد لها '+capC+'%':'')});
+    // the way a bank sees it: finance installments against the salary alone; buy-now-pay-later is left out
+    var BNPL=/تابي|تمارا|tabby|tamara/i,sal=0,instB=0,instBC=0,bnpl=0;
+    curInc.forEach(function(it){if(it.cat===SALARY_CAT)sal+=it.amt});
+    up.forEach(function(u){if(u.r.type==='inc'&&u.r.cat===SALARY_CAT)sal+=u.amt});
+    var addB=function(src,amt){if(!isInstR(src))return;if(BNPL.test((src.cat||'')+' '+(src.name||src.note||''))){bnpl+=amt;return}instB+=amt;if(!isRealR(src))instBC+=amt};
+    cur.forEach(function(it){if(isFixed(it))addB((it.rec&&recById(it.rec))||it,it.amt)});
+    up.forEach(function(u){if(u.r.type==='exp')addB(u.r,u.amt)});
+    if(sal>0&&instB>0){var capB=sal<=15000?55:sal<25000?65:null,capBC=sal<25000?45:null,pB=instB/sal*100,pBC=instBC/sal*100;
+      h+=gauge({k:'الأقساط البنكية من الراتب',v:pB,cls:capB?(pB>=capB?'bad':pB>=capB*0.9?'warn':'good'):'',marks:capB?[{p:capB,l:'الحد '+capB+'%'}]:[],
+        u:money(instB)+' من راتب '+money(sal)+' ر.س'+(capBC&&instBC<instB?' · غير العقارية '+Math.round(pBC)+'% والحد لها '+capBC+'%':'')+(bnpl?' · بدون تابي وتمارا ('+money(bnpl)+')':'')})}
     h+=gauge({k:'الالتزامات الثابتة من الدخل',v:pF,u:money(fixAll)+' ر.س أقساط وفواتير والتزامات شهرية'});
     h+=gauge({k:'استهلاك المتاح للمتغيّر'+(proj?' (متوقع)':''),v:pV,cls:pV==null||pV>100?'bad':pV>85?'warn':'good',u:'المتاح بعد الثابت '+money(Math.max(0,free))+' ر.س · '+(proj?'المتوقع صرفه ':'صُرف ')+money(varProj)});
     h+=gauge({k:'معدل الادخار'+(proj?' المتوقع':''),v:pS,cls:pS<0?'bad':goal&&pS<goal?'warn':'good',marks:goal?[{p:goal,l:'هدفك '+goal+'%'}]:[],u:(sav>=0?'يتبقى ':'عجز ')+money(Math.abs(sav))+' ر.س من دخل الدورة'});
-    if(capT)h+='<p class="foot">حدود الأقساط من «مبادئ التمويل المسؤول للأفراد» الصادرة عن البنك المركزي السعودي لشريحة دخلك الشهري، وتُحسب هنا من كل دخل الدورة، والبنك قد يحسب الدخل بطريقته.</p>';
+    if(capT||(sal>0&&instB>0))h+='<p class="foot">الحدود من «مبادئ التمويل المسؤول للأفراد» الصادرة عن البنك المركزي السعودي حسب شريحة الدخل. المؤشر الأول من كل دخل الدورة، والثاني من الراتب وحده كما يحسبه البنك تقريباً؛ البنك يضيف نصف الدخل الدوري الموثّق مثل الإيجار، ولا يحسب الدعم الحكومي، ويحسب على راتبك الإجمالي.</p>';
     h+='</div>';
   }
 
