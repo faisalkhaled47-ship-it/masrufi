@@ -352,6 +352,9 @@ button.sc{border:0;font-family:inherit;color:var(--ink);cursor:pointer}
 .stabs{margin:2px 0 0}
 .stabs button{font-size:13.5px;padding-inline:6px}
 .hero .hero-tiles{margin-top:16px;text-align:start}
+#v-budget .bpane{margin-top:12px}
+#v-budget .bpane > .card-h{margin-bottom:8px}
+#v-budget .bpane > .card-h h2,html[data-skin=pro] #v-budget .bpane > .card-h h2{font-size:13px;font-weight:600;color:var(--ink-2)}
 .pane-cap{font-size:12.5px;color:var(--ink-2);margin:12px 0 8px;text-align:start!important}
 .tools-row{display:flex;gap:8px}
 .tools-row > *{flex:1;min-width:0}
@@ -1226,7 +1229,7 @@ var PAYS=['مدى','أبل باي','بطاقة ائتمانية','نقدي','ت�
 var WK_RULES={none:'لا يتغير',salary:'الجمعة ← الخميس قبله، السبت ← الأحد بعده',sun:'ينتقل إلى الأحد بعده',thu:'ينتقل إلى الخميس قبله'};
 var WK_SHORT={salary:'العطلة: جمعة←خميس، سبت←أحد',sun:'العطلة ← الأحد',thu:'العطلة ← الخميس'};
 var DEFAULT_BANKS=['الراجحي','الأهلي','الإنماء','الرياض','البلاد','STC Bank'];
-var APP_VER='1.35',APP_BUILT='2026-11-05'; // set by the build from the number of published versions
+var APP_VER='1.36',APP_BUILT='2026-11-05'; // set by the build from the number of published versions
 /* reward programs for the points calculator; the default rates are what the programs showed on redemption (Nov 2026) */
 var PTS_PROGS=[{id:'rajhi',name:'مكافأة الراجحي',pts:19571,sar:71.16},{id:'qitaf',name:'قطاف',pts:25,sar:5}];
 var DEFAULT_SETTINGS={budget:0,saveGoal:0,cycleMode:'salary',cycleRec:'',cycleDay:27,cats:DEFAULT_CATS.slice(),incCats:DEFAULT_INC_CATS.slice(),banks:DEFAULT_BANKS.slice(),catBudgets:{},recurring:[]};
@@ -3935,6 +3938,26 @@ document.addEventListener('click',function(e){
   foldSet(card,open);if(open)m[key]=1;else delete m[key];pref('cardsOpen',m);
   if(open)fitTiles();
 });
+/* the budget page in five cards: related cards become tabs of one card, each keeping its own header and buttons */
+var BUDGET_GROUPS=[
+  {id:'gBudget',name:'الميزانية والحدود',tabs:[['bgtCard','الدورة'],['cbCard','حدود الفئات']]},
+  {id:'calCard'},
+  {id:'gMoney',name:'الأرصدة',tabs:[['balCard','البنوك'],['savCard','المدخرات']]},
+  {id:'gCommit',name:'الالتزامات',tabs:[['fixCard','الثابت الشهري'],['remCard','الدفعات السنوية']]},
+  {id:'gTools',name:'أدوات',tabs:[['ptsCard','حاسبة النقاط'],['dcCard','تحويل التاريخ']]}
+];
+(function(){
+  var v=$('#v-budget'),tabs=pref('stTabs')||{};
+  BUDGET_GROUPS.forEach(function(g){
+    if(!g.tabs){var one=$('#'+g.id);if(one)v.appendChild(one);return}
+    var mem=g.tabs.filter(function(t){return $('#'+t[0])});if(!mem.length)return;
+    var sel=Math.min(Math.max(0,+tabs[g.id]||0),mem.length-1),card=document.createElement('div');
+    card.className='card sgrp';card.id=g.id;
+    card.innerHTML='<div class="card-h"><h2>'+esc(g.name)+'</h2></div><div class="seg stabs" role="group" aria-label="'+esc(g.name)+'">'+mem.map(function(t,i){return '<button type="button" data-stab="'+g.id+':'+i+'" aria-pressed="'+(i===sel)+'">'+esc(t[1])+'</button>'}).join('')+'</div>';
+    mem.forEach(function(t,i){var c=$('#'+t[0]);c.classList.remove('card');c.classList.add('spane','bpane');c.dataset.pane=g.id+':'+i;c.hidden=i!==sel;card.appendChild(c)});
+    v.appendChild(card);
+  });
+})();
 applyCardPrefs();
 function renderCardVis(){
   var hid=cardsHidden(),noAi=document.documentElement.classList.contains('no-ai');
