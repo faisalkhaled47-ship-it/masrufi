@@ -342,6 +342,17 @@ button.sc{border:0;font-family:inherit;color:var(--ink);cursor:pointer}
 .cal-leg .sw{width:12px;height:12px;border-radius:4px;display:inline-block}
 .sw.past{box-shadow:inset 0 0 0 1px var(--muted);opacity:.6}.sw.today{background:var(--accent)}.sw.next{background:var(--surface-2);box-shadow:inset 0 0 0 1px var(--line)}
 .tag.sav{background:var(--good-soft);color:var(--good);border-color:transparent}
+.tag.est{background:var(--warn-soft);color:var(--warn);border-color:transparent}
+.fhint{font-size:12.5px;color:var(--ink-2);margin:6px 0 0;line-height:1.6}
+.fhint.est-h{color:var(--warn)}
+.sms-bill{margin-top:10px;display:grid;gap:6px}
+.sms-bill .lbl{margin:0}
+.sms-bill .sms-pick{margin:0;padding:2px 0 4px}
+.sms-bill .sp small{color:var(--ink-2);font-weight:400}
+.sms-bill .sp.on small{color:inherit;opacity:.85}
+.est-tile{display:grid;gap:3px;text-align:start;background:var(--warn-soft)!important;border-color:transparent!important;color:var(--ink);font:inherit;cursor:pointer}
+.est-tile .k{color:var(--warn)!important}
+.est-tile .et{font-size:13.5px;line-height:1.6}
 .sav-bal{display:flex;align-items:baseline;justify-content:space-between;gap:10px}
 .sav-bal b{font-family:var(--f-display);font-size:26px;font-weight:600}
 .sav-bal b.good{color:var(--good)}.sav-bal b.bad{color:var(--bad)}
@@ -898,6 +909,7 @@ html.kb nav.tabs{display:none!important}
     <form id="editForm" class="view" style="gap:10px" novalidate>
       <div class="filters">
         <div><label for="eAmt" class="lbl">المبلغ (ر.س)</label><input id="eAmt" class="field" inputmode="decimal"></div>
+        <p class="fhint est-h" id="eEstTxt" style="grid-column:1/-1;margin:0" hidden>مبلغ تقديري. اكتب مبلغ الفاتورة الفعلي واحفظ، ويدخل في تقدير الأشهر القادمة.</p>
         <div id="eTypeWrap"><label for="eType" class="lbl">النوع</label><select id="eType" class="field"><option value="exp">مصروف</option><option value="inc">دخل</option><option value="trf">تحويل بين حساباتي</option></select></div>
       </div>
       <div class="filters">
@@ -984,7 +996,9 @@ html.kb nav.tabs{display:none!important}
     <form id="recForm" class="view" style="gap:10px" novalidate>
       <div class="fx-this" id="rThisWrap" hidden><span id="rThisTxt"></span><button type="button" class="link" id="rThisBtn">تعديل عملية هذه الدورة</button><button type="button" class="link" id="rNowBtn" hidden></button></div>
       <div><label for="rName" class="lbl">الاسم</label><input id="rName" class="field" maxlength="40"></div>
-      <div><label for="rAmt" class="lbl">المبلغ الشهري</label><input id="rAmt" class="field" inputmode="decimal" placeholder="0">
+      <div><label for="rAmt" class="lbl" id="rAmtLbl">المبلغ الشهري</label><input id="rAmt" class="field" inputmode="decimal" placeholder="0">
+        <label class="check" id="rVaryWrap" style="margin-top:8px"><input type="checkbox" id="rVary"><span>المبلغ يتغيّر كل شهر (فاتورة)</span></label>
+        <p class="fhint" id="rVaryHint" hidden>يُسجَّل في موعده بمتوسط آخر 3 فواتير، أو بهذا المبلغ إذا ما فيه فواتير سابقة، ويبقى «تقديري» حتى تدخل المبلغ الفعلي: من العملية نفسها أو بلصق رسالة السداد.</p>
         <div id="rStepsWrap"><div id="rSteps"></div><button type="button" class="link" id="rStepOpen">+ مبلغ جديد يبدأ من شهر معيّن</button>
           <div id="rStepAdd" class="filters" style="margin-top:8px" hidden>
             <div><label for="rStepFrom" class="lbl">يبدأ من</label><select id="rStepFrom" class="field"></select></div>
@@ -1184,7 +1198,7 @@ function normRec(r){
   return {id:r.id,months:mk,past:pst,link:lk,steps:stp,type:inc?'inc':trf?'trf':'exp',to:trf?String(r.to).slice(0,30):'',sweep:sweep,name:String(r.name||'').slice(0,40)||'بدون اسم',amt:Math.round(amt*100)/100,
     day:Math.min(31,Math.max(1,parseInt(r.day,10)||1)),cat:trf?'تحويل':String(r.cat||(inc?'دخل آخر':'أخرى')).slice(0,40),
     pay:(inc||trf)?'':String(r.pay||'تحويل').slice(0,30),bank:String(r.bank||'').slice(0,30),wk:WK_RULES[r.wk]?r.wk:(r.shift?'thu':'none'),start:mk?mk[0]:/^\d{4}-\d{2}$/.test(r.start)?r.start:curMonthKey(),
-    active:r.active!==false,legacy:!!r.legacy,
+    active:r.active!==false,legacy:!!r.legacy,vary:!inc&&!trf&&!sweep&&!!r.vary,
     auto:true}; // every fixed item records itself on its date (no confirmation step)
 }
 function normSettings(s){
@@ -1207,7 +1221,7 @@ function normSettings(s){
   o.cycleDay=Math.min(28,Math.max(1,parseInt(o.cycleDay,10)||27));
   o.cycleRec=typeof o.cycleRec==='string'?o.cycleRec.slice(0,24):'';
   o.eduReg=['std','west','off'].indexOf(o.eduReg)>=0?o.eduReg:'std';
-  ['smsBanks','smsCats','smsSigs'].forEach(function(k){var src=o[k]&&typeof o[k]==='object'?o[k]:{},out={};Object.keys(src).slice(-200).forEach(function(x){if(typeof src[x]==='string')out[String(x).slice(0,40)]=src[x].slice(0,40)});o[k]=out});
+  ['smsBanks','smsCats','smsSigs','smsBills'].forEach(function(k){var src=o[k]&&typeof o[k]==='object'?o[k]:{},out={};Object.keys(src).slice(-200).forEach(function(x){if(typeof src[x]==='string')out[String(x).slice(0,40)]=src[x].slice(0,40)});o[k]=out});
   o.budget=+o.budget||0;o.saveGoal=Math.min(90,Math.max(0,+o.saveGoal||0));
   if(!o.catBudgets||typeof o.catBudgets!=='object')o.catBudgets={};
   if(!Array.isArray(o.recurring))o.recurring=[];
@@ -1233,6 +1247,7 @@ function cleanItem(it){
   if(it.fromSav&&it.type!=='inc'&&it.type!=='trf')o.fromSav=true;
   if(it.funds&&it.type==='trf')o.funds=String(it.funds).slice(0,48);
   if(it.tm&&/^\d{2}:\d{2}$/.test(it.tm))o.tm=it.tm;
+  if(it.est&&it.rec)o.est=1; // a bill recorded at its estimate, until you enter the actual amount
   return o;
 }
 
@@ -1298,9 +1313,17 @@ function manualCover(r,dn){ // income already entered by hand near its due date 
   for(var i=0;i<l.length;i++){var it=l[i];if(!it.rec&&it.cat===r.cat&&Math.abs(it.n-dn)<=12)return true}
   return false;
 }
-function recAmt(r,key){var a=r.amt,st=r.steps||[];for(var i=0;i<st.length;i++)if(st[i].from<=key)a=st[i].amt;return a}
+function recBase(r,key){var a=r.amt,st=r.steps||[];for(var i=0;i<st.length;i++)if(st[i].from<=key)a=st[i].amt;return a}
+function recAmt(r,key){if(r.vary){var v=varyAvg(r,key);if(v!=null)return v}return recBase(r,key)}
+/* a bill whose amount changes: the average of its last 3 actual amounts before that month, or the amount you set while there are none */
+function varyAvg(r,key){
+  var D=data(),c=D.vary||(D.vary={}),ck=r.id+'|'+key;if(ck in c)return c[ck];
+  var l=D.list.filter(function(it){return it.rec===r.id&&!it.est&&it.rk&&it.rk<key}).sort(function(a,b){return a.rk<b.rk?1:a.rk>b.rk?-1:0}).slice(0,3),v=null;
+  if(l.length)v=Math.round(sum(l)/l.length*100)/100;
+  return (c[ck]=v);
+}
 function recNextStep(r){var k=curMonthKey(0),st=r.steps||[];for(var i=0;i<st.length;i++)if(st[i].from>k)return st[i];return null}
-function recItem(r,key,date){var it={id:recId(r,key),amt:recAmt(r,key),cat:r.cat,pay:r.pay||'',note:r.name,date:date,ts:Date.now(),rec:r.id,rk:key};if(r.bank)it.bank=r.bank;if(r.type==='inc')it.type='inc';if(r.type==='trf'){it.type='trf';it.to=r.to;it.cat='تحويل';it.pay=''}return it}
+function recItem(r,key,date){var it={id:recId(r,key),amt:recAmt(r,key),cat:r.cat,pay:r.pay||'',note:r.name,date:date,ts:Date.now(),rec:r.id,rk:key};if(r.bank)it.bank=r.bank;if(r.type==='inc')it.type='inc';if(r.type==='trf'){it.type='trf';it.to=r.to;it.cat='تحويل';it.pay=''}if(r.vary&&r.type==='exp')it.est=1;return it}
 function cycleOfN(n){var A=anchors();for(var j=0;j<A.length-1;j++)if(A[j]<=n&&n<A[j+1])return {s:A[j],e:A[j+1]-1};return {s:n,e:n}}
 function sweepAmount(from,date,pending){
   var n=dnum(date),c=cycleOfN(n),v=0;
@@ -2219,7 +2242,7 @@ function rowHtml(it,showDate){
   }
   var inc=it.type==='inc',sub=[];
   if(showDate)sub.push(esc(dayLabel(it.date)));if(it.note)sub.push(esc(it.note));if(it.pay&&!inc)sub.push(esc(it.pay));if(it.bank)sub.push(esc(it.bank));
-  return '<button type="button" class="row" data-edit="'+esc(it.id)+'"><span class="cb'+(inc?' inc':'')+'" aria-hidden="true">'+esc((it.cat||'؟').charAt(0))+'</span><span class="main"><span class="t">'+esc(it.cat)+(it.rec?'<span class="tag">ثابت</span>':'')+(it.fromSav?'<span class="tag sav">مدخرات</span>':'')+'</span><span class="s">'+(sub.join(' · ')||'&nbsp;')+'</span></span><span class="a'+(inc?' inc':'')+'">'+(inc?pmoney(it.amt):money(it.amt))+'</span></button>';
+  return '<button type="button" class="row" data-edit="'+esc(it.id)+'"><span class="cb'+(inc?' inc':'')+'" aria-hidden="true">'+esc((it.cat||'؟').charAt(0))+'</span><span class="main"><span class="t">'+esc(it.cat)+(it.rec?'<span class="tag">ثابت</span>':'')+(it.est?'<span class="tag est">تقديري</span>':'')+(it.fromSav?'<span class="tag sav">مدخرات</span>':'')+'</span><span class="s">'+(sub.join(' · ')||'&nbsp;')+'</span></span><span class="a'+(inc?' inc':'')+'">'+(inc?pmoney(it.amt):money(it.amt))+'</span></button>';
 }
 function fundsFor(id){return data().list.filter(function(x){return x.type==='trf'&&x.funds===id})}
 function renderFund(){ // a bank without enough balance asks where the money came from, and records that transfer with the expense
@@ -2258,6 +2281,10 @@ function renderAdd(){
   // today's share of what is left for the cycle, and what remains of it after today's spending
   h+='<div class="tile wide day-tile"><div class="dt-h"><div><div class="k">المتاح لكل يوم</div><div class="v">'+(a.basis?smoney(a.perDay):'—')+'</div></div><div><div class="k">المتبقي منه اليوم</div><div class="v '+(a.basis?(a.leftToday<0?'bad':'good'):'')+'">'+(a.basis?smoney(a.leftToday):'—')+'</div></div></div>'+
     (a.basis&&a.perDay>0?'<div class="dt-bar"><i class="'+(a.leftToday<0?'bad':'')+'" style="width:'+Math.min(100,Math.max(0,a.varToday/a.perDay*100)).toFixed(1)+'%"></i></div>':'')+'</div>';
+  // bills recorded at their estimate, waiting for the actual amount
+  var ests=data().list.filter(function(it){return it.est&&it.rec});
+  ests.slice(0,2).forEach(function(it){h+='<button type="button" class="tile wide est-tile" data-edit="'+esc(it.id)+'"><span class="k">مبلغ تقديري</span><span class="et">«'+esc(it.note||it.cat)+'» سُجّلت '+esc(dayLabel(it.date))+' بـ <b dir="ltr">'+fmt(it.amt)+'</b>. اضغط وأدخل مبلغ الفاتورة الفعلي، أو الصق رسالة السداد.</span></button>'});
+  if(ests.length>2)h+='<div class="tile wide est-tile"><span class="et">و'+(ests.length-2)+' غيرها بمبلغ تقديري (تجدها في السجل)</span></div>';
   $('#addSummary').innerHTML=h;
   var rec=getItems().slice(0,6);
   $('#recent').innerHTML=rec.length?rec.map(function(it){return rowHtml(it,true)}).join(''):'<div class="empty"><b>لا توجد عمليات بعد</b></div>';
@@ -2642,7 +2669,8 @@ function fxRow(r,c){
   var type=r.type,lf=recLeft(r),ended=!!lf&&!lf.length,ns=recNextStep(r),ca=recAmt(r,curMonthKey(0)),off=!r.active||ended,meta=[];
   if(!r.active)meta.push('متوقف');else if(ended)meta.push('انتهى في '+monthLabel(r.months[r.months.length-1]));
   else if(lf){var pa=r.past||[],tot=r.months.length+pa.length,first=pa.length&&pa[0]<r.months[0]?pa[0]:r.months[0];meta.push((pa.length?'منذ '+monthLabel(first)+' · ':'')+'باقي '+lf.length+' من '+tot+' حتى '+monthLabel(r.months[r.months.length-1]))}
-  if(ns&&!off)meta.push('من '+monthLabel(ns.from)+': '+fmt(ns.amt));
+  if(ns&&!off&&!r.vary)meta.push('من '+monthLabel(ns.from)+': '+fmt(ns.amt));
+  if(r.vary&&!off){var oe=data().list.filter(function(it){return it.rec===r.id&&it.est}).length;meta.push('يتغيّر كل شهر · المبلغ تقديري'+(oe?' · '+(oe>1?oe+' بانتظار المبلغ الفعلي':'بانتظار المبلغ الفعلي'):''))}
   if(type==='trf')meta.unshift(esc(r.bank)+' ← '+esc(r.to));
   var amt=type==='inc'?pmoney(ca):type==='trf'&&r.sweep?'كل الباقي':money(ca);
   return '<div class="fx'+(off?' off':'')+'"><button type="button" class="fx-main'+(meta.length?'':' one')+'" data-rec-edit="'+esc(r.id)+'" aria-label="إعداد '+esc(r.name)+'">'+fxIcon(r)+'<span class="fx-nm">'+esc(r.name)+'</span><span class="fx-amt'+(type==='inc'?' inc':type==='trf'?' trf':'')+'">'+amt+'</span>'+(meta.length?'<span class="fx-sub"><span class="fx-meta">'+meta.join(' · ')+'</span></span>':'')+FX_CHEV+'</button></div>';
@@ -2707,7 +2735,7 @@ function parseSms(raw){
   // the lines banks use: «لـ/ل» to whom, «من» from whom, «لدى» or «ب» the shop
   var L=function(re){var mm=re.exec(t);return mm?mm[1].trim():''},strip=function(v){return v.replace(/^[*x]*\d{2,}\s*[;:،,]?\s*/i,'')};
   var toLine=L(/(?:^|\n)\s*لـ\s*:?\s*([^\n]+)/)||L(/(?:^|\n)\s*ل\s*:?\s*([A-Za-z0-9*][^\n]*)/),fromLine=L(/(?:^|\n)\s*من\s*:?\s*([^\n]+)/);
-  var merchant=inc?strip(fromLine):(L(/(?:^|\n)\s*(?:لدى|عند|التاجر|المتجر|merchant|at)\s*:?\s*([^\n]+)/i)||strip(toLine)||L(/(?:^|\n)\s*بـ?\s*:?\s*((?!SAR\b|SR\b)[A-Za-z][^\n]*)/i)||L(/لدى\s+([^\n،,]+?)(?:\s+(?:في|بتاريخ|on)\s|\s*$|\n)/)||L(/\bat\s+([^\n,]+?)(?:\s+(?:on|with|via|using|by|card)\s|[.,]|\s*$|\n)/i));
+  var merchant=inc?strip(fromLine):(L(/(?:^|\n)\s*(?:لدى|عند|التاجر|المتجر|المفوتر|مفوتر|الجهة|merchant|biller|at)\s*:?\s*([^\n]+)/i)||strip(toLine)||L(/(?:^|\n)\s*بـ?\s*:?\s*((?!SAR\b|SR\b)[A-Za-z][^\n]*)/i)||L(/لدى\s+([^\n،,]+?)(?:\s+(?:في|بتاريخ|on)\s|\s*$|\n)/)||L(/\bat\s+([^\n,]+?)(?:\s+(?:on|with|via|using|by|card)\s|[.,]|\s*$|\n)/i));
   if(/^[x\*\d\s#-]+$/i.test(merchant))merchant='';
   o.merchant=merchant.replace(/\*+$/,'').replace(/[\s.،,;:]+$/,'').slice(0,40);
   // your own card or account in the message, and the other side's account number
@@ -2725,7 +2753,7 @@ function parseSms(raw){
   o.bank=bk||'';
   // money between your own accounts
   if(out&&known(toNum)&&known(toNum)!==o.bank){o.type='trf';o.to=known(toNum);o.merchant=''}
-  else if(!inc&&o.merchant){var mn=bankNorm(o.merchant);if(mn.length>=3)st.banks.forEach(function(b){var bn=bankNorm(b);if(!o.to&&bn&&b!==o.bank&&(bn.indexOf(mn)===0||mn.indexOf(bn)===0))o.to=b});
+  else if(!inc&&o.merchant&&!/سداد|فاتور|مفوتر/.test(t)){var mn=bankNorm(o.merchant);if(mn.length>=3)st.banks.forEach(function(b){var bn=bankNorm(b);if(!o.to&&bn&&b!==o.bank&&(bn.indexOf(mn)===0||mn.indexOf(bn)===0))o.to=b});
     if(o.to){o.type='trf';o.warn.push('اعتبرتها تحويلاً لحسابك في «'+o.to+'». إذا كانت فاتورة أو شراء غيّر النوع إلى مصروف.');o.merchant=''}}
   if(inc&&known(fromNum))o.warn.push('هذه الحوالة من حسابك في «'+known(fromNum)+'». إذا سجّلت التحويل من هناك لا تحفظها مرة ثانية.');
   if(inc&&/إضافة\s*أموال|اضافة\s*اموال/.test(t))o.warn.push('«إضافة أموال»: إذا جاءت من حسابك في بنك آخر فهي تحويل بين حساباتك؛ غيّر النوع إلى تحويل، أو تجاهلها إذا سجّلتها من البنك الآخر.');
@@ -2772,13 +2800,46 @@ function smsPreview(){
     h+='<div class="sms-pick">'+opts.map(function(v){return '<button type="button" class="sp'+(v===cur?' on':'')+'" data-smsset="'+S.smsPick+'" data-v="'+esc(v)+'">'+esc(S.smsPick==='type'?lbl[v]:v)+'</button>'}).join('')+'</div>'}
   h+='</div>'+o.warn.map(function(w){return '<p class="sms-w">'+esc(w)+'</p>'}).join('');
   // already recorded? fixed items such as the salary or an installment are entered automatically, sometimes a day or two off
-  var dup=null;if(o.amt!=null){var dn=dnum(o.date);data().list.forEach(function(it){var g=Math.abs(it.n-dn);if(!dup&&Math.abs(it.amt-o.amt)<0.005&&(g<=1||(it.rec&&g<=3))&&((it.type||'exp')===o.type||it.type==='trf'||o.type==='trf'))dup=it})}
+  var bills=o.type==='exp'&&o.amt!=null?billOpen():[];
+  if(S.smsBill===undefined){S.smsBill=null;var mk0=smsKey(o.merchant),lr=mk0&&settings().smsBills[mk0];
+    var pre=bills.filter(function(x){return lr&&x.r&&x.r.id===lr})[0]||(bills.length===1&&bills[0].it&&/سداد|فاتور|مفوتر/.test($('#smsText').value)?bills[0]:null);if(pre)S.smsBill=pre.id}
+  if(S.smsBill&&!bills.some(function(x){return x.id===S.smsBill}))S.smsBill=null;
+  if(bills.length)h+='<div class="sms-bill"><span class="lbl">سداد فاتورة متغيّرة؟</span><div class="sms-pick">'+bills.map(function(x){return '<button type="button" class="sp'+(S.smsBill===x.id?' on':'')+'" data-smsbill="'+esc(x.id)+'"><b>'+esc(x.name)+'</b> <small>'+esc(x.txt)+'</small></button>'}).join('')+'</div></div>';
+  var dup=null;if(o.amt!=null&&!S.smsBill){var dn=dnum(o.date);data().list.forEach(function(it){var g=Math.abs(it.n-dn);if(!dup&&Math.abs(it.amt-o.amt)<0.005&&(g<=1||(it.rec&&g<=3))&&((it.type||'exp')===o.type||it.type==='trf'||o.type==='trf'))dup=it})}
   if(dup)h+='<p class="sms-w">يبدو أنها مسجّلة: «'+esc(dup.note||dup.cat)+'» '+fmt(dup.amt)+' ر.س يوم '+esc(dayLabel(dup.date))+(dup.rec?' (ثابت يُسجَّل تلقائياً)':'')+'. لا تحفظها مرة ثانية.</p>';
   out.innerHTML=h;
-  use.textContent=dup?'تعبئة النموذج على أي حال':'تعبئة النموذج';
+  var sb=S.smsBill&&bills.filter(function(x){return x.id===S.smsBill})[0];
+  use.textContent=sb?(sb.it?'تحديث «'+sb.name+'» بالمبلغ الفعلي':'تسجيل فاتورة «'+sb.name+'»'):dup?'تعبئة النموذج على أي حال':'تعبئة النموذج';
   use.hidden=o.amt==null;
 }
+/* bills that change every month: entries waiting for their actual amount, and the next one when it is due within 25 days and not recorded yet */
+function billOpen(){
+  var st=settings(),D=data(),tN=dnum(todayStr()),out=[],has={};
+  D.list.forEach(function(it){if(it.est&&it.rec&&(it.type||'exp')==='exp'){var r=recById(it.rec);has[it.rec]=1;out.push({id:it.id,r:r,it:it,name:it.note||(r&&r.name)||it.cat,txt:'تقديري '+fmt(it.amt)+' · '+dayLabel(it.date)})}});
+  st.recurring.forEach(function(r){if(!r.vary||!r.active||r.type!=='exp'||has[r.id])return;
+    for(var m=0;m<=1;m++){var key=curMonthKey(m);if(!recHas(r,key))continue;var p=key.split('-').map(Number),due=recDue(r,p[0],p[1]-1),dn=dnum(due);
+      if(dn>tN&&dn-tN<=25&&!D.ids[recId(r,key)]){out.push({id:'n:'+r.id+':'+key,r:r,key:key,due:due,name:r.name,txt:'موعدها '+dayLabel(due)});break}}});
+  return out;
+}
+function smsBillApply(o,b){
+  var st=S.settings,tN=todayStr(),job,msg;
+  if(b.it){
+    var it=b.it,upd=cleanItem(Object.assign({},it,{amt:o.amt,est:false}));if(o.bank)upd.bank=o.bank;
+    if(o.dateFound&&o.date<=tN&&cycleOfN(dnum(o.date)).s===cycleOfN(it.n).s){upd.date=o.date;if(o.tm)upd.tm=o.tm}
+    job=putItem(upd,it.date);msg='«'+b.name+'»: '+fmt(o.amt)+' ر.س'+(Math.abs(o.amt-it.amt)>0.004?' بدل التقديري '+fmt(it.amt):'');
+  }else{
+    var ni=recItem(b.r,b.key,o.date<=tN?o.date:tN);ni.amt=o.amt;delete ni.est;if(o.bank)ni.bank=o.bank;if(o.tm&&o.date<=tN)ni.tm=o.tm;
+    job=putItem(ni);msg='سُجّلت فاتورة «'+b.name+'»: '+fmt(o.amt)+' ر.س، ولن تُسجَّل مرة ثانية في موعدها';
+  }
+  var mk=smsKey(o.merchant);
+  return job.then(function(){
+    if(b.r){var ch=false;if(mk&&st.smsBills[mk]!==b.r.id){st.smsBills[mk]=b.r.id;ch=true}if(o.key&&o.bank&&st.smsBanks[o.key]!==o.bank){st.smsBanks[o.key]=o.bank;ch=true}if(ch)saveSettings().catch(function(){})}
+    closeSheet('#smsSheet');toast(msg);
+  });
+}
 function smsUse(){
+  var bl=S.smsBill&&S.smsParsed&&S.smsParsed.type==='exp'?billOpen().filter(function(x){return x.id===S.smsBill})[0]:null;
+  if(bl){if(S.demo)return demoBlock().catch(function(){});smsBillApply(S.smsParsed,bl).catch(failToast);return}
   var o=S.smsParsed;if(!o||o.amt==null)return;
   S.form.type=o.type;S.form.cat=o.cat||null;S.form.to=o.type==='trf'?o.to:null;if(o.type==='exp')S.form.pay=o.pay;S.form.bank=o.bank||null;S.form.fromSav=false; // an unknown bank is left for you to pick, not carried over from the last entry
   $('#amt').value=String(o.amt);$('#note').value=o.merchant||'';$('#dt').value=o.date;S.form.dateTouched=o.date!==todayStr();
@@ -3055,7 +3116,7 @@ function syncEditType(cat){
 function openEdit(id){
   var it=findItem(id);if(!it)return;S.editing=it;var inc=it.type==='inc',trf=it.type==='trf';
   closeSheet('#setSheet');
-  $('#eAmt').value=String(it.amt);$('#eFromSav').checked=!!it.fromSav;
+  $('#eAmt').value=String(it.amt);$('#eFromSav').checked=!!it.fromSav;$('#eEstTxt').hidden=!it.est;
   (function(){ // where the money came from: offered when the bank was short, or when a covering transfer exists
     var st=settings(),lk=fundsFor(it.id)[0]||null,w=$('#eFundWrap');S.editFund=lk;
     var show=!it.type&&!!it.bank&&!!st.openDate,before=0;
@@ -3096,9 +3157,10 @@ function openRec(type,id){
   $('#rWk').innerHTML=Object.keys(WK_RULES).map(function(k){return '<option value="'+k+'">'+esc(WK_RULES[k])+'</option>'}).join('');
   $('#rWk').value=r?r.wk:((inc&&$('#rCat').value===SALARY_CAT)||trf?'salary':'none');
   $('#rAuto').checked=true;
-  $('#rAmt').value=r&&r.sweep?'':(r?recAmt(r,curMonthKey(0)):'');S.recEdit.autoTouched=!!r;
+  $('#rAmt').value=r&&r.sweep?'':(r?recBase(r,curMonthKey(0)):'');S.recEdit.autoTouched=!!r;
+  $('#rVaryWrap').hidden=type!=='exp';$('#rVary').checked=!!(r&&r.vary);S.recEdit.wasVary=!!(r&&r.vary);
   S.recEdit.steps=r?(r.steps||[]).filter(function(x){return x.from>curMonthKey(0)}).map(function(x){return {from:x.from,amt:x.amt}}):[];
-  $('#rStepAdd').hidden=true;$('#rStepOpen').hidden=false;$('#rStepsWrap').hidden=!!(r&&r.sweep);renderSteps();
+  $('#rStepAdd').hidden=true;$('#rStepOpen').hidden=false;$('#rStepsWrap').hidden=!!(r&&r.sweep);renderSteps();syncVary();
   $('#rAutoTxt').textContent='يُسجَّل تلقائياً في موعده';
   $('#rActiveWrap').hidden=!r;$('#rActive').checked=r?r.active:true;
   $('#rStartLbl').textContent=r?'يبدأ التسجيل من':'أول تسجيل';
@@ -3109,7 +3171,7 @@ function openRec(type,id){
   var fl=r&&r.months?(recLeft(r)[0]||r.months[r.months.length-1]):null;R2.year=fl?+fl.slice(0,4):new Date().getFullYear();
   renderMonthPicker();
   var s0=r?recStatus(r,cycleAt(0)):null,ti0=s0&&s0.item,nw=s0&&!ti0&&s0.now;$('#rThisWrap').hidden=!(ti0||nw);$('#rThisBtn').hidden=!ti0;$('#rNowBtn').hidden=!nw;
-  if(ti0){$('#rThisTxt').textContent=(r.type==='inc'?'نزل ':r.type==='trf'?'حُوّل ':'سُجّل ')+dayLabel(ti0.date)+' بمبلغ '+fmt(ti0.amt)+' ر.س';$('#rThisBtn').dataset.item=ti0.id}
+  if(ti0){$('#rThisTxt').textContent=(r.type==='inc'?'نزل ':r.type==='trf'?'حُوّل ':'سُجّل ')+dayLabel(ti0.date)+' بمبلغ '+(ti0.est?'تقديري ':'')+fmt(ti0.amt)+' ر.س';$('#rThisBtn').dataset.item=ti0.id;$('#rThisBtn').textContent=ti0.est?'أدخل المبلغ الفعلي':'تعديل عملية هذه الدورة'}
   else if(nw){$('#rThisTxt').textContent=s0.txt.replace(/^!\s*/,'')+' · يُسجَّل تلقائياً';$('#rNowBtn').textContent=(r.type==='inc'?'نزل اليوم؟ سجّله الآن':'سجّله اليوم');$('#rNowBtn').setAttribute('data-rec-now',s0.now)}
   var del=$('#rDel');del.hidden=!r;del.classList.remove('armed');del.textContent='حذف هذا الثابت';
   $('#recErr').textContent='';
@@ -3446,12 +3508,13 @@ document.addEventListener('click',function(e){
   if(d.type){if(S.form.type!==d.type){S.form.type=d.type;S.form.cat=null;S.form.to=null;$('#formErr').textContent='';$('#catChips').classList.remove('err');renderAdd();renderSaveState()}return}
   if(d.themeSet){pref('theme',d.themeSet);applyTheme();renderSettings();return}
   if(d.skinSet){pref('skin',d.skinSet);document.documentElement.setAttribute('data-skin',d.skinSet==='classic'?'classic':'pro');renderSettings();render();return}
-  if(d.act==='sms'){if(S.demo){demoBlock().catch(function(){});return}$('#smsText').value='';S.smsOver={};S.smsPick=undefined;$('#smsPaste').classList.remove('gone');$('#smsOut').innerHTML='';$('#smsUse').hidden=true;var canPaste=!!(navigator.clipboard&&navigator.clipboard.readText);$('#smsPaste').hidden=!canPaste;openSheet('#smsSheet');if(!canPaste)$('#smsText').focus();return} // with a paste button, the keyboard waits until you tap the box
+  if(d.act==='sms'){if(S.demo){demoBlock().catch(function(){});return}$('#smsText').value='';S.smsOver={};S.smsPick=undefined;S.smsBill=undefined;$('#smsPaste').classList.remove('gone');$('#smsOut').innerHTML='';$('#smsUse').hidden=true;var canPaste=!!(navigator.clipboard&&navigator.clipboard.readText);$('#smsPaste').hidden=!canPaste;openSheet('#smsSheet');if(!canPaste)$('#smsText').focus();return} // with a paste button, the keyboard waits until you tap the box
   if(d.smspick){S.smsPick=S.smsPick===d.smspick?null:d.smspick;smsPreview();return}
+  if(d.smsbill){S.smsBill=S.smsBill===d.smsbill?null:d.smsbill;smsPreview();return}
   if(d.smsset){var ov=S.smsOver||(S.smsOver={});ov[d.smsset]=d.v;if(d.smsset==='type'){delete ov.cat;if(d.v!=='trf')delete ov.to}
     var o2=parseSms($('#smsText').value);S.smsPick=null;smsPreview();o2=S.smsParsed;
     if(o2){S.smsPick=!o2.bank?'bank':o2.type==='trf'&&!o2.to?'to':o2.type!=='trf'&&!o2.cat?'cat':null;if(S.smsPick)smsPreview()}return}
-  if(d.act==='sms-paste'){navigator.clipboard.readText().then(function(tx){$('#smsText').value=tx||'';S.smsOver={};S.smsPick=undefined;$('#smsPaste').classList.toggle('gone',!!tx);smsPreview()}).catch(function(){toast('ما قدرت أقرأ الحافظة. الصق الرسالة بنفسك في المربع.')});return}
+  if(d.act==='sms-paste'){navigator.clipboard.readText().then(function(tx){$('#smsText').value=tx||'';S.smsOver={};S.smsPick=undefined;S.smsBill=undefined;$('#smsPaste').classList.toggle('gone',!!tx);smsPreview()}).catch(function(){toast('ما قدرت أقرأ الحافظة. الصق الرسالة بنفسك في المربع.')});return}
   if(d.calday){S.calSel=d.calday;renderCalendar();return}
   if(d.calnav){S.calOff=(S.calOff||0)+(+d.calnav);S.calSel=null;renderCalendar();return}
   if(d.sav)return openSav(d.sav);
@@ -3572,12 +3635,12 @@ $('#editForm').addEventListener('submit',function(e){
   var date=$('#eDate').value||it.date;if(date>todayStr()){err.textContent='التاريخ في المستقبل.';return}
   var ty=$('#eType').value;
   if(ty==='trf'){if(!$('#eTo').value){err.textContent='اختر الحساب المحوَّل إليه.';return}if($('#eTo').value===$('#eBank').value){err.textContent='الحساب المحوَّل منه وإليه نفسه.';return}}
-  var upd=cleanItem(Object.assign({},it,{type:ty,amt:amt,cat:ty==='trf'?'تحويل':$('#eCat').value,pay:ty==='exp'?$('#ePay').value:'',bank:$('#eBank').value,to:ty==='trf'?$('#eTo').value:'',note:$('#eNote').value.trim(),date:date,fromSav:ty==='exp'&&$('#eFromSav').checked}));
+  var upd=cleanItem(Object.assign({},it,{type:ty,amt:amt,cat:ty==='trf'?'تحويل':$('#eCat').value,pay:ty==='exp'?$('#ePay').value:'',bank:$('#eBank').value,to:ty==='trf'?$('#eTo').value:'',note:$('#eNote').value.trim(),date:date,fromSav:ty==='exp'&&$('#eFromSav').checked,est:false})); // saving confirms an estimated bill
   $('#eSave').disabled=true;
   var lk=S.editFund,fw=!$('#eFundWrap').hidden&&ty==='exp',fb=fw?$('#eFund').value:'',fa=fw?parseAmt($('#eFundAmt').value):0,job=null;
   if(fb&&!(fa>0)){err.textContent='اكتب المبلغ المحوَّل.';return}
   if(fb&&upd.bank&&fb!==upd.bank)job=cleanItem(Object.assign({},lk||{id:newId(),ts:Date.now()},{type:'trf',amt:fa,cat:'تحويل',pay:'',bank:fb,to:upd.bank,note:'تغطية: '+(upd.note||upd.cat),date:upd.date,funds:upd.id}));
-  putItem(upd,it.date).then(function(){if(job)return putItem(job,lk?lk.date:null);if(lk&&(ty!=='exp'||(fw&&!fb)))return delItem(lk)}).then(function(){closeSheet('#editSheet');toast(job&&!lk?'حُفظ التعديل وتحويل '+fmt(job.amt)+' من '+job.bank:'حُفظ التعديل')}).catch(function(er){if(!er||!er.silent)err.textContent=errMsg(er)}).then(function(){$('#eSave').disabled=false});
+  putItem(upd,it.date).then(function(){if(job)return putItem(job,lk?lk.date:null);if(lk&&(ty!=='exp'||(fw&&!fb)))return delItem(lk)}).then(function(){closeSheet('#editSheet');toast(job&&!lk?'حُفظ التعديل وتحويل '+fmt(job.amt)+' من '+job.bank:it.est?'حُفظ المبلغ الفعلي '+fmt(upd.amt)+' ر.س':'حُفظ التعديل')}).catch(function(er){if(!er||!er.silent)err.textContent=errMsg(er)}).then(function(){$('#eSave').disabled=false});
 });
 $('#eDel').addEventListener('click',function(){
   var b=this,it=S.editing;if(!it)return;
@@ -3601,6 +3664,8 @@ $('#rStepSave').addEventListener('click',function(){
 $('#rSteps').addEventListener('click',function(e){var b=e.target.closest('[data-step-del]');if(!b||!S.recEdit)return;var f=b.getAttribute('data-step-del');S.recEdit.steps=S.recEdit.steps.filter(function(x){return x.from!==f});renderSteps()});
 $('#rSweep').addEventListener('change',function(){$('#rAmt').disabled=this.checked;if(this.checked)$('#rAmt').value='';$('#rStepsWrap').hidden=this.checked;renderMonthPicker()});
 $('#rAuto').addEventListener('change',function(){if(S.recEdit)S.recEdit.autoTouched=true});
+function syncVary(){var on=!$('#rVaryWrap').hidden&&$('#rVary').checked;$('#rVaryHint').hidden=!on;$('#rAmtLbl').textContent=on?'المبلغ التقديري':'المبلغ الشهري';if(on){$('#rStepsWrap').hidden=true}else $('#rStepsWrap').hidden=$('#rSweep').checked&&!$('#rSweepWrap').hidden}
+$('#rVary').addEventListener('change',syncVary);
 $('#rWk').addEventListener('change',function(){updateStartOpts(false);renderMonthPicker()});
 $('#recForm').addEventListener('submit',function(e){
   e.preventDefault();if(S.demo){demoBlock().catch(function(){});return}
@@ -3616,7 +3681,7 @@ $('#recForm').addEventListener('submit',function(e){
   err.textContent='';
   var st=S.settings,msg;
   if(!R.id){
-    var start=months?months[0]:$('#rStart').value,r=normRec({id:'k'+Date.now().toString(36),months:months,past:past,link:link,steps:sweep?[]:R.steps,type:R.type,to:to,sweep:sweep,name:name,amt:amt,day:day,cat:$('#rCat').value,pay:$('#rPay').value,auto:$('#rAuto').checked,bank:$('#rBank').value,wk:wk,start:start,active:true});
+    var start=months?months[0]:$('#rStart').value,r=normRec({id:'k'+Date.now().toString(36),months:months,past:past,link:link,steps:sweep?[]:R.steps,type:R.type,to:to,sweep:sweep,name:name,amt:amt,day:day,cat:$('#rCat').value,pay:$('#rPay').value,auto:$('#rAuto').checked,bank:$('#rBank').value,vary:R.type==='exp'&&$('#rVary').checked,wk:wk,start:start,active:true});
     if(!r){err.textContent='تحقّق من البيانات.';return}
     st.recurring.push(r);
     var p=start.split('-').map(Number),due=recDue(r,p[0],p[1]-1);
@@ -3629,12 +3694,15 @@ $('#recForm').addEventListener('submit',function(e){
       r.start=(act&&!R.wasActive&&sel===R.origStart)?defaultStart(day,wk):sel; // resuming without choosing a start must not back-fill the paused months
       r.active=act;delete r.legacy;
       r.link=link;r.months=months;r.past=months?past:[];if(months)r.start=months[0];r.steps=sweep?[]:R.steps.slice();
+      r.vary=r.type==='exp'&&$('#rVary').checked;
     });
     msg='حُفظ. التغيير يسري على الأشهر القادمة';
     st.recurring.forEach(function(r){if(r.id===R.id&&R.origStart&&r.start<R.origStart&&r.active){var p=r.start.split('-').map(Number),dd=recDue(r,p[0],p[1]-1);if(dd<=todayStr())msg='حُفظ، وسُجّل من '+dayLabel(dd)}});
   }
   $('#rSave').disabled=true;
-  saveSettings().then(function(){closeSheet('#recSheet');toast(msg)}).catch(function(er){if(!er||!er.silent)err.textContent=errMsg(er)}).then(function(){$('#rSave').disabled=false});
+  // switching a bill to "changes every month": this cycle's entry still at the old fixed amount becomes an estimate to confirm
+  var mark=null;if(R.id&&!R.wasVary&&R.type==='exp'&&$('#rVary').checked){var rv=recById(R.id),s1=rv&&recStatus(rv,cycleAt(0)),t1=s1&&s1.item;if(t1&&!t1.est&&t1.rk&&Math.abs(t1.amt-recBase(rv,t1.rk))<0.005){mark=cleanItem(Object.assign({},t1,{est:1}));msg='حُفظ. عملية هذه الدورة صارت تقديرية: أدخل مبلغها الفعلي'}}
+  saveSettings().then(function(){if(mark)return putItem(mark)}).then(function(){closeSheet('#recSheet');toast(msg)}).catch(function(er){if(!er||!er.silent)err.textContent=errMsg(er)}).then(function(){$('#rSave').disabled=false});
 });
 $('#remForm').addEventListener('submit',function(e){
   e.preventDefault();if(S.demo){demoBlock().catch(function(){});return}
@@ -3674,7 +3742,7 @@ function addCat(input,key){
 }
 $('#amt').addEventListener('input',function(){clearTimeout(_fundT);_fundT=setTimeout(renderFund,200)});var _fundT=0;
 $('#fundAmt').addEventListener('input',function(){S.form.fundAmtTouched=true});
-var _smsT=0;$('#smsText').addEventListener('input',function(){S.smsOver={};S.smsPick=undefined;$('#smsPaste').classList.toggle('gone',!!this.value);clearTimeout(_smsT);_smsT=setTimeout(smsPreview,150)});
+var _smsT=0;$('#smsText').addEventListener('input',function(){S.smsOver={};S.smsPick=undefined;S.smsBill=undefined;$('#smsPaste').classList.toggle('gone',!!this.value);clearTimeout(_smsT);_smsT=setTimeout(smsPreview,150)});
 $('#smsUse').addEventListener('click',smsUse);
 $('#savForm').addEventListener('submit',function(e){
   e.preventDefault();var mode=S.savMode,raw=$('#savAmt').value.trim(),v=parseAmt(raw),d=$('#savDt').value,err=$('#savErr'),st=S.settings;
