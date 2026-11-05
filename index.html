@@ -348,11 +348,9 @@ button.sc{border:0;font-family:inherit;color:var(--ink);cursor:pointer}
 .hide-money #btnHide{color:var(--accent)}
 .hide-money #budgetIn:not(:focus){-webkit-text-security:disc}
 .pc-chips{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0 10px}
-.pt-row{display:grid;grid-template-columns:1fr auto;gap:2px 10px;align-items:center;width:100%;text-align:start;background:none;border:0;border-bottom:1px solid var(--line);padding:10px 0;font:inherit;color:var(--ink);cursor:pointer}
-.pt-row:last-child{border-bottom:0}
-.pt-row .t{font-weight:700}
-.pt-row .a{font-weight:700;color:var(--good)}
-.pt-row small{grid-column:1/-1;color:var(--ink-2);font-size:12.5px}
+.pt-rate{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:10px 0;border-bottom:1px solid var(--line)}
+.pt-rate:last-child{border-bottom:0}
+.pt-rate .nm{grid-column:1/-1;font-weight:700}
 .dc-h3{display:grid;grid-template-columns:1fr 2fr 1.3fr;gap:8px;margin-top:10px}
 .dc-out{margin-top:12px;padding:12px 14px;border-radius:14px;background:var(--surface-2);text-align:center}
 .dc-out b{display:block;font-size:19px;line-height:1.5}
@@ -909,18 +907,13 @@ html.kb nav.tabs{display:none!important}
       </form>
     </div>
     <div class="card" id="ptsCard">
-      <div class="card-h"><h2>نقاط المكافآت</h2><span class="hint" id="ptsTot"></span></div>
-      <div id="ptsList"></div>
-      <div class="addrow"><button type="button" class="link" data-pts="new">+ إضافة برنامج نقاط</button></div>
-      <div id="ptsCalc" hidden>
-        <div class="sub-h" style="margin-top:6px">الحاسبة</div>
-        <div class="pc-chips" id="pcProg"></div>
-        <div class="filters">
-          <div><label for="pcPts" class="lbl">النقاط</label><input id="pcPts" class="field" inputmode="numeric" placeholder="0" enterkeyhint="done"></div>
-          <div><label for="pcSar" class="lbl">المبلغ (ر.س)</label><input id="pcSar" class="field" inputmode="decimal" placeholder="0" enterkeyhint="done"></div>
-        </div>
-        <p class="fhint" id="pcOut"></p>
+      <div class="card-h"><h2>حاسبة النقاط</h2><button type="button" class="link" data-act="pts-rates">سعر النقاط</button></div>
+      <div class="pc-chips" id="pcProg"></div>
+      <div class="filters">
+        <div><label for="pcPts" class="lbl">النقاط</label><input id="pcPts" class="field" inputmode="numeric" placeholder="0" enterkeyhint="done"></div>
+        <div><label for="pcSar" class="lbl">المبلغ (ر.س)</label><input id="pcSar" class="field" inputmode="decimal" placeholder="0" enterkeyhint="done"></div>
       </div>
+      <p class="fhint" id="pcOut"></p>
     </div>
     <div class="card" id="dcCard">
       <div class="card-h"><h2>تحويل التاريخ</h2><span class="hint">تقويم أم القرى</span></div>
@@ -1023,17 +1016,13 @@ html.kb nav.tabs{display:none!important}
 <div id="ptsSheet" class="sheet" hidden>
   <div class="panel" role="dialog" aria-modal="true" aria-labelledby="ptsTitle">
     <div class="grab"></div>
-    <div class="panel-h"><h2 id="ptsTitle">برنامج نقاط</h2><button type="button" class="link" data-close>إغلاق</button></div>
+    <div class="panel-h"><h2 id="ptsTitle">سعر النقاط</h2><button type="button" class="link" data-close>إغلاق</button></div>
     <form id="ptsForm" class="view" style="gap:10px" novalidate>
-      <div><label for="ptName" class="lbl">الاسم</label><input id="ptName" class="field" maxlength="30" placeholder="مثل: مكافأة الراجحي"></div>
-      <div class="filters">
-        <div><label for="ptPts" class="lbl">رصيد النقاط</label><input id="ptPts" class="field" inputmode="numeric" placeholder="0"></div>
-        <div><label for="ptSar" class="lbl">قيمتها نقداً (ر.س)</label><input id="ptSar" class="field" inputmode="decimal" placeholder="0"></div>
-      </div>
-      <p class="fhint" id="ptHint" style="margin:0"></p>
+      <p class="fhint" style="margin:0">إذا غيّر البرنامج سعر الاستبدال، اكتب عدد نقاط وقيمته بالريال كما يعرضها التطبيق عند التحويل.</p>
+      <div id="ptRates"></div>
       <p id="ptErr" class="ferr" role="alert"></p>
       <button class="primary" type="submit" id="ptSave">حفظ</button>
-      <button class="btn danger full" type="button" id="ptDel" hidden>حذف البرنامج</button>
+      <button class="btn full" type="button" id="ptReset">الرجوع للسعر الافتراضي</button>
     </form>
   </div>
 </div>
@@ -1190,6 +1179,8 @@ var PAYS=['مدى','أبل باي','بطاقة ائتمانية','نقدي','ت�
 var WK_RULES={none:'لا يتغير',salary:'الجمعة ← الخميس قبله، السبت ← الأحد بعده',sun:'ينتقل إلى الأحد بعده',thu:'ينتقل إلى الخميس قبله'};
 var WK_SHORT={salary:'العطلة: جمعة←خميس، سبت←أحد',sun:'العطلة ← الأحد',thu:'العطلة ← الخميس'};
 var DEFAULT_BANKS=['الراجحي','الأهلي','الإنماء','الرياض','البلاد','STC Bank'];
+/* reward programs for the points calculator; the default rates are what the programs showed on redemption (Nov 2026) */
+var PTS_PROGS=[{id:'rajhi',name:'مكافأة الراجحي',pts:19571,sar:71.16},{id:'qitaf',name:'قطاف',pts:25,sar:5}];
 var DEFAULT_SETTINGS={budget:0,saveGoal:0,cycleMode:'salary',cycleRec:'',cycleDay:27,cats:DEFAULT_CATS.slice(),incCats:DEFAULT_INC_CATS.slice(),banks:DEFAULT_BANKS.slice(),catBudgets:{},recurring:[]};
 var LS_LOCAL='masrufi.local.v1', LS_CACHE='masrufi.cache.v1', LS_PREF='masrufi.pref.v1';
 var LRI='⁦', PDI='⁩';
@@ -1278,7 +1269,7 @@ function normSettings(s){
   o.reminders=Array.isArray(o.reminders)?o.reminders.filter(function(x){return x&&typeof x.id==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(x.date||'')}).map(function(x){return {id:x.id.slice(0,24),name:String(x.name||'دفعة').slice(0,40),amt:Math.max(0,Math.round((+x.amt||0)*100)/100),date:x.date,cat:String(x.cat||'أخرى').slice(0,40),rep:x.rep==='once'?'once':'yearly'}}).slice(0,100):[];
   delete o.savAcc; // an earlier take on savings, replaced by the savings balance below
   o.savBase=Math.round((+o.savBase||0)*100)/100;o.savDate=/^\d{4}-\d{2}-\d{2}$/.test(o.savDate||'')?o.savDate:'';
-  o.points=Array.isArray(o.points)?o.points.filter(function(x){return x&&typeof x.id==='string'&&+x.rate>0}).slice(0,20).map(function(x){return {id:x.id.slice(0,24),name:String(x.name||'نقاط').slice(0,30),pts:Math.max(0,Math.round(+x.pts||0)),rate:+x.rate,date:/^\d{4}-\d{2}-\d{2}$/.test(x.date||'')?x.date:todayStr()}}):[];
+  var prt={};if(o.ptsRates&&typeof o.ptsRates==='object')PTS_PROGS.forEach(function(g){var x=o.ptsRates[g.id];if(x&&+x.pts>0&&+x.sar>0)prt[g.id]={pts:Math.round(+x.pts*100)/100,sar:Math.round(+x.sar*100)/100}});o.ptsRates=prt;delete o.points;
   o.savMoves=Array.isArray(o.savMoves)?o.savMoves.filter(function(m){return m&&typeof m.id==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(m.date||'')&&+m.amt>0&&(m.dir==='take'||m.dir==='put')}).map(function(m){return {id:m.id.slice(0,48),date:m.date,amt:Math.round(+m.amt*100)/100,dir:m.dir,note:String(m.note||'').slice(0,80),ts:+m.ts||0}}).slice(-500):[];
   var bfx={};if(o.balFix&&typeof o.balFix==='object')Object.keys(o.balFix).forEach(function(b){var f=o.balFix[b];if(o.banks.indexOf(b)>=0&&f&&isFinite(+f.amt)&&/^\d{4}-\d{2}-\d{2}$/.test(f.date||''))bfx[b]={amt:Math.round(+f.amt*100)/100,date:f.date,ts:+f.ts||0}});o.balFix=bfx;
   o.openBal=obl;o.openDate=/^\d{4}-\d{2}-\d{2}$/.test(o.openDate||'')?o.openDate:'';
@@ -3586,8 +3577,8 @@ document.addEventListener('click',function(e){
   if(d.sav)return openSav(d.sav);
   if(d.savdel){if(S.demo)return demoBlock().catch(function(){});var st1=S.settings,gone=null;st1.savMoves=(st1.savMoves||[]).filter(function(m){if(m.id===d.savdel){gone=m;return false}return true});
     if(gone)saveSettings().then(function(){toast('حُذفت الحركة',{action:{label:'تراجع',fn:function(){st1.savMoves=st1.savMoves.concat([gone]);saveSettings().catch(failToast)}}})}).catch(failToast);return}
-  if(d.pts)return openPts(d.pts);
-  if(d.pcsel){S.ptsSel=d.pcsel;renderPoints();return}
+  if(d.act==='pts-rates')return openPtsRates();
+  if(d.pcsel){S.ptsSel=d.pcsel;pref('ptsSel',d.pcsel);renderPoints();return}
   if(d.dconv){S.dconv=d.dconv==='h'?'h':'g';renderDC();return}
   if(d.act==='hrby'){S.stats.hrBy=d.v==='cnt'?'cnt':'amt';renderStats();return}
   if(d.act==='fromsav'){S.form.fromSav=!S.form.fromSav;renderSavToggle();return}
@@ -3735,62 +3726,41 @@ $('#rSweep').addEventListener('change',function(){$('#rAmt').disabled=this.check
 $('#rAuto').addEventListener('change',function(){if(S.recEdit)S.recEdit.autoTouched=true});
 function syncVary(){var on=!$('#rVaryWrap').hidden&&$('#rVary').checked;$('#rVaryHint').hidden=!on;$('#rAmtLbl').textContent=on?'المبلغ التقديري':'المبلغ الشهري';if(on){$('#rStepsWrap').hidden=true}else $('#rStepsWrap').hidden=$('#rSweep').checked&&!$('#rSweepWrap').hidden}
 $('#rVary').addEventListener('change',syncVary);
-/* ---------- reward points ---------- */
-/* each program keeps its balance and the cash value of one point, taken from what the bank app shows when you redeem */
+/* ---------- reward points calculator ---------- */
+/* the default rates are what the programs showed on redemption (Nov 2026); "سعر النقاط" changes them when a program changes its policy */
+function ptsRate(g){var x=(settings().ptsRates||{})[g.id];return x?x.sar/x.pts:g.sar/g.pts}
 function ptsTxt(n){return n===1?'نقطة واحدة':n===2?'نقطتان':(n%1===0&&n%100>=3&&n%100<=10)?n+' نقاط':n.toLocaleString('en-US',{maximumFractionDigits:2})+' نقطة'}
 function rateTxt(r){var per=Math.round(1/r*100)/100;return ptsTxt(per)+' = 1 ريال'}
 function renderPoints(){
-  var l=settings().points||[],tot=0;
-  $('#ptsList').innerHTML=l.length?l.map(function(x){var v=x.pts*x.rate;tot+=v;return '<button type="button" class="pt-row" data-pts="'+esc(x.id)+'"><span class="t">'+esc(x.name)+'</span><span class="a">'+money(v)+' ر.س</span><small><span class="num">'+x.pts.toLocaleString('en-US')+'</span> نقطة · '+esc(rateTxt(x.rate))+' · حُدّث '+esc(dayLabel(x.date))+'</small></button>'}).join(''):
-    '<div class="empty" style="padding:6px 0"><b>لا توجد برامج نقاط</b>أضف رصيدك وقيمته نقداً كما يعرضها تطبيق البنك، والحاسبة تحوّل بين النقاط والريال.</div>';
-  $('#ptsTot').innerHTML=l.length>1?'الإجمالي '+money(tot)+' ر.س':'';
-  $('#ptsCalc').hidden=!l.length;if(!l.length)return;
-  if(!l.some(function(x){return x.id===S.ptsSel}))S.ptsSel=l[0].id;
-  $('#pcProg').hidden=l.length<2;
-  $('#pcProg').innerHTML=l.map(function(x){return '<button type="button" class="sp'+(x.id===S.ptsSel?' on':'')+'" data-pcsel="'+esc(x.id)+'">'+esc(x.name)+'</button>'}).join('');
+  if(!PTS_PROGS.some(function(g){return g.id===S.ptsSel}))S.ptsSel=pref('ptsSel')||PTS_PROGS[0].id;
+  $('#pcProg').innerHTML=PTS_PROGS.map(function(g){return '<button type="button" class="sp'+(g.id===S.ptsSel?' on':'')+'" data-pcsel="'+g.id+'">'+esc(g.name)+'</button>'}).join('');
   pcCalc();
 }
 function pcCalc(src){
-  var x=(settings().points||[]).filter(function(p){return p.id===S.ptsSel})[0];if(!x)return;
+  var g=PTS_PROGS.filter(function(x){return x.id===S.ptsSel})[0]||PTS_PROGS[0],r=ptsRate(g);
   src=src||S.pcLast||'pts';S.pcLast=src;
   var pi=$('#pcPts'),si=$('#pcSar');
-  if(src==='pts'){var n=parseAmt(pi.value);si.value=pi.value.trim()===''||!(n>=0)?'':String(Math.floor(n*x.rate*100+1e-6)/100)}
-  else{var a=parseAmt(si.value);pi.value=si.value.trim()===''||!(a>=0)?'':String(Math.ceil(a/x.rate-1e-6))} // the points you need to get that amount
-  var need=parseAmt(pi.value),out=rateTxt(x.rate)+' في «'+x.name+'».';
-  if(need>0)out+=need<=x.pts?(x.pts-need?' رصيدك يكفي، ويبقى منه '+ptsTxt(x.pts-need)+'.':' تحتاج رصيدك كله.'):' ينقصك '+ptsTxt(need-x.pts)+' عن رصيدك.';
-  $('#pcOut').textContent=out;
+  if(src==='pts'){var n=parseAmt(pi.value);si.value=pi.value.trim()===''||!(n>=0)?'':String(Math.floor(n*r*100+1e-6)/100)}
+  else{var a=parseAmt(si.value);pi.value=si.value.trim()===''||!(a>=0)?'':String(Math.ceil(a/r-1e-6))} // the points you need to get that amount
+  $('#pcOut').textContent=rateTxt(r)+' في «'+g.name+'».';
 }
 $('#pcPts').addEventListener('input',function(){pcCalc('pts')});
 $('#pcSar').addEventListener('input',function(){pcCalc('sar')});
-function openPts(id){
-  var x=id==='new'?null:(settings().points||[]).filter(function(p){return p.id===id})[0]||null;
-  S.ptsEdit={id:x?x.id:null,rate:x?x.rate:0,sarTouched:false};
-  $('#ptsTitle').textContent=x?x.name:'برنامج نقاط';
-  $('#ptName').value=x?x.name:'';$('#ptPts').value=x?String(x.pts):'';$('#ptSar').value=x?String(Math.floor(x.pts*x.rate*100+1e-6)/100):'';
-  $('#ptHint').textContent=x?'لما تحدّث رصيد النقاط تتحدّث القيمة بنفس السعر ('+rateTxt(x.rate)+'). غيّر القيمة إذا عرض البنك مبلغاً مختلفاً، ويتحدّث السعر معها.':'اكتب رصيد النقاط وقيمته نقداً كما يعرضها تطبيق البنك عند التحويل، ومنهما يُحسب سعر النقطة.';
-  $('#ptErr').textContent='';var del=$('#ptDel');del.hidden=!x;del.classList.remove('armed');del.textContent='حذف البرنامج';
-  openSheet('#ptsSheet');
+function openPtsRates(vals){
+  var R=settings().ptsRates||{};
+  $('#ptRates').innerHTML=PTS_PROGS.map(function(g){var x=vals?{pts:g.pts,sar:g.sar}:R[g.id]||{pts:g.pts,sar:g.sar};
+    return '<div class="pt-rate"><div class="nm">'+esc(g.name)+'</div><div><label class="lbl" for="pr_'+g.id+'_p">النقاط</label><input id="pr_'+g.id+'_p" class="field" inputmode="numeric" value="'+x.pts+'"></div><div><label class="lbl" for="pr_'+g.id+'_s">تعادل (ر.س)</label><input id="pr_'+g.id+'_s" class="field" inputmode="decimal" value="'+x.sar+'"></div></div>'}).join('');
+  $('#ptErr').textContent='';if(!vals)openSheet('#ptsSheet');
 }
-$('#ptPts').addEventListener('input',function(){var E=S.ptsEdit;if(E&&E.rate&&!E.sarTouched){var n=parseAmt(this.value);$('#ptSar').value=this.value.trim()!==''&&n>=0?String(Math.floor(Math.round(n)*E.rate*100+1e-6)/100):''}});
-$('#ptSar').addEventListener('input',function(){if(S.ptsEdit)S.ptsEdit.sarTouched=true});
+$('#ptReset').addEventListener('click',function(){openPtsRates(true)});
 $('#ptsForm').addEventListener('submit',function(e){
   e.preventDefault();if(S.demo){demoBlock().catch(function(){});return}
-  var E=S.ptsEdit,name=$('#ptName').value.trim(),raw=$('#ptPts').value.trim(),n=parseAmt(raw),v=parseAmt($('#ptSar').value),err=$('#ptErr');if(!E)return;
-  if(!name){err.textContent='اكتب اسم البرنامج.';return}
-  if(raw===''||!(n>=0)){err.textContent='اكتب رصيد النقاط.';return}
-  n=Math.round(n);
-  var rate=E.rate&&!E.sarTouched?E.rate:(n>0&&v>0?v/n:E.rate);
-  if(!(rate>0)){err.textContent='اكتب رصيد النقاط وقيمته نقداً ليُحسب سعر النقطة.';return}
-  var st=S.settings,rec={id:E.id||('p'+Date.now().toString(36)),name:name.slice(0,30),pts:n,rate:rate,date:todayStr()};
-  st.points=E.id?(st.points||[]).map(function(x){return x.id===E.id?rec:x}):(st.points||[]).concat([rec]);
-  S.ptsSel=rec.id;$('#ptSave').disabled=true;
-  saveSettings().then(function(){closeSheet('#ptsSheet');toast('حُفظ: '+ptsTxt(n)+' = '+fmt(n*rate)+' ر.س')}).catch(function(er){if(!er||!er.silent)err.textContent=errMsg(er)}).then(function(){$('#ptSave').disabled=false});
-});
-$('#ptDel').addEventListener('click',function(){
-  var b=this,E=S.ptsEdit;if(!E||!E.id)return;if(S.demo){demoBlock().catch(function(){});return}
-  if(!b.classList.contains('armed')){b.classList.add('armed');b.textContent='اضغط مرة أخرى لتأكيد الحذف';setTimeout(function(){b.classList.remove('armed');b.textContent='حذف البرنامج'},4000);return}
-  var st=S.settings;st.points=(st.points||[]).filter(function(x){return x.id!==E.id});
-  saveSettings().then(function(){closeSheet('#ptsSheet');toast('حُذف البرنامج')}).catch(failToast);
+  var out={},bad='';
+  PTS_PROGS.forEach(function(g){var p=parseAmt($('#pr_'+g.id+'_p').value),v=parseAmt($('#pr_'+g.id+'_s').value);if(!(p>0)||!(v>0)){bad=bad||g.name;return}
+    if(Math.abs(p-g.pts)>0.004||Math.abs(v-g.sar)>0.004)out[g.id]={pts:Math.round(p*100)/100,sar:Math.round(v*100)/100}}); // the default rate is not stored
+  if(bad){$('#ptErr').textContent='اكتب النقاط وقيمتها بالريال في «'+bad+'».';return}
+  S.settings.ptsRates=out;$('#ptSave').disabled=true;
+  saveSettings().then(function(){closeSheet('#ptsSheet');toast('حُفظ سعر النقاط')}).catch(function(er){if(!er||!er.silent)$('#ptErr').textContent=errMsg(er)}).then(function(){$('#ptSave').disabled=false});
 });
 
 /* ---------- Hijri ⇄ Gregorian (Umm al-Qura, from the browser's calendar data) ---------- */
