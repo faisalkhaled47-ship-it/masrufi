@@ -347,6 +347,17 @@ button.sc{border:0;font-family:inherit;color:var(--ink);cursor:pointer}
 .hide-money #btnHide .eye-off{display:block}
 .hide-money #btnHide{color:var(--accent)}
 .hide-money #budgetIn:not(:focus){-webkit-text-security:disc}
+.pc-chips{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0 10px}
+.pt-row{display:grid;grid-template-columns:1fr auto;gap:2px 10px;align-items:center;width:100%;text-align:start;background:none;border:0;border-bottom:1px solid var(--line);padding:10px 0;font:inherit;color:var(--ink);cursor:pointer}
+.pt-row:last-child{border-bottom:0}
+.pt-row .t{font-weight:700}
+.pt-row .a{font-weight:700;color:var(--good)}
+.pt-row small{grid-column:1/-1;color:var(--ink-2);font-size:12.5px}
+.dc-h3{display:grid;grid-template-columns:1fr 2fr 1.3fr;gap:8px;margin-top:10px}
+.dc-out{margin-top:12px;padding:12px 14px;border-radius:14px;background:var(--surface-2);text-align:center}
+.dc-out b{display:block;font-size:19px;line-height:1.5}
+.dc-out span{color:var(--ink-2);font-size:13.5px}
+.dc-out.bad b{color:var(--bad);font-size:15px}
 .tag.est{background:var(--warn-soft);color:var(--warn);border-color:transparent}
 .fhint{font-size:12.5px;color:var(--ink-2);margin:6px 0 0;line-height:1.6}
 .fhint.est-h{color:var(--warn)}
@@ -897,6 +908,32 @@ html.kb nav.tabs{display:none!important}
         <button class="btn accent" type="submit">حفظ</button>
       </form>
     </div>
+    <div class="card" id="ptsCard">
+      <div class="card-h"><h2>نقاط المكافآت</h2><span class="hint" id="ptsTot"></span></div>
+      <div id="ptsList"></div>
+      <div class="addrow"><button type="button" class="link" data-pts="new">+ إضافة برنامج نقاط</button></div>
+      <div id="ptsCalc" hidden>
+        <div class="sub-h" style="margin-top:6px">الحاسبة</div>
+        <div class="pc-chips" id="pcProg"></div>
+        <div class="filters">
+          <div><label for="pcPts" class="lbl">النقاط</label><input id="pcPts" class="field" inputmode="numeric" placeholder="0" enterkeyhint="done"></div>
+          <div><label for="pcSar" class="lbl">المبلغ (ر.س)</label><input id="pcSar" class="field" inputmode="decimal" placeholder="0" enterkeyhint="done"></div>
+        </div>
+        <p class="fhint" id="pcOut"></p>
+      </div>
+    </div>
+    <div class="card" id="dcCard">
+      <div class="card-h"><h2>تحويل التاريخ</h2><span class="hint">تقويم أم القرى</span></div>
+      <div class="seg" role="group" aria-label="اتجاه التحويل"><button type="button" data-dconv="g" aria-pressed="true">ميلادي ← هجري</button><button type="button" data-dconv="h" aria-pressed="false">هجري ← ميلادي</button></div>
+      <div id="dcG" style="margin-top:10px"><label for="dcGIn" class="lbl">التاريخ الميلادي</label><input id="dcGIn" type="date" class="field"></div>
+      <div id="dcH" class="dc-h3" hidden>
+        <div><label for="dcHd" class="lbl">اليوم</label><select id="dcHd" class="field"></select></div>
+        <div><label for="dcHm" class="lbl">الشهر</label><select id="dcHm" class="field"></select></div>
+        <div><label for="dcHy" class="lbl">السنة</label><input id="dcHy" class="field" inputmode="numeric" maxlength="4" enterkeyhint="done"></div>
+      </div>
+      <div class="dc-out" id="dcOut" aria-live="polite"></div>
+      <p class="foot">أم القرى هو التقويم الرسمي في المملكة. بداية رمضان والأعياد تعتمد على رؤية الهلال وقد تختلف عنه يوماً.</p>
+    </div>
   </section>
 </main>
 
@@ -980,6 +1017,23 @@ html.kb nav.tabs{display:none!important}
       <div id="savNoteWrap"><label for="savNote" class="lbl">ملاحظة <span class="muted">(اختياري)</span></label><input id="savNote" class="field" maxlength="80"></div>
       <p id="savErr" class="ferr" role="alert"></p>
       <button class="primary" type="submit" id="savSave">حفظ</button>
+    </form>
+  </div>
+</div>
+<div id="ptsSheet" class="sheet" hidden>
+  <div class="panel" role="dialog" aria-modal="true" aria-labelledby="ptsTitle">
+    <div class="grab"></div>
+    <div class="panel-h"><h2 id="ptsTitle">برنامج نقاط</h2><button type="button" class="link" data-close>إغلاق</button></div>
+    <form id="ptsForm" class="view" style="gap:10px" novalidate>
+      <div><label for="ptName" class="lbl">الاسم</label><input id="ptName" class="field" maxlength="30" placeholder="مثل: مكافأة الراجحي"></div>
+      <div class="filters">
+        <div><label for="ptPts" class="lbl">رصيد النقاط</label><input id="ptPts" class="field" inputmode="numeric" placeholder="0"></div>
+        <div><label for="ptSar" class="lbl">قيمتها نقداً (ر.س)</label><input id="ptSar" class="field" inputmode="decimal" placeholder="0"></div>
+      </div>
+      <p class="fhint" id="ptHint" style="margin:0"></p>
+      <p id="ptErr" class="ferr" role="alert"></p>
+      <button class="primary" type="submit" id="ptSave">حفظ</button>
+      <button class="btn danger full" type="button" id="ptDel" hidden>حذف البرنامج</button>
     </form>
   </div>
 </div>
@@ -1224,6 +1278,7 @@ function normSettings(s){
   o.reminders=Array.isArray(o.reminders)?o.reminders.filter(function(x){return x&&typeof x.id==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(x.date||'')}).map(function(x){return {id:x.id.slice(0,24),name:String(x.name||'دفعة').slice(0,40),amt:Math.max(0,Math.round((+x.amt||0)*100)/100),date:x.date,cat:String(x.cat||'أخرى').slice(0,40),rep:x.rep==='once'?'once':'yearly'}}).slice(0,100):[];
   delete o.savAcc; // an earlier take on savings, replaced by the savings balance below
   o.savBase=Math.round((+o.savBase||0)*100)/100;o.savDate=/^\d{4}-\d{2}-\d{2}$/.test(o.savDate||'')?o.savDate:'';
+  o.points=Array.isArray(o.points)?o.points.filter(function(x){return x&&typeof x.id==='string'&&+x.rate>0}).slice(0,20).map(function(x){return {id:x.id.slice(0,24),name:String(x.name||'نقاط').slice(0,30),pts:Math.max(0,Math.round(+x.pts||0)),rate:+x.rate,date:/^\d{4}-\d{2}-\d{2}$/.test(x.date||'')?x.date:todayStr()}}):[];
   o.savMoves=Array.isArray(o.savMoves)?o.savMoves.filter(function(m){return m&&typeof m.id==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(m.date||'')&&+m.amt>0&&(m.dir==='take'||m.dir==='put')}).map(function(m){return {id:m.id.slice(0,48),date:m.date,amt:Math.round(+m.amt*100)/100,dir:m.dir,note:String(m.note||'').slice(0,80),ts:+m.ts||0}}).slice(-500):[];
   var bfx={};if(o.balFix&&typeof o.balFix==='object')Object.keys(o.balFix).forEach(function(b){var f=o.balFix[b];if(o.banks.indexOf(b)>=0&&f&&isFinite(+f.amt)&&/^\d{4}-\d{2}-\d{2}$/.test(f.date||''))bfx[b]={amt:Math.round(+f.amt*100)/100,date:f.date,ts:+f.ts||0}});o.balFix=bfx;
   o.openBal=obl;o.openDate=/^\d{4}-\d{2}-\d{2}$/.test(o.openDate||'')?o.openDate:'';
@@ -2975,6 +3030,7 @@ function payRem(id){
 }
 function renderBudget(){
   var st=settings(),c=cycleAt(0),a=allowance(c),tN=dnum(todayStr());
+  renderPoints();renderDC();
   $('#bCycle').textContent=cycleName(c);
   var bi=$('#budgetIn'),gi=$('#goalIn');
   if(document.activeElement!==bi)bi.value=st.budget>0?st.budget:'';
@@ -3530,6 +3586,9 @@ document.addEventListener('click',function(e){
   if(d.sav)return openSav(d.sav);
   if(d.savdel){if(S.demo)return demoBlock().catch(function(){});var st1=S.settings,gone=null;st1.savMoves=(st1.savMoves||[]).filter(function(m){if(m.id===d.savdel){gone=m;return false}return true});
     if(gone)saveSettings().then(function(){toast('حُذفت الحركة',{action:{label:'تراجع',fn:function(){st1.savMoves=st1.savMoves.concat([gone]);saveSettings().catch(failToast)}}})}).catch(failToast);return}
+  if(d.pts)return openPts(d.pts);
+  if(d.pcsel){S.ptsSel=d.pcsel;renderPoints();return}
+  if(d.dconv){S.dconv=d.dconv==='h'?'h':'g';renderDC();return}
   if(d.act==='hrby'){S.stats.hrBy=d.v==='cnt'?'cnt':'amt';renderStats();return}
   if(d.act==='fromsav'){S.form.fromSav=!S.form.fromSav;renderSavToggle();return}
   if(d.act==='cat-add'){if(S.demo){demoBlock().catch(function(){});return}var inc=S.form.type==='inc';$('#catQTitle').textContent=inc?'فئة دخل جديدة':'فئة مصروف جديدة';$('#catQName').value='';$('#catQErr').textContent='';openSheet('#catSheet');$('#catQName').focus();return}
@@ -3676,6 +3735,105 @@ $('#rSweep').addEventListener('change',function(){$('#rAmt').disabled=this.check
 $('#rAuto').addEventListener('change',function(){if(S.recEdit)S.recEdit.autoTouched=true});
 function syncVary(){var on=!$('#rVaryWrap').hidden&&$('#rVary').checked;$('#rVaryHint').hidden=!on;$('#rAmtLbl').textContent=on?'المبلغ التقديري':'المبلغ الشهري';if(on){$('#rStepsWrap').hidden=true}else $('#rStepsWrap').hidden=$('#rSweep').checked&&!$('#rSweepWrap').hidden}
 $('#rVary').addEventListener('change',syncVary);
+/* ---------- reward points ---------- */
+/* each program keeps its balance and the cash value of one point, taken from what the bank app shows when you redeem */
+function ptsTxt(n){return n===1?'نقطة واحدة':n===2?'نقطتان':(n%1===0&&n%100>=3&&n%100<=10)?n+' نقاط':n.toLocaleString('en-US',{maximumFractionDigits:2})+' نقطة'}
+function rateTxt(r){var per=Math.round(1/r*100)/100;return ptsTxt(per)+' = 1 ريال'}
+function renderPoints(){
+  var l=settings().points||[],tot=0;
+  $('#ptsList').innerHTML=l.length?l.map(function(x){var v=x.pts*x.rate;tot+=v;return '<button type="button" class="pt-row" data-pts="'+esc(x.id)+'"><span class="t">'+esc(x.name)+'</span><span class="a">'+money(v)+' ر.س</span><small><span class="num">'+x.pts.toLocaleString('en-US')+'</span> نقطة · '+esc(rateTxt(x.rate))+' · حُدّث '+esc(dayLabel(x.date))+'</small></button>'}).join(''):
+    '<div class="empty" style="padding:6px 0"><b>لا توجد برامج نقاط</b>أضف رصيدك وقيمته نقداً كما يعرضها تطبيق البنك، والحاسبة تحوّل بين النقاط والريال.</div>';
+  $('#ptsTot').innerHTML=l.length>1?'الإجمالي '+money(tot)+' ر.س':'';
+  $('#ptsCalc').hidden=!l.length;if(!l.length)return;
+  if(!l.some(function(x){return x.id===S.ptsSel}))S.ptsSel=l[0].id;
+  $('#pcProg').hidden=l.length<2;
+  $('#pcProg').innerHTML=l.map(function(x){return '<button type="button" class="sp'+(x.id===S.ptsSel?' on':'')+'" data-pcsel="'+esc(x.id)+'">'+esc(x.name)+'</button>'}).join('');
+  pcCalc();
+}
+function pcCalc(src){
+  var x=(settings().points||[]).filter(function(p){return p.id===S.ptsSel})[0];if(!x)return;
+  src=src||S.pcLast||'pts';S.pcLast=src;
+  var pi=$('#pcPts'),si=$('#pcSar');
+  if(src==='pts'){var n=parseAmt(pi.value);si.value=pi.value.trim()===''||!(n>=0)?'':String(Math.floor(n*x.rate*100+1e-6)/100)}
+  else{var a=parseAmt(si.value);pi.value=si.value.trim()===''||!(a>=0)?'':String(Math.ceil(a/x.rate-1e-6))} // the points you need to get that amount
+  var need=parseAmt(pi.value),out=rateTxt(x.rate)+' في «'+x.name+'».';
+  if(need>0)out+=need<=x.pts?(x.pts-need?' رصيدك يكفي، ويبقى منه '+ptsTxt(x.pts-need)+'.':' تحتاج رصيدك كله.'):' ينقصك '+ptsTxt(need-x.pts)+' عن رصيدك.';
+  $('#pcOut').textContent=out;
+}
+$('#pcPts').addEventListener('input',function(){pcCalc('pts')});
+$('#pcSar').addEventListener('input',function(){pcCalc('sar')});
+function openPts(id){
+  var x=id==='new'?null:(settings().points||[]).filter(function(p){return p.id===id})[0]||null;
+  S.ptsEdit={id:x?x.id:null,rate:x?x.rate:0,sarTouched:false};
+  $('#ptsTitle').textContent=x?x.name:'برنامج نقاط';
+  $('#ptName').value=x?x.name:'';$('#ptPts').value=x?String(x.pts):'';$('#ptSar').value=x?String(Math.floor(x.pts*x.rate*100+1e-6)/100):'';
+  $('#ptHint').textContent=x?'لما تحدّث رصيد النقاط تتحدّث القيمة بنفس السعر ('+rateTxt(x.rate)+'). غيّر القيمة إذا عرض البنك مبلغاً مختلفاً، ويتحدّث السعر معها.':'اكتب رصيد النقاط وقيمته نقداً كما يعرضها تطبيق البنك عند التحويل، ومنهما يُحسب سعر النقطة.';
+  $('#ptErr').textContent='';var del=$('#ptDel');del.hidden=!x;del.classList.remove('armed');del.textContent='حذف البرنامج';
+  openSheet('#ptsSheet');
+}
+$('#ptPts').addEventListener('input',function(){var E=S.ptsEdit;if(E&&E.rate&&!E.sarTouched){var n=parseAmt(this.value);$('#ptSar').value=this.value.trim()!==''&&n>=0?String(Math.floor(Math.round(n)*E.rate*100+1e-6)/100):''}});
+$('#ptSar').addEventListener('input',function(){if(S.ptsEdit)S.ptsEdit.sarTouched=true});
+$('#ptsForm').addEventListener('submit',function(e){
+  e.preventDefault();if(S.demo){demoBlock().catch(function(){});return}
+  var E=S.ptsEdit,name=$('#ptName').value.trim(),raw=$('#ptPts').value.trim(),n=parseAmt(raw),v=parseAmt($('#ptSar').value),err=$('#ptErr');if(!E)return;
+  if(!name){err.textContent='اكتب اسم البرنامج.';return}
+  if(raw===''||!(n>=0)){err.textContent='اكتب رصيد النقاط.';return}
+  n=Math.round(n);
+  var rate=E.rate&&!E.sarTouched?E.rate:(n>0&&v>0?v/n:E.rate);
+  if(!(rate>0)){err.textContent='اكتب رصيد النقاط وقيمته نقداً ليُحسب سعر النقطة.';return}
+  var st=S.settings,rec={id:E.id||('p'+Date.now().toString(36)),name:name.slice(0,30),pts:n,rate:rate,date:todayStr()};
+  st.points=E.id?(st.points||[]).map(function(x){return x.id===E.id?rec:x}):(st.points||[]).concat([rec]);
+  S.ptsSel=rec.id;$('#ptSave').disabled=true;
+  saveSettings().then(function(){closeSheet('#ptsSheet');toast('حُفظ: '+ptsTxt(n)+' = '+fmt(n*rate)+' ر.س')}).catch(function(er){if(!er||!er.silent)err.textContent=errMsg(er)}).then(function(){$('#ptSave').disabled=false});
+});
+$('#ptDel').addEventListener('click',function(){
+  var b=this,E=S.ptsEdit;if(!E||!E.id)return;if(S.demo){demoBlock().catch(function(){});return}
+  if(!b.classList.contains('armed')){b.classList.add('armed');b.textContent='اضغط مرة أخرى لتأكيد الحذف';setTimeout(function(){b.classList.remove('armed');b.textContent='حذف البرنامج'},4000);return}
+  var st=S.settings;st.points=(st.points||[]).filter(function(x){return x.id!==E.id});
+  saveSettings().then(function(){closeSheet('#ptsSheet');toast('حُذف البرنامج')}).catch(failToast);
+});
+
+/* ---------- Hijri ⇄ Gregorian (Umm al-Qura, from the browser's calendar data) ---------- */
+var HIJRI_MONTHS=['محرم','صفر','ربيع الأول','ربيع الآخر','جمادى الأولى','جمادى الآخرة','رجب','شعبان','رمضان','شوال','ذو القعدة','ذو الحجة'];
+function utcNoon(ds){var p=ds.split('-').map(Number);return new Date(Date.UTC(p[0],p[1]-1,p[2],12))}
+function hijParts(dt){
+  try{if(!hijParts.f){hijParts.f=new Intl.DateTimeFormat('en-u-ca-islamic-umalqura-nu-latn',{year:'numeric',month:'numeric',day:'numeric',timeZone:'UTC'});if(hijParts.f.resolvedOptions().calendar!=='islamic-umalqura')hijParts.f=null}
+    if(!hijParts.f)return null;var o={};hijParts.f.formatToParts(dt).forEach(function(p){if(p.type==='year'||p.type==='month'||p.type==='day')o[p.type]=parseInt(p.value,10)});
+    return o.year&&o.month&&o.day?{y:o.year,m:o.month,d:o.day}:null}catch(e){return null}}
+function hijToG(hy,hm,hd){ // search around an estimate; null when that day does not exist (a 29-day month)
+  var est=Date.UTC(622,6,16)+((hy-1)*354.36707+(hm-1)*29.530589+(hd-1))*864e5;
+  for(var k=0;k<=50;k++)for(var sg=-1;sg<=1;sg+=2){if(!k&&sg>0)continue;var t=new Date(est+sg*k*864e5),dd=new Date(Date.UTC(t.getUTCFullYear(),t.getUTCMonth(),t.getUTCDate(),12)),p=hijParts(dd);
+    if(p&&p.y===hy&&p.m===hm&&p.d===hd)return ymd(new Date(dd.getUTCFullYear(),dd.getUTCMonth(),dd.getUTCDate()))}
+  return null;
+}
+function yearsTxt(n){return n===1?'سنة':n===2?'سنتان':n<=10?n+' سنوات':n+' سنة'}
+function monthsTxt2(n){return n===1?'شهر':n===2?'شهران':n<=10?n+' أشهر':n+' شهراً'}
+function relDays(ds){
+  var n=dnum(ds)-dnum(todayStr()),a=Math.abs(n),t;if(!n)return 'اليوم';
+  if(a<365)t=daysTxt(a);else{var y=Math.floor(a/365.2425),m=Math.floor((a-y*365.2425)/30.437);t='نحو '+yearsTxt(y)+(m?' و'+monthsTxt2(m):'')}
+  return (n>0?'بعد ':'قبل ')+t;
+}
+function renderDC(){
+  if(!renderDC.init){renderDC.init=1;
+    var d='';for(var i=1;i<=30;i++)d+='<option value="'+i+'">'+i+'</option>';$('#dcHd').innerHTML=d;
+    $('#dcHm').innerHTML=HIJRI_MONTHS.map(function(m,j){return '<option value="'+(j+1)+'">'+(j+1)+' · '+m+'</option>'}).join('');
+    $('#dcGIn').value=todayStr();var t=hijParts(utcNoon(todayStr()));if(t){$('#dcHd').value=String(t.d);$('#dcHm').value=String(t.m);$('#dcHy').value=String(t.y)}
+    ['#dcGIn','#dcHd','#dcHm','#dcHy'].forEach(function(q){$(q).addEventListener('input',renderDC);$(q).addEventListener('change',renderDC)});
+  }
+  var g=(S.dconv||'g')==='g',out=$('#dcOut'),h,bad=false;
+  $$('[data-dconv]').forEach(function(b){b.setAttribute('aria-pressed',String(b.dataset.dconv===(g?'g':'h')))});
+  $('#dcG').hidden=!g;$('#dcH').hidden=g;
+  if(!hijParts(utcNoon('2026-01-01'))){out.className='dc-out bad';out.innerHTML='<b>هذا المتصفح لا يدعم تقويم أم القرى</b>';return}
+  if(g){var ds=$('#dcGIn').value;
+    if(!/^\d{4}-\d{2}-\d{2}$/.test(ds))h='<span>اختر تاريخاً</span>';
+    else{var p=hijParts(utcNoon(ds));h=p?'<b>'+AR_DAYS[parseYmd(ds).getDay()]+' '+p.d+' '+HIJRI_MONTHS[p.m-1]+' '+p.y+' هـ</b><span>'+relDays(ds)+'</span>':'<b>خارج نطاق التقويم</b>';bad=!p}}
+  else{var hy=parseInt(String($('#dcHy').value).replace(/[٠-٩]/g,function(c){return c.charCodeAt(0)-1632}),10),hm=+$('#dcHm').value,hd=+$('#dcHd').value;
+    if(!(hy>=1300&&hy<=1500)){bad=true;h='<b>اكتب سنة هجرية بين 1300 و1500</b>'}
+    else{var r=hijToG(hy,hm,hd);
+      if(!r){bad=true;h='<b>'+(hd===30?'شهر '+HIJRI_MONTHS[hm-1]+' '+hy+' فيه 29 يوماً فقط':'تعذّر التحويل')+'</b>'}
+      else{var dd=parseYmd(r);h='<b>'+AR_DAYS[dd.getDay()]+' '+dd.getDate()+' '+AR_MONTHS[dd.getMonth()]+' '+dd.getFullYear()+' م</b><span>'+relDays(r)+'</span>'}}}
+  out.className='dc-out'+(bad?' bad':'');out.innerHTML=h;
+}
 function syncHideBtn(){var b=$('#btnHide');b.setAttribute('aria-pressed',String(_hideM));b.setAttribute('aria-label',_hideM?'إظهار المبالغ':'إخفاء المبالغ');b.title=b.getAttribute('aria-label')}
 $('#btnHide').addEventListener('click',function(){_hideM=!_hideM;pref('hideMoney',_hideM?1:0);document.documentElement.classList.toggle('hide-money',_hideM);syncHideBtn();render();toast(_hideM?'المبالغ مخفية':'المبالغ ظاهرة')});
 syncHideBtn();
