@@ -347,6 +347,9 @@ button.sc{border:0;font-family:inherit;color:var(--ink);cursor:pointer}
 .hide-money #btnHide .eye-off{display:block}
 .hide-money #btnHide{color:var(--accent)}
 .hide-money #budgetIn:not(:focus){-webkit-text-security:disc}
+.card-off{display:none!important}
+.cv-h{font-size:13px;font-weight:700;color:var(--ink-2);margin:10px 0 4px}
+.cv-list{display:grid;gap:2px}
 .fold > .card-h{position:relative;padding-inline-end:38px;cursor:pointer;-webkit-tap-highlight-color:transparent}
 .fold-tog{position:absolute;inset-inline-end:-4px;top:50%;transform:translateY(-50%);width:34px;height:34px;border:0;border-radius:999px;background:var(--surface-2);color:var(--ink-2);display:grid;place-items:center;cursor:pointer;padding:0}
 .fold-tog svg{width:18px;height:18px;transition:transform .2s}
@@ -1110,6 +1113,13 @@ html.kb nav.tabs{display:none!important}
     <div class="sec" id="sbSec" hidden></div>
     <div class="sec ai-sec" id="aiSec"></div>
     <div class="sec" id="skinSec"><h3>التصميم</h3><div class="seg" role="group" aria-label="التصميم"><button type="button" data-skin-set="pro">الجديد</button><button type="button" data-skin-set="classic">السابق</button></div></div>
+    <div class="sec" id="cardsSec"><h3>البطاقات الظاهرة</h3>
+      <details id="cvDet"><summary class="link" style="list-style:none;cursor:pointer" id="cvSum">اختيار البطاقات</summary>
+        <p class="fhint" style="margin:8px 0">البطاقة اللي تطفئها تختفي من صفحتها، وترجع متى ما شغّلتها.</p>
+        <div class="cv-h">الميزانية</div><div class="cv-list" id="cvBudget"></div>
+        <div class="cv-h">الإحصائيات</div><div class="cv-list" id="cvStats"></div>
+      </details>
+    </div>
     <div class="sec" id="themeSec" hidden><h3>المظهر</h3><div class="seg" role="group" aria-label="المظهر"><button type="button" data-theme-set="auto">تلقائي</button><button type="button" data-theme-set="light">فاتح</button><button type="button" data-theme-set="dark">داكن</button></div></div>
     <div class="sec">
       <h3><label for="cycleMode">فترة الإحصائيات والميزانية (الدورة)</label></h3>
@@ -2394,7 +2404,8 @@ function statRange(){
   return cycleAt(S.cycleOffset);
 }
 function prevRange(c){if(c.custom){var e=c.s-1,s=e-c.days+1;return {start:fromN(s),end:fromN(e),s:s,e:e,days:c.days,custom:true}}if(c.first)return {start:c.start,end:c.start,s:c.s-1,e:c.s-2,days:0};return cycleByIdx(c.idx-1)}
-function renderStats(){
+function renderStats(){renderStatsCore();applyCardPrefs()}
+function renderStatsCore(){
   var custom=S.stats.mode==='custom';
   $$('[data-smode]').forEach(function(b){b.setAttribute('aria-pressed',String(b.dataset.smode===S.stats.mode))});
   $('#cycNav').hidden=custom;$('#customNav').hidden=!custom;
@@ -3134,6 +3145,7 @@ function renderCyclesAhead(){
 }
 function applyTheme(){if(!STANDALONE)return;var v=pref('theme')||'auto';if(v==='auto')document.documentElement.removeAttribute('data-theme');else document.documentElement.setAttribute('data-theme',v)}
 function renderSettings(){
+  renderCardVis();
   var sk=pref('skin')==='classic'?'classic':'pro';$$('[data-skin-set]').forEach(function(b){b.setAttribute('aria-pressed',String(b.dataset.skinSet===sk))});
   $('#cyclesSum').textContent='عرض الدورات حتى نهاية '+(new Date().getFullYear()+1);
   $('#themeSec').hidden=!STANDALONE;var tv=pref('theme')||'auto';$$('[data-theme-set]').forEach(function(b){b.setAttribute('aria-pressed',String(b.dataset.themeSet===tv))});
@@ -3812,21 +3824,50 @@ function renderDC(){
       else{var dd=parseYmd(r);h='<b>'+AR_DAYS[dd.getDay()]+' '+dd.getDate()+' '+AR_MONTHS[dd.getMonth()]+' '+dd.getFullYear()+' م</b><span>'+relDays(r)+'</span>'}}}
   out.className='dc-out'+(bad?' bad':'');out.innerHTML=h;
 }
-/* budget page cards fold to their title; each card stays the way you left it */
-(function(){
-  var CHEV='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>';
-  function set(card,open){card.classList.toggle('fold-closed',!open);var b=card.querySelector('.fold-tog');b.setAttribute('aria-expanded',String(open));b.setAttribute('aria-label',(open?'إغلاق ':'فتح ')+card.querySelector('h2').textContent)}
-  var st=pref('cardsOpen')||{};
-  $$('#v-budget > .card').forEach(function(card){var h=card.querySelector(':scope > .card-h');if(!h||!card.id)return;
-    card.classList.add('fold');h.insertAdjacentHTML('beforeend','<button type="button" class="fold-tog">'+CHEV+'</button>');set(card,!!st[card.id])});
-  $('#v-budget').addEventListener('click',function(e){
-    var h=e.target.closest('.fold > .card-h');if(!h)return;
-    var other=e.target.closest('button,a,input,select,label');if(other&&!other.classList.contains('fold-tog'))return; // the header's own buttons keep their job
-    var card=h.parentNode,open=card.classList.contains('fold-closed'),m=Object.assign({},pref('cardsOpen')||{});
-    set(card,open);if(open)m[card.id]=1;else delete m[card.id];pref('cardsOpen',m);
-    if(open)fitTiles();
-  });
-})();
+/* cards on the budget and stats pages fold to their title and stay the way you left them;
+   cards you do not need can be turned off in the settings (both kept on this device) */
+var FOLD_CHEV='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>';
+var STATS_CARDS=[['ai','حلّل مصروفي مع Claude'],['hero','صرفت حتى الآن'],['advice','الخلاصة والنصائح'],['المؤشرات المالية'],['الإنفاق التراكمي'],['الصرف اليومي'],['المصروفات حسب الفئة'],['حسب طريقة الدفع'],['تحليل المصروف المتغيّر'],['الدخل حسب المصدر'],['حسب البنك'],['commit','الالتزامات حتى نهاية السنة'],['متوسط الصرف حسب اليوم'],['الصرف حسب ساعات اليوم'],['المصروفات في آخر 6 دورات'],['الدخل والادخار حسب الدورة'],['أكبر 5 مصروفات'],['xlsx','تصدير تقرير Excel']];
+function statsKey(c){
+  if(c.classList.contains('hero'))return 'hero';if(c.querySelector('[data-act="xlsx"]'))return 'xlsx';
+  var h=c.querySelector(':scope > .card-h > h2');if(!h)return null;var t=h.textContent.trim();
+  return /^الالتزامات حتى نهاية/.test(t)?'commit':(t==='الخلاصة والنصائح'||t==='ملاحظات على هذه الفترة')?'advice':t;
+}
+function cardsHidden(){return pref('cardsHidden')||{}}
+function foldSet(card,open){card.classList.toggle('fold-closed',!open);var b=card.querySelector(':scope > .card-h > .fold-tog');if(b){b.setAttribute('aria-expanded',String(open));b.setAttribute('aria-label',(open?'إغلاق ':'فتح ')+card.querySelector('h2').textContent)}}
+function foldPrep(card,key,opened){
+  var h=card.querySelector(':scope > .card-h');if(!h||!h.querySelector('h2'))return;
+  card.dataset.fold=key;card.classList.add('fold');
+  if(!h.querySelector(':scope > .fold-tog'))h.insertAdjacentHTML('beforeend','<button type="button" class="fold-tog">'+FOLD_CHEV+'</button>');
+  foldSet(card,!!opened[key]);
+}
+function applyCardPrefs(){
+  var hid=cardsHidden(),op=pref('cardsOpen')||{};
+  $$('#v-budget > .card[id]').forEach(function(c){foldPrep(c,c.id,op);c.classList.toggle('card-off',!!hid[c.id])});
+  var ai=$('#v-stats .ai-card');if(ai)ai.classList.toggle('card-off',!!hid['s:ai']);
+  $$('#statsBody > .card').forEach(function(c){var k=statsKey(c);if(!k)return;c.classList.toggle('card-off',!!hid['s:'+k]);foldPrep(c,'s:'+k,op)}); // charts are drawn before this, at full width
+}
+document.addEventListener('click',function(e){
+  var h=e.target.closest&&e.target.closest('.fold > .card-h');if(!h)return;
+  var other=e.target.closest('button,a,input,select,label');if(other&&!other.classList.contains('fold-tog'))return; // the header's own buttons keep their job
+  var card=h.parentNode,key=card.dataset.fold,open=card.classList.contains('fold-closed'),m=Object.assign({},pref('cardsOpen')||{});
+  foldSet(card,open);if(open)m[key]=1;else delete m[key];pref('cardsOpen',m);
+  if(open)fitTiles();
+});
+applyCardPrefs();
+function renderCardVis(){
+  var hid=cardsHidden(),noAi=document.documentElement.classList.contains('no-ai');
+  function row(k,l){return '<label class="check"><input type="checkbox" data-cv="'+esc(k)+'"'+(hid[k]?'':' checked')+'><span>'+esc(l)+'</span></label>'}
+  $('#cvBudget').innerHTML=$$('#v-budget > .card[id]').map(function(c){return row(c.id,c.querySelector('h2').textContent)}).join('');
+  $('#cvStats').innerHTML=STATS_CARDS.filter(function(x){return !(noAi&&x[0]==='ai')}).map(function(x){return row('s:'+x[0],x[1]||x[0])}).join('');
+  cvSum();
+}
+function cvSum(){var n=Object.keys(cardsHidden()).length;$('#cvSum').textContent='اختيار البطاقات'+(n?' · '+(n===1?'بطاقة مخفية':n===2?'بطاقتان مخفيتان':n+(n<=10?' بطاقات مخفية':' بطاقة مخفية')):'')}
+$('#setSheet').addEventListener('change',function(e){
+  var t=e.target;if(!t||!t.dataset||t.dataset.cv===undefined)return;
+  var m=Object.assign({},cardsHidden());if(t.checked)delete m[t.dataset.cv];else m[t.dataset.cv]=1;pref('cardsHidden',m);
+  applyCardPrefs();cvSum();
+});
 function syncHideBtn(){var b=$('#btnHide');b.setAttribute('aria-pressed',String(_hideM));b.setAttribute('aria-label',_hideM?'إظهار المبالغ':'إخفاء المبالغ');b.title=b.getAttribute('aria-label')}
 $('#btnHide').addEventListener('click',function(){_hideM=!_hideM;pref('hideMoney',_hideM?1:0);document.documentElement.classList.toggle('hide-money',_hideM);syncHideBtn();render();toast(_hideM?'المبالغ مخفية':'المبالغ ظاهرة')});
 syncHideBtn();
