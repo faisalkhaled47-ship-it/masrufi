@@ -347,6 +347,14 @@ button.sc{border:0;font-family:inherit;color:var(--ink);cursor:pointer}
 .hide-money #btnHide .eye-off{display:block}
 .hide-money #btnHide{color:var(--accent)}
 .hide-money #budgetIn:not(:focus){-webkit-text-security:disc}
+.fold > .card-h{position:relative;padding-inline-end:38px;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.fold-tog{position:absolute;inset-inline-end:-4px;top:50%;transform:translateY(-50%);width:34px;height:34px;border:0;border-radius:999px;background:var(--surface-2);color:var(--ink-2);display:grid;place-items:center;cursor:pointer;padding:0}
+.fold-tog svg{width:18px;height:18px;transition:transform .2s}
+.fold:not(.fold-closed) .fold-tog svg{transform:rotate(180deg)}
+.fold.fold-closed > :not(.card-h){display:none!important}
+.fold.fold-closed > .card-h{margin-bottom:0}
+.fold.fold-closed > .card-h > :not(h2):not(.hint):not(.fold-tog){display:none!important}
+html[data-skin=classic] .fold > .card-h{padding-inline:38px}
 .pc-chips{display:flex;gap:6px;flex-wrap:wrap;margin:8px 0 10px}
 .pt-rate{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:10px 0;border-bottom:1px solid var(--line)}
 .pt-rate:last-child{border-bottom:0}
@@ -859,7 +867,7 @@ html.kb nav.tabs{display:none!important}
 
   <!-- الميزانية -->
   <section id="v-budget" class="view" hidden>
-    <div class="card">
+    <div class="card" id="bgtCard">
       <div class="card-h"><h2>ميزانية الدورة</h2><span class="hint" id="bCycle"></span></div>
       <form id="budgetForm" class="inline-form" novalidate>
         <div><label for="budgetIn" class="lbl">حد الصرف في الدورة</label><input id="budgetIn" class="field" inputmode="decimal" placeholder=""></div>
@@ -876,7 +884,7 @@ html.kb nav.tabs{display:none!important}
       <div class="card-h"><h2>المدخرات</h2><button type="button" class="link" data-sav="set" id="savEditBtn" hidden>تعديل الرصيد</button></div>
       <div id="savBody"></div>
     </div>
-    <div class="card">
+    <div class="card" id="fixCard">
       <div class="card-h"><h2>الثابت الشهري</h2><button type="button" class="fx-plan" data-plan="1"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15" rx="3"/><path d="M3.5 10h17M8 3v4M16 3v4"/></svg>جدول المواعيد</button></div>
       <div id="fixedTop"></div>
       <div class="fx-h" id="hInc">الدخل الثابت</div>
@@ -897,7 +905,7 @@ html.kb nav.tabs{display:none!important}
       <div class="addrow"><button type="button" class="link" data-rem-new="1">+ إضافة دفعة قادمة</button></div>
       <div id="wedBox"></div>
     </div>
-    <div class="card">
+    <div class="card" id="cbCard">
       <div class="card-h"><h2>حدود الفئات</h2></div>
       <div id="cbList"></div>
       <form id="cbForm" class="inline-form" style="margin-top:10px" novalidate>
@@ -3804,6 +3812,21 @@ function renderDC(){
       else{var dd=parseYmd(r);h='<b>'+AR_DAYS[dd.getDay()]+' '+dd.getDate()+' '+AR_MONTHS[dd.getMonth()]+' '+dd.getFullYear()+' م</b><span>'+relDays(r)+'</span>'}}}
   out.className='dc-out'+(bad?' bad':'');out.innerHTML=h;
 }
+/* budget page cards fold to their title; each card stays the way you left it */
+(function(){
+  var CHEV='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>';
+  function set(card,open){card.classList.toggle('fold-closed',!open);var b=card.querySelector('.fold-tog');b.setAttribute('aria-expanded',String(open));b.setAttribute('aria-label',(open?'إغلاق ':'فتح ')+card.querySelector('h2').textContent)}
+  var st=pref('cardsOpen')||{};
+  $$('#v-budget > .card').forEach(function(card){var h=card.querySelector(':scope > .card-h');if(!h||!card.id)return;
+    card.classList.add('fold');h.insertAdjacentHTML('beforeend','<button type="button" class="fold-tog">'+CHEV+'</button>');set(card,!!st[card.id])});
+  $('#v-budget').addEventListener('click',function(e){
+    var h=e.target.closest('.fold > .card-h');if(!h)return;
+    var other=e.target.closest('button,a,input,select,label');if(other&&!other.classList.contains('fold-tog'))return; // the header's own buttons keep their job
+    var card=h.parentNode,open=card.classList.contains('fold-closed'),m=Object.assign({},pref('cardsOpen')||{});
+    set(card,open);if(open)m[card.id]=1;else delete m[card.id];pref('cardsOpen',m);
+    if(open)fitTiles();
+  });
+})();
 function syncHideBtn(){var b=$('#btnHide');b.setAttribute('aria-pressed',String(_hideM));b.setAttribute('aria-label',_hideM?'إظهار المبالغ':'إخفاء المبالغ');b.title=b.getAttribute('aria-label')}
 $('#btnHide').addEventListener('click',function(){_hideM=!_hideM;pref('hideMoney',_hideM?1:0);document.documentElement.classList.toggle('hide-money',_hideM);syncHideBtn();render();toast(_hideM?'المبالغ مخفية':'المبالغ ظاهرة')});
 syncHideBtn();
