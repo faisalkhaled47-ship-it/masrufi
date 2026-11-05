@@ -348,6 +348,13 @@ button.sc{border:0;font-family:inherit;color:var(--ink);cursor:pointer}
 .hide-money #btnHide{color:var(--accent)}
 .hide-money #budgetIn:not(:focus){-webkit-text-security:disc}
 .card-off{display:none!important}
+#v-stats > .ai-card{display:none}
+.stabs{margin:2px 0 0}
+.stabs button{font-size:13.5px;padding-inline:6px}
+.hero .hero-tiles{margin-top:16px;text-align:start}
+.pane-cap{font-size:12.5px;color:var(--ink-2);margin:12px 0 8px;text-align:start!important}
+.tools-row{display:flex;gap:8px}
+.tools-row > *{flex:1;min-width:0}
 .bal-row{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:10px;width:100%;background:none;border:0;border-bottom:1px solid var(--line);padding:9px 0;font:inherit;color:var(--ink);text-align:start;cursor:pointer}
 .bal-row:last-child{border-bottom:0}
 .bal-row .ico{width:34px;height:34px;border-radius:10px;display:grid;place-items:center;overflow:hidden;font-weight:700;font-size:13px;background:var(--hb,var(--surface-2));color:var(--hf,var(--ink-2))}
@@ -1219,7 +1226,7 @@ var PAYS=['مدى','أبل باي','بطاقة ائتمانية','نقدي','ت�
 var WK_RULES={none:'لا يتغير',salary:'الجمعة ← الخميس قبله، السبت ← الأحد بعده',sun:'ينتقل إلى الأحد بعده',thu:'ينتقل إلى الخميس قبله'};
 var WK_SHORT={salary:'العطلة: جمعة←خميس، سبت←أحد',sun:'العطلة ← الأحد',thu:'العطلة ← الخميس'};
 var DEFAULT_BANKS=['الراجحي','الأهلي','الإنماء','الرياض','البلاد','STC Bank'];
-var APP_VER='1.34',APP_BUILT='2026-11-05'; // set by the build from the number of published versions
+var APP_VER='1.35',APP_BUILT='2026-11-05'; // set by the build from the number of published versions
 /* reward programs for the points calculator; the default rates are what the programs showed on redemption (Nov 2026) */
 var PTS_PROGS=[{id:'rajhi',name:'مكافأة الراجحي',pts:19571,sar:71.16},{id:'qitaf',name:'قطاف',pts:25,sar:5}];
 var DEFAULT_SETTINGS={budget:0,saveGoal:0,cycleMode:'salary',cycleRec:'',cycleDay:27,cats:DEFAULT_CATS.slice(),incCats:DEFAULT_INC_CATS.slice(),banks:DEFAULT_BANKS.slice(),catBudgets:{},recurring:[]};
@@ -2427,7 +2434,7 @@ function statRange(){
   return cycleAt(S.cycleOffset);
 }
 function prevRange(c){if(c.custom){var e=c.s-1,s=e-c.days+1;return {start:fromN(s),end:fromN(e),s:s,e:e,days:c.days,custom:true}}if(c.first)return {start:c.start,end:c.start,s:c.s-1,e:c.s-2,days:0};return cycleByIdx(c.idx-1)}
-function renderStats(){renderStatsCore();applyCardPrefs()}
+function renderStats(){renderStatsCore();groupStats();applyCardPrefs()}
 function renderStatsCore(){
   var custom=S.stats.mode==='custom';
   $$('[data-smode]').forEach(function(b){b.setAttribute('aria-pressed',String(b.dataset.smode===S.stats.mode))});
@@ -3634,6 +3641,8 @@ document.addEventListener('click',function(e){
   if(d.act==='pts-rates')return openPtsRates();
   if(d.pcsel){S.ptsSel=d.pcsel;pref('ptsSel',d.pcsel);renderPoints();return}
   if(d.dconv){S.dconv=d.dconv==='h'?'h':'g';renderDC();return}
+  if(d.stab){var sp=d.stab.split(':'),gc=el.closest('.sgrp'),tm=Object.assign({},pref('stTabs')||{});tm[sp[0]]=+sp[1];pref('stTabs',tm);
+    if(gc){gc.querySelectorAll('[data-stab]').forEach(function(b){b.setAttribute('aria-pressed',String(b===el))});gc.querySelectorAll('.spane').forEach(function(p){p.hidden=p.dataset.pane!==d.stab})}fitTiles();return}
   if(d.act==='hrby'){S.stats.hrBy=d.v==='cnt'?'cnt':'amt';renderStats();return}
   if(d.act==='fromsav'){S.form.fromSav=!S.form.fromSav;renderSavToggle();return}
   if(d.act==='cat-add'){if(S.demo){demoBlock().catch(function(){});return}var inc=S.form.type==='inc';$('#catQTitle').textContent=inc?'فئة دخل جديدة':'فئة مصروف جديدة';$('#catQName').value='';$('#catQErr').textContent='';openSheet('#catSheet');$('#catQName').focus();return}
@@ -3862,8 +3871,45 @@ function renderDC(){
 /* cards on the budget and stats pages fold to their title and stay the way you left them;
    cards you do not need can be turned off in the settings (both kept on this device) */
 var FOLD_CHEV='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>';
-var STATS_CARDS=[['ai','حلّل مصروفي مع Claude'],['hero','صرفت حتى الآن'],['advice','الخلاصة والنصائح'],['المؤشرات المالية'],['الإنفاق التراكمي'],['الصرف اليومي'],['المصروفات حسب الفئة'],['حسب طريقة الدفع'],['تحليل المصروف المتغيّر'],['الدخل حسب المصدر'],['حسب البنك'],['commit','الالتزامات حتى نهاية السنة'],['متوسط الصرف حسب اليوم'],['الصرف حسب ساعات اليوم'],['المصروفات في آخر 6 دورات'],['الدخل والادخار حسب الدورة'],['أكبر 5 مصروفات'],['xlsx','تصدير تقرير Excel']];
+var STATS_CARDS=[['hero','الملخص'],['advice','الخلاصة والنصائح'],['g:flow','الإنفاق خلال الفترة'],['g:where','توزيع المصروف'],['g:habits','عاداتك في الصرف'],['g:money','الدخل والبنوك'],['g:trend','مقارنة بالدورات السابقة'],['g:health','المؤشرات والالتزامات'],['tools','تحليل Claude وتقرير Excel']];
+/* related stats share one card, with a tab for each view */
+var STATS_GROUPS=[
+  {id:'flow',name:'الإنفاق خلال الفترة',tabs:[['الإنفاق التراكمي','التراكمي'],['الصرف اليومي','اليومي']]},
+  {id:'where',name:'توزيع المصروف',tabs:[['المصروفات حسب الفئة','الفئات'],['حسب طريقة الدفع','طريقة الدفع'],['أكبر 5 مصروفات','الأكبر']]},
+  {id:'habits',name:'عاداتك في الصرف',tabs:[['تحليل المصروف المتغيّر','المتغيّر'],['متوسط الصرف حسب اليوم','أيام الأسبوع'],['الصرف حسب ساعات اليوم','الساعات']]},
+  {id:'money',name:'الدخل والبنوك',tabs:[['الدخل حسب المصدر','مصادر الدخل'],['حسب البنك','البنوك']]},
+  {id:'trend',name:'مقارنة بالدورات السابقة',tabs:[['المصروفات في آخر 6 دورات','المصروفات'],['الدخل والادخار حسب الدورة','الدخل والادخار']]},
+  {id:'health',name:'المؤشرات والالتزامات',tabs:[['المؤشرات المالية','المؤشرات'],['commit','الالتزامات']]}
+];
+function groupStats(){ // runs after the charts are drawn, so moving them keeps their full width
+  var body=$('#statsBody'),by={},rest=[],hero=null,adv=null,xl=null;
+  Array.prototype.forEach.call(body.children,function(c){if(!c.classList.contains('card'))return rest.push(c);var k=statsKey(c);
+    if(k==='hero')hero=c;else if(k==='advice')adv=c;else if(k==='xlsx')xl=c;else if(k&&!by[k])by[k]=c;else rest.push(c)});
+  if(!hero&&!Object.keys(by).length)return; // an empty period keeps its message
+  var tabs=pref('stTabs')||{},frag=document.createDocumentFragment();
+  if(hero)rest=rest.filter(function(c){if(!c.classList.contains('tiles'))return true;c.classList.add('hero-tiles');hero.appendChild(c);return false}); // the summary numbers join the summary card
+  [hero,adv].concat(rest).forEach(function(c){if(c)frag.appendChild(c)});
+  STATS_GROUPS.forEach(function(g){
+    var mem=g.tabs.filter(function(t){return by[t[0]]});if(!mem.length)return;
+    var sel=Math.min(Math.max(0,+tabs[g.id]||0),mem.length-1),card=document.createElement('div');
+    card.className='card sgrp';card.dataset.key='g:'+g.id;
+    card.innerHTML='<div class="card-h"><h2>'+esc(g.name)+'</h2></div>'+(mem.length>1?'<div class="seg stabs" role="group" aria-label="'+esc(g.name)+'">'+mem.map(function(t,i){return '<button type="button" data-stab="'+g.id+':'+i+'" aria-pressed="'+(i===sel)+'">'+esc(t[1])+'</button>'}).join('')+'</div>':'');
+    mem.forEach(function(t,i){
+      var src=by[t[0]],hh=src.querySelector(':scope > .card-h'),hint=hh&&hh.querySelector('.hint'),pane=document.createElement('div');
+      pane.className='spane';pane.dataset.pane=g.id+':'+i;pane.hidden=i!==sel;
+      pane.innerHTML='<p class="pane-cap">'+esc(hh?hh.querySelector('h2').textContent:t[1])+(hint&&hint.textContent.trim()&&hint.textContent.trim()!=='ر.س'?' · '+hint.innerHTML:'')+'</p>';
+      if(hh)hh.remove();while(src.firstChild)pane.appendChild(src.firstChild);card.appendChild(pane);delete by[t[0]];
+    });
+    frag.appendChild(card);
+  });
+  Object.keys(by).forEach(function(k){frag.appendChild(by[k])}); // a card outside the groups stays as it is
+  if(xl){var tl=document.createElement('div'),xb=xl.querySelector('[data-act="xlsx"]');tl.className='card stools';tl.dataset.key='tools';
+    tl.innerHTML='<div class="tools-row"><button type="button" class="btn" data-ai="money">✦ حلّل مع Claude</button></div>';
+    if(xb){xb.classList.remove('full');xb.textContent='تقرير Excel';tl.firstChild.appendChild(xb)}frag.appendChild(tl)}
+  body.innerHTML='';body.appendChild(frag);
+}
 function statsKey(c){
+  if(c.dataset.key)return c.dataset.key;
   if(c.classList.contains('hero'))return 'hero';if(c.querySelector('[data-act="xlsx"]'))return 'xlsx';
   var h=c.querySelector(':scope > .card-h > h2');if(!h)return null;var t=h.textContent.trim();
   return /^الالتزامات حتى نهاية/.test(t)?'commit':(t==='الخلاصة والنصائح'||t==='ملاحظات على هذه الفترة')?'advice':t;
@@ -3879,7 +3925,6 @@ function foldPrep(card,key,opened){
 function applyCardPrefs(){
   var hid=cardsHidden(),op=pref('cardsOpen')||{};
   $$('#v-budget > .card[id]').forEach(function(c){foldPrep(c,c.id,op);c.classList.toggle('card-off',!!hid[c.id])});
-  var ai=$('#v-stats .ai-card');if(ai)ai.classList.toggle('card-off',!!hid['s:ai']);
   $$('#setSheet .sfold[id]').forEach(function(c){foldPrep(c,'set:'+c.id,op)});
   $$('#statsBody > .card').forEach(function(c){var k=statsKey(c);if(!k)return;c.classList.toggle('card-off',!!hid['s:'+k]);foldPrep(c,'s:'+k,op)}); // charts are drawn before this, at full width
 }
@@ -3898,7 +3943,7 @@ function renderCardVis(){
   $('#cvStats').innerHTML=STATS_CARDS.filter(function(x){return !(noAi&&x[0]==='ai')}).map(function(x){return row('s:'+x[0],x[1]||x[0])}).join('');
   cvSum();
 }
-function cvSum(){var n=Object.keys(cardsHidden()).length;$('#cvSum').textContent=n?(n===1?'بطاقة مخفية':n===2?'بطاقتان مخفيتان':n+(n<=10?' بطاقات مخفية':' بطاقة مخفية')):''}
+function cvSum(){var ok=$$('#v-budget > .card[id]').map(function(c){return c.id}).concat(STATS_CARDS.map(function(x){return 's:'+x[0]})),n=Object.keys(cardsHidden()).filter(function(k){return ok.indexOf(k)>=0}).length;$('#cvSum').textContent=n?(n===1?'بطاقة مخفية':n===2?'بطاقتان مخفيتان':n+(n<=10?' بطاقات مخفية':' بطاقة مخفية')):''}
 $('#setSheet').addEventListener('change',function(e){
   var t=e.target;if(!t||!t.dataset||t.dataset.cv===undefined)return;
   var m=Object.assign({},cardsHidden());if(t.checked)delete m[t.dataset.cv];else m[t.dataset.cv]=1;pref('cardsHidden',m);
