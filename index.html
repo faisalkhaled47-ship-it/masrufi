@@ -348,6 +348,13 @@ button.sc{border:0;font-family:inherit;color:var(--ink);cursor:pointer}
 .hide-money #btnHide{color:var(--accent)}
 .hide-money #budgetIn:not(:focus){-webkit-text-security:disc}
 .card-off{display:none!important}
+.set-grp{font-size:12.5px;font-weight:700;color:var(--muted);margin:10px 4px -2px;text-align:start}
+.set-grp:first-of-type{margin-top:4px}
+.sec > .card-h{margin-bottom:2px}
+.sec > .card-h h2{font-size:15.5px;font-weight:700;margin:0}
+.sec.fold.fold-closed > .card-h{margin-bottom:0}
+.sub-grid{display:grid;gap:8px}
+.about{text-align:center!important;color:var(--muted);font-size:12.5px;line-height:1.7;margin:14px 0 4px}
 .cv-h{font-size:13px;font-weight:700;color:var(--ink-2);margin:10px 0 4px}
 .cv-list{display:grid;gap:2px}
 .fold > .card-h{position:relative;padding-inline-end:38px;cursor:pointer;-webkit-tap-highlight-color:transparent}
@@ -775,7 +782,7 @@ html[data-skin=pro] .tab[aria-current="page"] svg{fill-opacity:.25}
 .ai-send[data-ai=stop] svg{fill:currentColor;stroke:none}
 .ai-foot{margin:0;padding:2px 18px 10px;font-size:12px;color:var(--ink-2,#55636a);display:flex;gap:6px;align-items:center}
 .ai-setup,.ai-sec{display:flex;flex-direction:column;gap:6px}
-.no-ai [data-ai="money"],.no-ai #aiSec{display:none!important}
+.no-ai [data-ai="money"],.no-ai #aiWrap{display:none!important}
 .ai-setup input,.ai-setup select,.ai-sec input,.ai-sec select{border:1px solid var(--rule,var(--line,#dde3e0));background:var(--panel-2,var(--surface-2,#f3f6f5));color:var(--ink,#13232b);border-radius:12px;padding:10px 12px;font:inherit;font-size:16px;width:100%;box-sizing:border-box}
 .ai-lbl{font-size:13px;font-weight:700;margin-top:4px}
 .ai-mut{font-size:13px;color:var(--ink-2,#55636a);line-height:1.7;margin:0}
@@ -1110,19 +1117,19 @@ html.kb nav.tabs{display:none!important}
     <div class="grab"></div>
     <div class="panel-h"><h2 id="setTitle">الإعدادات</h2><button type="button" class="link" data-close>إغلاق</button></div>
     <div class="sec" id="storeSec" hidden><div id="migrate" hidden></div></div>
-    <div class="sec" id="sbSec" hidden></div>
-    <div class="sec ai-sec" id="aiSec"></div>
-    <div class="sec" id="skinSec"><h3>التصميم</h3><div class="seg" role="group" aria-label="التصميم"><button type="button" data-skin-set="pro">الجديد</button><button type="button" data-skin-set="classic">السابق</button></div></div>
-    <div class="sec" id="cardsSec"><h3>البطاقات الظاهرة</h3>
-      <details id="cvDet"><summary class="link" style="list-style:none;cursor:pointer" id="cvSum">اختيار البطاقات</summary>
-        <p class="fhint" style="margin:8px 0">البطاقة اللي تطفئها تختفي من صفحتها، وترجع متى ما شغّلتها.</p>
-        <div class="cv-h">الميزانية</div><div class="cv-list" id="cvBudget"></div>
-        <div class="cv-h">الإحصائيات</div><div class="cv-list" id="cvStats"></div>
-      </details>
+    <div class="set-grp">عام</div>
+    <div class="sec sfold" id="setLook"><div class="card-h"><h2>المظهر</h2></div>
+      <h3>التصميم</h3><div class="seg" role="group" aria-label="التصميم"><button type="button" data-skin-set="pro">الجديد</button><button type="button" data-skin-set="classic">السابق</button></div>
+      <div id="themeSec" class="sub-grid" hidden><h3>الألوان</h3><div class="seg" role="group" aria-label="المظهر"><button type="button" data-theme-set="auto">تلقائي</button><button type="button" data-theme-set="light">فاتح</button><button type="button" data-theme-set="dark">داكن</button></div></div>
     </div>
-    <div class="sec" id="themeSec" hidden><h3>المظهر</h3><div class="seg" role="group" aria-label="المظهر"><button type="button" data-theme-set="auto">تلقائي</button><button type="button" data-theme-set="light">فاتح</button><button type="button" data-theme-set="dark">داكن</button></div></div>
-    <div class="sec">
-      <h3><label for="cycleMode">فترة الإحصائيات والميزانية (الدورة)</label></h3>
+    <div class="sec sfold" id="setCards"><div class="card-h"><h2>البطاقات الظاهرة</h2><span class="hint" id="cvSum"></span></div>
+      <p class="fhint" style="margin:0">البطاقة اللي تطفئها تختفي من صفحتها، وترجع متى ما شغّلتها.</p>
+      <div class="cv-h">الميزانية</div><div class="cv-list" id="cvBudget"></div>
+      <div class="cv-h">الإحصائيات</div><div class="cv-list" id="cvStats"></div>
+    </div>
+    <div class="set-grp">الميزانية</div>
+    <div class="sec sfold" id="setCycle"><div class="card-h"><h2>الدورة المالية</h2></div>
+      <label for="cycleMode" class="lbl">فترة الإحصائيات والميزانية</label>
       <select id="cycleMode" class="field">
         <option value="salary">من نزول دخل ثابت إلى نزوله التالي</option>
         <option value="day">يوم ثابت من كل شهر</option>
@@ -1132,12 +1139,12 @@ html.kb nav.tabs{display:none!important}
       <div id="cycleDayWrap"><label for="cycleDay" class="lbl" id="cycleDayLbl">اليوم</label><select id="cycleDay" class="field"></select></div>
       <details id="cyclesAhead"><summary class="link" style="list-style:none;cursor:pointer" id="cyclesSum">عرض الدورات حتى نهاية السنة القادمة</summary><div id="cyclesTbl" class="tbl-wrap" style="margin-top:8px"></div></details>
     </div>
-    <div class="sec">
-      <h3><label for="eduReg">التقويم الدراسي في تقويم الدورة</label></h3>
+    <div class="sec sfold" id="setEdu"><div class="card-h"><h2>التقويم الدراسي</h2></div>
+      <label for="eduReg" class="lbl">يظهر في تقويم الدورة</label>
       <select id="eduReg" class="field"><option value="std">باقي مناطق المملكة</option><option value="west">مكة المكرمة والمدينة المنورة وجدة والطائف</option><option value="off">لا تعرض التقويم الدراسي</option></select>
       <p class="foot" style="margin-top:6px">مواعيد وزارة التعليم للعام 1448هـ (2026–2027) وبداية 1449هـ. رمضان والأعياد بتقويم أم القرى.</p>
     </div>
-    <div class="sec">
+    <div class="sec sfold" id="setCats"><div class="card-h"><h2>الفئات</h2></div>
       <h3>فئات المصروفات</h3>
       <div id="catEdit" class="chips catedit"></div>
       <form id="catForm" class="inline-form" style="grid-template-columns:minmax(0,1fr) auto" novalidate>
@@ -1150,7 +1157,9 @@ html.kb nav.tabs{display:none!important}
         <input id="newIncCat" class="field" maxlength="24" placeholder="فئة دخل جديدة" aria-label="فئة دخل جديدة">
         <button class="btn accent" type="submit">إضافة</button>
       </form>
-      <h3 style="margin-top:6px">البنوك</h3>
+    </div>
+    <div class="sec sfold" id="setBanks"><div class="card-h"><h2>البنوك والأرصدة</h2></div>
+      <h3>البنوك</h3>
       <div id="bankEdit" class="bankrows"></div>
       <form id="bankForm" class="inline-form" style="grid-template-columns:minmax(0,1fr) auto" novalidate>
         <input id="newBank" class="field" maxlength="24" placeholder="بنك جديد" aria-label="بنك جديد">
@@ -1163,8 +1172,11 @@ html.kb nav.tabs{display:none!important}
         <button class="btn accent full" type="submit">حفظ الأرصدة</button>
       </form>
     </div>
-    <div class="sec">
-      <h3>النسخ الاحتياطي</h3>
+    <div class="set-grp">الربط</div>
+    <div class="sec sfold" id="aiWrap"><div class="card-h"><h2>المساعد الذكي (Claude)</h2></div><div class="ai-sec" id="aiSec"></div></div>
+    <div class="sec sfold" id="sbWrap" hidden><div class="card-h"><h2>المزامنة بين أجهزتك</h2><span class="hint">Supabase</span></div><div id="sbSec" class="sub-grid"></div></div>
+    <div class="set-grp">البيانات</div>
+    <div class="sec sfold" id="setData"><div class="card-h"><h2>النسخ الاحتياطي والتصدير</h2></div>
       <div class="btns">
         <button type="button" class="btn accent" id="expXlsx">تقرير Excel للدورة</button>
         <button type="button" class="btn" id="expCsv">تصدير CSV</button>
@@ -1173,6 +1185,7 @@ html.kb nav.tabs{display:none!important}
       </div>
       <div id="expFallback" hidden><p>انسخ النص التالي واحفظه في ملف:</p><textarea id="expText" class="field" readonly></textarea><button type="button" class="btn" id="expCopy">نسخ</button></div>
     </div>
+    <p class="about" id="aboutTxt"></p>
   </div>
 </div>
 
@@ -1197,6 +1210,7 @@ var PAYS=['مدى','أبل باي','بطاقة ائتمانية','نقدي','ت�
 var WK_RULES={none:'لا يتغير',salary:'الجمعة ← الخميس قبله، السبت ← الأحد بعده',sun:'ينتقل إلى الأحد بعده',thu:'ينتقل إلى الخميس قبله'};
 var WK_SHORT={salary:'العطلة: جمعة←خميس، سبت←أحد',sun:'العطلة ← الأحد',thu:'العطلة ← الخميس'};
 var DEFAULT_BANKS=['الراجحي','الأهلي','الإنماء','الرياض','البلاد','STC Bank'];
+var APP_VER='1.33',APP_BUILT='2026-11-05'; // set by the build from the number of published versions
 /* reward programs for the points calculator; the default rates are what the programs showed on redemption (Nov 2026) */
 var PTS_PROGS=[{id:'rajhi',name:'مكافأة الراجحي',pts:19571,sar:71.16},{id:'qitaf',name:'قطاف',pts:25,sar:5}];
 var DEFAULT_SETTINGS={budget:0,saveGoal:0,cycleMode:'salary',cycleRec:'',cycleDay:27,cats:DEFAULT_CATS.slice(),incCats:DEFAULT_INC_CATS.slice(),banks:DEFAULT_BANKS.slice(),catBudgets:{},recurring:[]};
@@ -1592,7 +1606,7 @@ function aiKeyForm() {
 }
 function aiSettingsHtml() { // the section inside the app's settings
   var on = !!aiCfg().key;
-  return '<h3>المساعد الذكي (Claude)</h3><p class="ai-mut">' + 'من زر ✦ أعلى التطبيق أو من «الإحصائيات»: يحلّل Claude مصروفك ودوراتك ويعطيك نصائح عملية، وتسأله ما تريد عن مصاريفك. يُرسل إليه ملخص أرقامك (الفئات والمبالغ والتواريخ وملاحظات أكبر العمليات) مع كل محادثة.' + '</p>' +
+  return '<p class="ai-mut">' + 'من زر ✦ أعلى التطبيق أو من «الإحصائيات»: يحلّل Claude مصروفك ودوراتك ويعطيك نصائح عملية، وتسأله ما تريد عن مصاريفك. يُرسل إليه ملخص أرقامك (الفئات والمبالغ والتواريخ وملاحظات أكبر العمليات) مع كل محادثة.' + '</p>' +
     '<label class="ai-lbl" for="cl-key">مفتاح API</label><input type="password" id="cl-key" dir="ltr" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="sk-ant-…" value="' + esc(aiCfg().key || '') + '">' +
     '<label class="ai-lbl" for="cl-model">النموذج</label><select id="cl-model">' + AI_MODELS.map(function (x) { return '<option value="' + x[0] + '"' + (x[0] === aiModel() ? ' selected' : '') + '>' + x[1] + '</option>'; }).join('') + '</select>' +
     '<div class="ai-row"><button type="button" class="ai-btn" data-ai="test">' + (on ? 'جرّب المفتاح' : 'احفظ وجرّب المفتاح') + '</button><span class="ai-mut" id="cl-test"></span></div>' +
@@ -1867,15 +1881,15 @@ var SB_SQL=[
   'grant select, insert, update, delete on public.masrufi_kv to authenticated;'
 ].join('\n');
 function sbRender(){
-  var el=$('#sbSec');if(!el)return;el.hidden=!STANDALONE;if(!STANDALONE)return;
+  var el=$('#sbSec');if(!el)return;$('#sbWrap').hidden=!STANDALONE;if(!STANDALONE)return;
   if(!sbOn()&&$('#sb-url')&&el.contains($('#sb-url')))return; // the form is already there: keep what is typed in it
   if(sbOn()){
-    el.innerHTML='<h3>المزامنة بين أجهزتك (Supabase)</h3><p class="foot" style="margin:0 0 6px">متصل بحساب <b dir="ltr">'+esc(SB.email||'')+'</b></p><p class="foot" id="sb-info" style="margin:0 0 8px">'+sbInfoText()+'</p>'+
+    el.innerHTML='<p class="foot" style="margin:0 0 6px">متصل بحساب <b dir="ltr">'+esc(SB.email||'')+'</b></p><p class="foot" id="sb-info" style="margin:0 0 8px">'+sbInfoText()+'</p>'+
       '<div class="btns"><button type="button" class="btn accent" data-sb="now">زامن الآن</button><button type="button" class="btn" data-sb="out">'+(SB_OUT&&Date.now()-SB_OUT<5000?'اضغط مرة أخرى للخروج':'خروج')+'</button></div>'+
       '<p class="foot" style="margin-top:8px">يتزامن كل شيء: العمليات، والفئات والبنوك وطرق الدفع، والدخل والمصاريف الثابتة، والميزانية والحدود، والمدخرات والأرصدة والتذكيرات.</p>';
     return;
   }
-  el.innerHTML='<h3>المزامنة بين أجهزتك (Supabase)</h3><p class="foot" style="margin:0 0 8px">اربط مصروفي بمشروعك في Supabase فتظهر عملياتك وإعداداتك على الآيفون والآيباد معاً. الرابط والمفتاح وبيانات الدخول تبقى على هذا الجهاز ولا تدخل في النسخة الاحتياطية.</p>'+
+  el.innerHTML='<p class="foot" style="margin:0 0 8px">اربط مصروفي بمشروعك في Supabase فتظهر عملياتك وإعداداتك على الآيفون والآيباد معاً. الرابط والمفتاح وبيانات الدخول تبقى على هذا الجهاز ولا تدخل في النسخة الاحتياطية.</p>'+
     '<label class="lbl" for="sb-url">رابط المشروع (Project URL)</label><input id="sb-url" class="field" type="url" dir="ltr" autocapitalize="off" spellcheck="false" placeholder="https://xxxx.supabase.co" value="'+esc(SB.url||'')+'">'+
     '<label class="lbl" for="sb-key">المفتاح العام (publishable أو anon)</label><input id="sb-key" class="field" dir="ltr" autocapitalize="off" spellcheck="false" placeholder="sb_publishable_… أو eyJ…" value="'+esc(SB.key||'')+'">'+
     '<label class="lbl" for="sb-email">الإيميل</label><input id="sb-email" class="field" type="email" dir="ltr" autocapitalize="off" value="'+esc(SB.email||'')+'">'+
@@ -3146,6 +3160,7 @@ function renderCyclesAhead(){
 function applyTheme(){if(!STANDALONE)return;var v=pref('theme')||'auto';if(v==='auto')document.documentElement.removeAttribute('data-theme');else document.documentElement.setAttribute('data-theme',v)}
 function renderSettings(){
   renderCardVis();
+  $('#aboutTxt').innerHTML='مصروفي · الإصدار <span class="num">'+APP_VER+'</span><br>'+esc(dayLabel(APP_BUILT)+' '+APP_BUILT.slice(0,4));
   var sk=pref('skin')==='classic'?'classic':'pro';$$('[data-skin-set]').forEach(function(b){b.setAttribute('aria-pressed',String(b.dataset.skinSet===sk))});
   $('#cyclesSum').textContent='عرض الدورات حتى نهاية '+(new Date().getFullYear()+1);
   $('#themeSec').hidden=!STANDALONE;var tv=pref('theme')||'auto';$$('[data-theme-set]').forEach(function(b){b.setAttribute('aria-pressed',String(b.dataset.themeSet===tv))});
@@ -3845,6 +3860,7 @@ function applyCardPrefs(){
   var hid=cardsHidden(),op=pref('cardsOpen')||{};
   $$('#v-budget > .card[id]').forEach(function(c){foldPrep(c,c.id,op);c.classList.toggle('card-off',!!hid[c.id])});
   var ai=$('#v-stats .ai-card');if(ai)ai.classList.toggle('card-off',!!hid['s:ai']);
+  $$('#setSheet .sfold[id]').forEach(function(c){foldPrep(c,'set:'+c.id,op)});
   $$('#statsBody > .card').forEach(function(c){var k=statsKey(c);if(!k)return;c.classList.toggle('card-off',!!hid['s:'+k]);foldPrep(c,'s:'+k,op)}); // charts are drawn before this, at full width
 }
 document.addEventListener('click',function(e){
@@ -3862,7 +3878,7 @@ function renderCardVis(){
   $('#cvStats').innerHTML=STATS_CARDS.filter(function(x){return !(noAi&&x[0]==='ai')}).map(function(x){return row('s:'+x[0],x[1]||x[0])}).join('');
   cvSum();
 }
-function cvSum(){var n=Object.keys(cardsHidden()).length;$('#cvSum').textContent='اختيار البطاقات'+(n?' · '+(n===1?'بطاقة مخفية':n===2?'بطاقتان مخفيتان':n+(n<=10?' بطاقات مخفية':' بطاقة مخفية')):'')}
+function cvSum(){var n=Object.keys(cardsHidden()).length;$('#cvSum').textContent=n?(n===1?'بطاقة مخفية':n===2?'بطاقتان مخفيتان':n+(n<=10?' بطاقات مخفية':' بطاقة مخفية')):''}
 $('#setSheet').addEventListener('change',function(e){
   var t=e.target;if(!t||!t.dataset||t.dataset.cv===undefined)return;
   var m=Object.assign({},cardsHidden());if(t.checked)delete m[t.dataset.cv];else m[t.dataset.cv]=1;pref('cardsHidden',m);
