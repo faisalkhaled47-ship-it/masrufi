@@ -372,6 +372,7 @@ button.sc{border:0;font-family:inherit;color:var(--ink);cursor:pointer}
 .sec > .card-h h2{font-size:15.5px;font-weight:700;margin:0}
 .sec.fold.fold-closed > .card-h{margin-bottom:0}
 .sub-grid{display:grid;gap:8px}
+.font-sample{margin:0;padding:10px 12px;border-radius:12px;background:var(--surface-2);font-size:15px;color:var(--ink);text-align:start!important}
 .about{text-align:center!important;color:var(--muted);font-size:12.5px;line-height:1.7;margin:14px 0 4px}
 .cv-h{font-size:13px;font-weight:700;color:var(--ink-2);margin:10px 0 4px}
 .cv-list{display:grid;gap:2px}
@@ -816,7 +817,13 @@ html.ai-open,html.ai-open body{overflow:hidden}
 .ai-sec h3{margin-top:0}
 html.kb nav.tabs{display:none!important}
 </style>
-<script>try{var _p0=JSON.parse(localStorage.getItem('masrufi.pref.v1')||'{}');if(_p0.hideMoney)document.documentElement.classList.add('hide-money')}catch(e){}</script>
+<script>
+/* fonts you can pick in the settings (Google Fonts, cached for offline use); a font of your own lives in this device's IndexedDB */
+var GF={'Tajawal':'400;500;700;800','Cairo':'400;500;600;700;800','Almarai':'400;700;800','IBM Plex Sans Arabic':'400;500;600;700','Readex Pro':'400;500;600;700','Noto Kufi Arabic':'400;500;600;700;800','Noto Naskh Arabic':'400;500;600;700'};
+function gfLoad(f){if(!GF[f]||document.getElementById('gf-'+f.replace(/\s/g,'')))return;var l=document.createElement('link');l.rel='stylesheet';l.id='gf-'+f.replace(/\s/g,'');l.href='https://fonts.googleapis.com/css2?family='+encodeURIComponent(f).replace(/%20/g,'+')+':wght@'+GF[f]+'&display=swap';document.head.appendChild(l)}
+function fontVars(fam){var r=document.documentElement.style,k=['--f-ui','--f-body','--f-display','--f-num'];if(!fam){k.forEach(function(x){r.removeProperty(x)});return}var v='"'+fam+'",-apple-system,"SF Arabic",system-ui,sans-serif';k.forEach(function(x){r.setProperty(x,v)})}
+try{var _p0=JSON.parse(localStorage.getItem('masrufi.pref.v1')||'{}');if(_p0.hideMoney)document.documentElement.classList.add('hide-money');if(_p0.font&&GF[_p0.font]){gfLoad(_p0.font);fontVars(_p0.font)}}catch(e){}
+</script>
 <script>try{document.documentElement.setAttribute('data-skin',(JSON.parse(localStorage.getItem('masrufi.pref.v1')||'{}').skin==='classic')?'classic':'pro')}catch(e){document.documentElement.setAttribute('data-skin','pro')}</script>
 </head>
 <body>
@@ -1149,6 +1156,10 @@ html.kb nav.tabs{display:none!important}
     <div class="set-grp">عام</div>
     <div class="sec sfold" id="setLook"><div class="card-h"><h2>المظهر</h2></div>
       <h3>التصميم</h3><div class="seg" role="group" aria-label="التصميم"><button type="button" data-skin-set="pro">الجديد</button><button type="button" data-skin-set="classic">السابق</button></div>
+      <h3>الخط</h3><select id="fontSel" class="field" aria-label="الخط"></select>
+      <input type="file" id="fontFile" accept=".ttf,.otf,.woff,.woff2,font/ttf,font/otf,font/woff,font/woff2" hidden>
+      <p class="font-sample" id="fontSample">صرفت اليوم <span class="num">1,234.50</span> ر.س · الخميس 25 جمادى الأولى</p>
+      <button type="button" class="link" id="fontDel" hidden style="justify-self:start">حذف الخط المضاف</button>
       <div id="themeSec" class="sub-grid" hidden><h3>الألوان</h3><div class="seg" role="group" aria-label="المظهر"><button type="button" data-theme-set="auto">تلقائي</button><button type="button" data-theme-set="light">فاتح</button><button type="button" data-theme-set="dark">داكن</button></div></div>
     </div>
     <div class="sec sfold" id="setCards"><div class="card-h"><h2>ترتيب البطاقات</h2><span class="hint" id="cvSum"></span></div>
@@ -1234,7 +1245,7 @@ var PAYS=['مدى','أبل باي','بطاقة ائتمانية','نقدي','ت�
 var WK_RULES={none:'لا يتغير',salary:'الجمعة ← الخميس قبله، السبت ← الأحد بعده',sun:'ينتقل إلى الأحد بعده',thu:'ينتقل إلى الخميس قبله'};
 var WK_SHORT={salary:'العطلة: جمعة←خميس، سبت←أحد',sun:'العطلة ← الأحد',thu:'العطلة ← الخميس'};
 var DEFAULT_BANKS=['الراجحي','الأهلي','الإنماء','الرياض','البلاد','STC Bank'];
-var APP_VER='1.37',APP_BUILT='2026-11-05'; // set by the build from the number of published versions
+var APP_VER='1.38',APP_BUILT='2026-11-05'; // set by the build from the number of published versions
 /* reward programs for the points calculator; the default rates are what the programs showed on redemption (Nov 2026) */
 var PTS_PROGS=[{id:'rajhi',name:'مكافأة الراجحي',pts:19571,sar:71.16},{id:'qitaf',name:'قطاف',pts:25,sar:5}];
 var DEFAULT_SETTINGS={budget:0,saveGoal:0,cycleMode:'salary',cycleRec:'',cycleDay:27,cats:DEFAULT_CATS.slice(),incCats:DEFAULT_INC_CATS.slice(),banks:DEFAULT_BANKS.slice(),catBudgets:{},recurring:[]};
@@ -3195,7 +3206,7 @@ function renderCyclesAhead(){
 }
 function applyTheme(){if(!STANDALONE)return;var v=pref('theme')||'auto';if(v==='auto')document.documentElement.removeAttribute('data-theme');else document.documentElement.setAttribute('data-theme',v)}
 function renderSettings(){
-  renderCardVis();
+  renderCardVis();renderFontSel();
   $('#aboutTxt').innerHTML='مصروفي · الإصدار <span class="num">'+APP_VER+'</span><br>'+esc(dayLabel(APP_BUILT)+' '+APP_BUILT.slice(0,4));
   var sk=pref('skin')==='classic'?'classic':'pro';$$('[data-skin-set]').forEach(function(b){b.setAttribute('aria-pressed',String(b.dataset.skinSet===sk))});
   $('#cyclesSum').textContent='عرض الدورات حتى نهاية '+(new Date().getFullYear()+1);
@@ -3994,6 +4005,40 @@ $('#setSheet').addEventListener('change',function(e){
   var m=Object.assign({},cardsHidden());if(t.checked)delete m[t.dataset.cv];else m[t.dataset.cv]=1;pref('cardsHidden',m);
   applyCardPrefs();cvSum();
 });
+/* ---------- font ---------- */
+var FONT_LIST=[['sys','خط النظام (الافتراضي)'],['Tajawal','Tajawal · تجوال'],['Cairo','Cairo · القاهرة'],['Almarai','Almarai · المراعي'],['IBM Plex Sans Arabic','IBM Plex Sans Arabic'],['Readex Pro','Readex Pro'],['Noto Kufi Arabic','Noto Kufi · كوفي'],['Noto Naskh Arabic','Noto Naskh · نسخ']];
+function fontDB(mode,fn){return new Promise(function(res,rej){try{var rq=indexedDB.open('masrufi-font',1);rq.onupgradeneeded=function(){rq.result.createObjectStore('f')};
+  rq.onsuccess=function(){var db=rq.result,tx=db.transaction('f',mode),q=fn(tx.objectStore('f'));tx.oncomplete=function(){res(q&&q.result);db.close()};tx.onerror=function(){rej(tx.error);db.close()}};rq.onerror=function(){rej(rq.error)}}catch(e){rej(e)}})}
+var _userFont=false;
+function useUserFont(buf){var ff=new FontFace('MasrufiUser',buf);return ff.load().then(function(f){document.fonts.add(f);_userFont=true;return f})}
+function applyFont(v){
+  if(v==='custom'){if(_userFont)fontVars('MasrufiUser');else fontDB('readonly',function(st){return st.get('font')}).then(function(x){if(!x)throw 0;return useUserFont(x.buf)}).then(function(){fontVars('MasrufiUser')}).catch(function(){fontVars(null)});return}
+  if(GF[v]){gfLoad(v);fontVars(v)}else fontVars(null);
+}
+function renderFontSel(){
+  var cur=pref('font')||'sys',nm=pref('fontName');
+  var o=FONT_LIST.map(function(x){return '<option value="'+esc(x[0])+'">'+esc(x[1])+'</option>'}).join('');
+  if(nm)o+='<option value="custom">'+esc(nm)+' (من ملف)</option>';
+  o+='<option value="__add">إضافة خط من ملف…</option>';
+  var sel=$('#fontSel');sel.innerHTML=o;sel.value=cur==='custom'&&!nm?'sys':cur;$('#fontDel').hidden=!nm;
+}
+$('#fontSel').addEventListener('change',function(){
+  var v=this.value;if(v==='__add'){renderFontSel();$('#fontFile').value='';$('#fontFile').click();return}
+  pref('font',v);applyFont(v);setTimeout(fitTiles,300);
+});
+$('#fontFile').addEventListener('change',function(){
+  var f=this.files&&this.files[0];if(!f)return;
+  if(f.size>12e6){toast('ملف الخط كبير جداً (الحد 12 ميجا).',{bad:true});return}
+  var name=f.name.replace(/\.(ttf|otf|woff2?)$/i,'').slice(0,40)||'خطي';
+  f.arrayBuffer().then(function(buf){return useUserFont(buf.slice(0)).then(function(){return fontDB('readwrite',function(st){return st.put({name:name,buf:buf},'font')})})})
+    .then(function(){pref('font','custom');pref('fontName',name);fontVars('MasrufiUser');renderFontSel();setTimeout(fitTiles,300);toast('صار الخط «'+name+'»')})
+    .catch(function(){toast('ما قدرت أقرأ الملف كخط. جرّب ملف ttf أو otf أو woff.',{bad:true})});
+});
+$('#fontDel').addEventListener('click',function(){
+  fontDB('readwrite',function(st){return st.delete('font')}).catch(function(){}).then(function(){
+    var was=pref('font')==='custom';pref('fontName','');if(was){pref('font','sys');fontVars(null)}_userFont=false;renderFontSel();toast('حُذف الخط المضاف')});
+});
+if(pref('font')==='custom')applyFont('custom');
 function syncHideBtn(){var b=$('#btnHide');b.setAttribute('aria-pressed',String(_hideM));b.setAttribute('aria-label',_hideM?'إظهار المبالغ':'إخفاء المبالغ');b.title=b.getAttribute('aria-label')}
 $('#btnHide').addEventListener('click',function(){_hideM=!_hideM;pref('hideMoney',_hideM?1:0);document.documentElement.classList.toggle('hide-money',_hideM);syncHideBtn();render();toast(_hideM?'المبالغ مخفية':'المبالغ ظاهرة')});
 syncHideBtn();
