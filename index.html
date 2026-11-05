@@ -348,6 +348,14 @@ button.sc{border:0;font-family:inherit;color:var(--ink);cursor:pointer}
 .hide-money #btnHide{color:var(--accent)}
 .hide-money #budgetIn:not(:focus){-webkit-text-security:disc}
 .card-off{display:none!important}
+.bal-row{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:10px;width:100%;background:none;border:0;border-bottom:1px solid var(--line);padding:9px 0;font:inherit;color:var(--ink);text-align:start;cursor:pointer}
+.bal-row:last-child{border-bottom:0}
+.bal-row .ico{width:34px;height:34px;border-radius:10px;display:grid;place-items:center;overflow:hidden;font-weight:700;font-size:13px;background:var(--hb,var(--surface-2));color:var(--hf,var(--ink-2))}
+.bal-row .ico img{width:100%;height:100%;object-fit:contain;background:#fff}
+.bal-row .bn{font-weight:700;display:grid;min-width:0}
+.bal-row .bn small{font-weight:400;color:var(--ink-2);font-size:12px}
+.bal-row .bv{font-weight:700;font-size:16px}
+.bal-row .bv.bad{color:var(--bad)}
 .set-grp{font-size:12.5px;font-weight:700;color:var(--muted);margin:10px 4px -2px;text-align:start}
 .set-grp:first-of-type{margin-top:4px}
 .sec > .card-h{margin-bottom:2px}
@@ -890,6 +898,12 @@ html.kb nav.tabs{display:none!important}
       <div class="card-h cal-h"><h2>تقويم الدورة</h2><div class="cal-nav"><button type="button" data-calnav="-1" aria-label="الدورة السابقة"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 6l6 6-6 6"/></svg></button><button type="button" data-calnav="1" aria-label="الدورة التالية"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg></button></div></div>
       <div id="calBody"></div>
     </div>
+    <div class="card" id="balCard">
+      <div class="card-h"><h2>أرصدة البنوك</h2><span class="hint" id="balTot"></span></div>
+      <div id="balList"></div>
+      <div class="balfix" style="margin:12px 0 0"><select id="bfBank" class="field" aria-label="البنك"></select><input id="bfAmt" class="field" inputmode="decimal" placeholder="الرصيد الفعلي" aria-label="الرصيد الفعلي" enterkeyhint="done"><button type="button" class="btn accent" data-act="balfix">تحديث</button></div>
+      <p class="fhint" style="margin:6px 0 0">اكتب رصيد البنك كما يظهر في تطبيقه، والتطبيق يكمل الحساب بعده من عملياتك. حدّثه متى ما لاحظت فرقاً.</p>
+    </div>
     <div class="card" id="savCard">
       <div class="card-h"><h2>المدخرات</h2><button type="button" class="link" data-sav="set" id="savEditBtn" hidden>تعديل الرصيد</button></div>
       <div id="savBody"></div>
@@ -1158,19 +1172,14 @@ html.kb nav.tabs{display:none!important}
         <button class="btn accent" type="submit">إضافة</button>
       </form>
     </div>
-    <div class="sec sfold" id="setBanks"><div class="card-h"><h2>البنوك والأرصدة</h2></div>
+    <div class="sec sfold" id="setBanks"><div class="card-h"><h2>البنوك</h2></div>
       <h3>البنوك</h3>
       <div id="bankEdit" class="bankrows"></div>
       <form id="bankForm" class="inline-form" style="grid-template-columns:minmax(0,1fr) auto" novalidate>
         <input id="newBank" class="field" maxlength="24" placeholder="بنك جديد" aria-label="بنك جديد">
         <button class="btn accent" type="submit">إضافة</button>
       </form>
-      <h3 style="margin-top:6px">رصيد البداية</h3>
-      <form id="openForm" class="openform" novalidate>
-        <div><label for="openDate" class="lbl">رصيد كل حساب في بداية يوم</label><input id="openDate" type="date" class="field"></div>
-        <div id="openRows" class="openrows"></div>
-        <button class="btn accent full" type="submit">حفظ الأرصدة</button>
-      </form>
+      <p class="fhint" style="margin:0">رصيد كل بنك تحدّثه من الميزانية ← «أرصدة البنوك».</p>
     </div>
     <div class="set-grp">الربط</div>
     <div class="sec sfold" id="aiWrap"><div class="card-h"><h2>المساعد الذكي (Claude)</h2></div><div class="ai-sec" id="aiSec"></div></div>
@@ -1210,7 +1219,7 @@ var PAYS=['مدى','أبل باي','بطاقة ائتمانية','نقدي','ت�
 var WK_RULES={none:'لا يتغير',salary:'الجمعة ← الخميس قبله، السبت ← الأحد بعده',sun:'ينتقل إلى الأحد بعده',thu:'ينتقل إلى الخميس قبله'};
 var WK_SHORT={salary:'العطلة: جمعة←خميس، سبت←أحد',sun:'العطلة ← الأحد',thu:'العطلة ← الخميس'};
 var DEFAULT_BANKS=['الراجحي','الأهلي','الإنماء','الرياض','البلاد','STC Bank'];
-var APP_VER='1.33',APP_BUILT='2026-11-05'; // set by the build from the number of published versions
+var APP_VER='1.34',APP_BUILT='2026-11-05'; // set by the build from the number of published versions
 /* reward programs for the points calculator; the default rates are what the programs showed on redemption (Nov 2026) */
 var PTS_PROGS=[{id:'rajhi',name:'مكافأة الراجحي',pts:19571,sar:71.16},{id:'qitaf',name:'قطاف',pts:25,sar:5}];
 var DEFAULT_SETTINGS={budget:0,saveGoal:0,cycleMode:'salary',cycleRec:'',cycleDay:27,cats:DEFAULT_CATS.slice(),incCats:DEFAULT_INC_CATS.slice(),banks:DEFAULT_BANKS.slice(),catBudgets:{},recurring:[]};
@@ -2335,7 +2344,7 @@ function rowHtml(it,showDate){
 function fundsFor(id){return data().list.filter(function(x){return x.type==='trf'&&x.funds===id})}
 function renderFund(){ // a bank without enough balance asks where the money came from, and records that transfer with the expense
   var st=settings(),w=$('#fundWrap');if(!w)return;var b=S.form.bank,amt=parseAmt($('#amt').value),tN=dnum(todayStr());
-  var on=S.form.type==='exp'&&!!st.openDate&&!!b&&!$('#bankWrap').hidden&&amt>0,bal=on?bankBalance(b,tN):0;
+  var on=S.form.type==='exp'&&bankKnown(b)&&!$('#bankWrap').hidden&&amt>0,bal=on?bankBalance(b,tN):0;
   if(!on||amt-bal<=0.004){w.hidden=true;S.form.fundFrom=null;S.form.fundFor=null;return}
   if(S.form.fundFor!==b){S.form.fundFrom=null;S.form.fundFor=b;S.form.fundAmtTouched=false}
   w.hidden=false;
@@ -2543,7 +2552,7 @@ function renderStatsCore(){
     order.sort(function(x,y){return (bb[y].e+bb[y].i+Math.abs(bb[y].t))-(bb[x].e+bb[x].i+Math.abs(bb[x].t))});
     var balN=Math.min(c.e,tN),hasOB=Object.keys(st.openBal||{}).length>0;
     var sn=function(v){return '<span dir="ltr" class="num">'+(v<-0.004?'−':v>0.004?'+':'')+fmt(Math.abs(v))+'</span>'};
-    h+='<div class="card"><div class="card-h"><h2>حسب البنك</h2><span class="hint">ر.س</span></div>'+(custom||!c.isCurrent?'':'<div class="balfix"><select id="bfBank" class="field" aria-label="البنك">'+st.banks.map(function(b){return '<option>'+esc(b)+'</option>'}).join('')+'</select><input id="bfAmt" class="field" inputmode="decimal" placeholder="الرصيد الفعلي" aria-label="الرصيد الفعلي"><button type="button" class="btn accent" data-act="balfix">تحديث</button></div>')+'<div class="tbl-wrap"><table class="tbl"><thead><tr><th>البنك</th><th class="n">الدخل</th><th class="n">المصروف</th>'+(hasT?'<th class="n">تحويلات</th>':'')+'<th class="n">الرصيد</th></tr></thead><tbody>'+order.map(function(k){var v=bb[k],nv=k==='غير محدد'?v.i-v.e+v.t:bankBalance(k,balN);return '<tr><td>'+esc(k)+'</td><td class="n inc">'+(v.i?fmt(v.i):'—')+'</td><td class="n">'+(v.e?fmt(v.e):'—')+'</td>'+(hasT?'<td class="n">'+(v.t?sn(v.t):'—')+'</td>':'')+'<td class="n'+(nv<0?' bad':'')+'">'+sn(nv)+'</td></tr>'}).join('')+'</tbody></table></div><p class="foot">الدخل والمصروف والتحويلات لهذه الفترة، والرصيد '+(balN>=tN?'الآن':'في '+esc(dayLabel(fromN(balN))))+(hasOB?' محسوب من رصيد البداية في '+esc(dayLabel(st.openDate)):'')+'.'+(hasOB?'':' أضف رصيد البداية لكل حساب من الإعدادات ليطابق رصيدك الفعلي.')+Object.keys(st.balFix||{}).map(function(b){var f=st.balFix[b];return '<br>«'+esc(b)+'»: أدخلت رصيده الفعلي '+fmt(f.amt)+' ر.س يوم '+esc(dayLabel(f.date))}).join('')+'</p></div>';
+    h+='<div class="card"><div class="card-h"><h2>حسب البنك</h2><span class="hint">ر.س</span></div><div class="tbl-wrap"><table class="tbl"><thead><tr><th>البنك</th><th class="n">الدخل</th><th class="n">المصروف</th>'+(hasT?'<th class="n">تحويلات</th>':'')+'<th class="n">الرصيد</th></tr></thead><tbody>'+order.map(function(k){var v=bb[k],nv=k==='غير محدد'?v.i-v.e+v.t:bankKnown(k)?bankBalance(k,balN):null;return '<tr><td>'+esc(k)+'</td><td class="n inc">'+(v.i?fmt(v.i):'—')+'</td><td class="n">'+(v.e?fmt(v.e):'—')+'</td>'+(hasT?'<td class="n">'+(v.t?sn(v.t):'—')+'</td>':'')+'<td class="n'+(nv!=null&&nv<0?' bad':'')+'">'+(nv==null?'—':sn(nv))+'</td></tr>'}).join('')+'</tbody></table></div><p class="foot">الدخل والمصروف والتحويلات لهذه الفترة، والرصيد '+(balN>=tN?'الآن':'في '+esc(dayLabel(fromN(balN))))+' محسوب من آخر رصيد أدخلته لكل بنك'+(hasOB?' أو من رصيد '+esc(dayLabel(st.openDate)):'')+'. تحدّث الرصيد الفعلي من الميزانية ← «أرصدة البنوك».'+Object.keys(st.balFix||{}).map(function(b){var f=st.balFix[b];return '<br>«'+esc(b)+'»: أدخلت رصيده الفعلي '+fmt(f.amt)+' ر.س يوم '+esc(dayLabel(f.date))}).join('')+'</p></div>';
   }
 
   var ob=!custom?obligations():[];
@@ -2625,6 +2634,18 @@ function statTile(k,v,u){return '<div class="tile"><div class="k">'+k+'</div><di
 function gauge(o){
   var w=o.v==null?0:Math.max(0,Math.min(100,o.v));
   return '<div class="gz"><div class="gz-h"><span class="gz-k">'+o.k+'</span><span class="gz-v '+(o.cls||'')+'" dir="ltr">'+(o.v==null?'—':Math.round(o.v)+'%')+'</span></div><div class="gz-t"><i class="'+(o.cls||'')+'" style="width:'+w.toFixed(1)+'%"></i>'+(o.marks||[]).map(function(m){return '<b class="mk" style="inset-inline-start:'+Math.min(100,m.p)+'%"><span>'+m.l+'</span></b>'}).join('')+'</div><div class="gz-u">'+o.u+'</div></div>';
+}
+function bankKnown(b){var st=settings();return !!b&&(!!(st.balFix||{})[b]||!!st.openDate)}
+function renderBalances(){
+  var st=settings(),tN=dnum(todayStr()),tot=0,nk=0,sel=$('#bfBank'),pv=sel.value;
+  $('#balList').innerHTML=st.banks.length?st.banks.map(function(b){
+    var k=bankKnown(b),v=k?bankBalance(b,tN):0,f=(st.balFix||{})[b],img=st.bankImg[b];if(k){tot+=v;nk++}
+    var sub=f?'حدّثته '+dayLabel(f.date)+(f.date===todayStr()?' (اليوم)':''):k?'محسوب من رصيد '+dayLabel(st.openDate):'اضغط واكتب رصيده الحالي';
+    return '<button type="button" class="bal-row" data-balpick="'+esc(b)+'"><span class="ico '+hueOf(b)+'">'+(img?'<img src="'+img+'" alt="">':monogram(b))+'</span><span class="bn">'+esc(b)+'<small>'+esc(sub)+'</small></span><span class="bv'+(k&&v<-0.004?' bad':'')+'">'+(k?smoney(v):'—')+'</span></button>'}).join(''):
+    '<div class="empty" style="padding:6px 0"><b>لا توجد بنوك</b>أضف بنوكك من الإعدادات ← البنوك.</div>';
+  $('#balTot').innerHTML=nk>1?'المجموع '+smoney(tot)+' ر.س':'';
+  sel.innerHTML=st.banks.map(function(b){return '<option>'+esc(b)+'</option>'}).join('');if(pv&&st.banks.indexOf(pv)>=0)sel.value=pv;
+  $('#balCard .balfix').hidden=!st.banks.length;
 }
 function bankBalance(bank,uptoN){ // the actual balance you entered last, or the opening balance, plus every movement after it up to the given day
   var st=settings(),fx=(st.balFix||{})[bank],fN=fx?dnum(fx.date):Infinity,v,from;
@@ -3054,7 +3075,7 @@ function payRem(id){
 }
 function renderBudget(){
   var st=settings(),c=cycleAt(0),a=allowance(c),tN=dnum(todayStr());
-  renderPoints();renderDC();
+  renderPoints();renderDC();renderBalances();
   $('#bCycle').textContent=cycleName(c);
   var bi=$('#budgetIn'),gi=$('#goalIn');
   if(document.activeElement!==bi)bi.value=st.budget>0?st.budget:'';
@@ -3186,8 +3207,6 @@ function renderSettings(){
       (img?'<button type="button" class="xbtn" data-rmbankimg="'+esc(c)+'">إزالة الصورة</button>':'')+
       '<button type="button" class="xbtn" data-rmbank="'+esc(c)+'" aria-label="حذف '+esc(c)+'">×</button></div>'}).join('');
   $('#eduReg').value=st.eduReg||'std';
-  if(document.activeElement!==$('#openDate'))$('#openDate').value=st.openDate||cycleAt(0).start;
-  if(!$('#openRows').contains(document.activeElement))$('#openRows').innerHTML=st.banks.map(function(b){var v=(st.openBal||{})[b];return '<label class="openrow"><span class="bn">'+esc(b)+'</span><input class="field" inputmode="decimal" placeholder="0" data-openbal="'+esc(b)+'" value="'+(v?String(v):'')+'"></label>'}).join('');
   $('#incCatEdit').innerHTML=st.incCats.map(function(c){return '<button type="button" class="chip" data-rminc="'+esc(c)+'" aria-label="إزالة '+esc(c)+'">'+esc(c)+'<span aria-hidden="true">×</span></button>'}).join('');
 }
 
@@ -3211,7 +3230,7 @@ function openEdit(id){
   $('#eAmt').value=String(it.amt);$('#eFromSav').checked=!!it.fromSav;$('#eEstTxt').hidden=!it.est;
   (function(){ // where the money came from: offered when the bank was short, or when a covering transfer exists
     var st=settings(),lk=fundsFor(it.id)[0]||null,w=$('#eFundWrap');S.editFund=lk;
-    var show=!it.type&&!!it.bank&&!!st.openDate,before=0;
+    var show=!it.type&&bankKnown(it.bank),before=0;
     if(show){before=bankBalance(it.bank,it.n)+it.amt-(lk&&lk.to===it.bank?lk.amt:0);show=!!lk||it.amt-before>0.004}
     w.hidden=!show;if(!show)return;
     fillSelect($('#eFund'),[''].concat(st.banks.filter(function(b){return b!==it.bank})),lk?lk.bank:'');$('#eFund').options[0].textContent='بدون تحويل';
@@ -3622,10 +3641,11 @@ document.addEventListener('click',function(e){
   if(d.cat!==undefined){S.form.cat=S.form.cat===d.cat?null:d.cat;$('#catChips').classList.remove('err');$('#formErr').textContent='';renderCatChips();return}
   if(d.pay!==undefined){S.form.pay=d.pay;pref('lastPay',d.pay);renderPayChips();renderBankChips();return}
   if(d.to!==undefined){S.form.to=S.form.to===d.to?null:d.to;$('#formErr').textContent='';renderBankChips();return}
+  if(d.balpick!==undefined){$('#bfBank').value=d.balpick;var ba=$('#bfAmt');ba.value='';ba.focus();return}
   if(d.act==='balfix'){if(S.demo)return demoBlock().catch(function(){});var bb=$('#bfBank').value,raw=$('#bfAmt').value.trim(),neg=/^[-−]/.test(raw),bv=parseAmt(raw);
     if(!bb)return;if(!(bv>=0)){toast('اكتب الرصيد رقماً.',{bad:true});$('#bfAmt').focus();return}if(neg)bv=-bv;
-    var was=bankBalance(bb,dnum(todayStr()));S.settings.balFix=Object.assign({},S.settings.balFix);S.settings.balFix[bb]={amt:Math.round(bv*100)/100,date:todayStr(),ts:Date.now()};
-    saveSettings().then(function(){toast('رصيد «'+bb+'» صار '+fmt(bv)+' ر.س'+(Math.abs(was-bv)>0.004?' (كان محسوباً '+fmt(was)+')':''))}).catch(failToast);return}
+    var known=bankKnown(bb),was=bankBalance(bb,dnum(todayStr()));S.settings.balFix=Object.assign({},S.settings.balFix);S.settings.balFix[bb]={amt:Math.round(bv*100)/100,date:todayStr(),ts:Date.now()};
+    saveSettings().then(function(){$('#bfAmt').value='';$('#bfAmt').blur();toast('رصيد «'+bb+'» صار '+fmt(bv)+' ر.س'+(known&&Math.abs(was-bv)>0.004?' (كان محسوباً '+fmt(was)+')':''))}).catch(failToast);return}
   if(d.fund!==undefined){S.form.fundFrom=S.form.fundFrom===d.fund?null:d.fund;renderFund();return}
   if(d.bank!==undefined){S.form.bank=S.form.bank===d.bank?null:d.bank;pref('lastBank',S.form.bank||'');renderBankChips();return}
   if(d.qd!==undefined){$('#dt').value=addDays(todayStr(),+d.qd);S.form.dateTouched=+d.qd!==0;return}
@@ -4003,14 +4023,6 @@ document.addEventListener('change',function(e){
   bankImage(f).then(function(u){S.settings.bankImg[name]=u;return saveSettings()}).then(function(){renderSettings();toast('حُفظت صورة '+name)}).catch(function(er){if(er&&er.silent)return;toast(er&&er.code?errMsg(er):'تعذّر قراءة الصورة. جرّب صورة أخرى.',{bad:true})});
 });
 $('#bankForm').addEventListener('submit',function(e){e.preventDefault();addCat($('#newBank'),'banks')});
-$('#openForm').addEventListener('submit',function(e){
-  e.preventDefault();if(S.demo){demoBlock().catch(function(){});return}
-  var d=$('#openDate').value,ob={},bad=null;if(!/^\d{4}-\d{2}-\d{2}$/.test(d)){toast('اختر تاريخ رصيد البداية.');return}
-  $$('#openRows [data-openbal]').forEach(function(i){var t=i.value.trim();if(!t)return;var neg=/^[-−]/.test(t),v=parseAmt(t);if(!(v>=0)){bad=i;return}if(v)ob[i.dataset.openbal]=neg?-v:v});
-  if(bad){bad.focus();toast('اكتب الرصيد رقماً.');return}
-  S.settings.openBal=ob;S.settings.openDate=d;$$('#openRows input').forEach(function(i){i.blur()});
-  saveSettings().then(function(){toast('حُفظت أرصدة البداية')}).catch(failToast);
-});
 $('#cyclesAhead').addEventListener('toggle',function(){if(this.open)renderCyclesAhead()});
 $('#cycleRec').addEventListener('change',function(){var v=this.value;if(S.demo){S.demo.settings.cycleRec=v;bump();render();return}S.settings.cycleRec=v;S.cycleOffset=0;saveSettings().catch(failToast)});
 $('#cycleMode').addEventListener('change',function(){var v=this.value;if(S.demo){S.demo.settings.cycleMode=v;bump();render();return}S.settings.cycleMode=v;S.cycleOffset=0;saveSettings().catch(failToast)});
