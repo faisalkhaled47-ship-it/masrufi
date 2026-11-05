@@ -342,6 +342,11 @@ button.sc{border:0;font-family:inherit;color:var(--ink);cursor:pointer}
 .cal-leg .sw{width:12px;height:12px;border-radius:4px;display:inline-block}
 .sw.past{box-shadow:inset 0 0 0 1px var(--muted);opacity:.6}.sw.today{background:var(--accent)}.sw.next{background:var(--surface-2);box-shadow:inset 0 0 0 1px var(--line)}
 .tag.sav{background:var(--good-soft);color:var(--good);border-color:transparent}
+#btnHide .eye-off{display:none}
+.hide-money #btnHide .eye{display:none}
+.hide-money #btnHide .eye-off{display:block}
+.hide-money #btnHide{color:var(--accent)}
+.hide-money #budgetIn:not(:focus){-webkit-text-security:disc}
 .tag.est{background:var(--warn-soft);color:var(--warn);border-color:transparent}
 .fhint{font-size:12.5px;color:var(--ink-2);margin:6px 0 0;line-height:1.6}
 .fhint.est-h{color:var(--warn)}
@@ -761,13 +766,14 @@ html.ai-open,html.ai-open body{overflow:hidden}
 .ai-sec h3{margin-top:0}
 html.kb nav.tabs{display:none!important}
 </style>
+<script>try{var _p0=JSON.parse(localStorage.getItem('masrufi.pref.v1')||'{}');if(_p0.hideMoney)document.documentElement.classList.add('hide-money')}catch(e){}</script>
 <script>try{document.documentElement.setAttribute('data-skin',(JSON.parse(localStorage.getItem('masrufi.pref.v1')||'{}').skin==='classic')?'classic':'pro')}catch(e){document.documentElement.setAttribute('data-skin','pro')}</script>
 </head>
 <body>
 <div id="app" dir="rtl" lang="ar">
 <header class="top"><div class="top-in">
   <div class="brand"><span class="logo" aria-hidden="true">م</span><div style="min-width:0"><h1>مصروفي</h1><p id="cycleLbl">…</p><p class="ptitle" id="pageTitle" role="heading" aria-level="1"></p></div></div>
-  <div class="top-btns"><button class="icon-btn" type="button" data-ai="money" aria-label="Claude: تحليل مصروفي" title="Claude: تحليل مصروفي"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.8 4.7L18.5 9.5l-4.7 1.8L12 16l-1.8-4.7L5.5 9.5l4.7-1.8z"/><path d="M19 15l.8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8z"/></svg></button><button id="btnRefresh" class="icon-btn" type="button" aria-label="تحديث التطبيق" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11a8 8 0 0 0-14.3-4.9L4 8"/><path d="M4 3v5h5"/><path d="M4 13a8 8 0 0 0 14.3 4.9L20 16"/><path d="M20 21v-5h-5"/></svg></button><button id="btnSettings" class="icon-btn" type="button" aria-label="الإعدادات"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button></div>
+  <div class="top-btns"><button id="btnHide" class="icon-btn" type="button" aria-pressed="false" aria-label="إخفاء المبالغ" title="إخفاء المبالغ"><svg class="eye" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z"/><circle cx="12" cy="12" r="3"/></svg><svg class="eye-off" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M17.9 17.9A10.4 10.4 0 0 1 12 19c-6.4 0-10-7-10-7a18.4 18.4 0 0 1 4.1-5"/><path d="M9.9 5.2A9.7 9.7 0 0 1 12 5c6.4 0 10 7 10 7a18.6 18.6 0 0 1-2.2 3.2"/><path d="M14.1 14.1a3 3 0 1 1-4.2-4.2"/><path d="M3 3l18 18"/></svg></button><button class="icon-btn" type="button" data-ai="money" aria-label="Claude: تحليل مصروفي" title="Claude: تحليل مصروفي"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l1.8 4.7L18.5 9.5l-4.7 1.8L12 16l-1.8-4.7L5.5 9.5l4.7-1.8z"/><path d="M19 15l.8 2.2L22 18l-2.2.8L19 21l-.8-2.2L16 18l2.2-.8z"/></svg></button><button id="btnRefresh" class="icon-btn" type="button" aria-label="تحديث التطبيق" hidden><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M20 11a8 8 0 0 0-14.3-4.9L4 8"/><path d="M4 3v5h5"/><path d="M4 13a8 8 0 0 0 14.3 4.9L20 16"/><path d="M20 21v-5h-5"/></svg></button><button id="btnSettings" class="icon-btn" type="button" aria-label="الإعدادات"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></button></div>
 </div><div class="cstrip" id="cycleStrip"></div></header>
 
 <main class="wrap">
@@ -1156,11 +1162,15 @@ function addDays(s,n){var d=parseYmd(s);d.setDate(d.getDate()+n);return ymd(d)}
 function lastDay(Y,M){return new Date(Y,M+1,0).getDate()}
 function monthKeyOf(Y,M){var d=new Date(Y,M,1);return d.getFullYear()+'-'+pad(d.getMonth()+1)}
 function curMonthKey(off){var t=new Date();return monthKeyOf(t.getFullYear(),t.getMonth()+(off||0))}
-function fmt(v){var r=Math.round(v*100)/100;return r.toLocaleString('en-US',{minimumFractionDigits:(Math.abs(r%1)>0.001)?2:0,maximumFractionDigits:2})}
+function fmtRaw(v){var r=Math.round(v*100)/100;return r.toLocaleString('en-US',{minimumFractionDigits:(Math.abs(r%1)>0.001)?2:0,maximumFractionDigits:2})}
+/* «إخفاء المبالغ» (the eye in the header): every amount on screen shows as dots; reports and the Claude summary keep the real numbers */
+var HIDE_DOTS='••••',_hideM=document.documentElement.classList.contains('hide-money');
+function fmt(v){return _hideM?HIDE_DOTS:fmtRaw(v)}
 function fmt0(v){return Math.round(v).toLocaleString('en-US')}
+function fax(v){return _hideM?'':fmt0(v)} // chart axis amounts
 function money(v){return '<span class="num">'+fmt(v)+'</span>'}
-function smoney(v){return '<span class="num" dir="ltr">'+(v<-0.004?'−':'')+fmt(Math.abs(v))+'</span>'}
-function pmoney(v){return '<span class="num" dir="ltr">+'+fmt(v)+'</span>'}
+function smoney(v){return '<span class="num" dir="ltr">'+(_hideM?HIDE_DOTS:(v<-0.004?'−':'')+fmtRaw(Math.abs(v)))+'</span>'}
+function pmoney(v){return '<span class="num" dir="ltr">'+(_hideM?HIDE_DOTS:'+'+fmtRaw(v))+'</span>'}
 function pctTxt(v){return LRI+(v>0?'+':'')+Math.round(v)+'%'+PDI}
 function dayLabel(s){var d=parseYmd(s);return d.getDate()+' '+AR_MONTHS[d.getMonth()]}
 function ops(n){return n===0?'لا عمليات':n===1?'عملية واحدة':n===2?'عمليتان':(n%100>=3&&n%100<=10)?n+' عمليات':n+' عملية'}
@@ -1603,7 +1613,7 @@ document.addEventListener('keydown', function (e) { if (e.key === 'Escape') { va
 
 var MONEY_SYS='أنت مستشار مالي شخصي عملي لمستخدم تطبيق «مصروفي» في السعودية (العملة ريال سعودي). في أول رسالة يصلك <بيانات> فيها ملخص من التطبيق: دورته المالية الحالية، والمصروف حسب الفئة وطريقة الدفع، والمصاريف الثابتة، والدورات السابقة، وأكبر العمليات. أجب بالعربية الواضحة باختصار، بفقرات قصيرة وقوائم، ودون جداول. اعتمد على الأرقام الموجودة فقط واذكرها، ولا تخترع أرقامًا؛ وإذا احتجت افتراضًا فصرّح به، وإذا كانت البيانات لا تكفي فقل ذلك. اجعل النصائح عملية ومحددة: ماذا يغيّر، وكم يوفّر تقريبًا في الدورة. لا تمدح ولا تلُم. لا توصِ بأسهم أو منتجات استثمارية بعينها؛ إن سُئلت فأعطِ معلومات عامة واقترح مستشارًا مرخّصًا.';
 function aiMoneyContext(){
-  var st=settings(),tN=dnum(todayStr()),c=cycleAt(0),a=allowance(c),L=[],r2=function(v){return fmt(Math.round(v*100)/100)};
+  var st=settings(),tN=dnum(todayStr()),c=cycleAt(0),a=allowance(c),L=[],r2=function(v){return fmtRaw(Math.round(v*100)/100)};
   L.push('اليوم: '+todayStr());
   L.push('الدورة الحالية: من '+c.start+' إلى '+c.end+' (اليوم '+Math.max(1,Math.min(c.days,tN-c.s+1))+' من '+c.days+'، باقي '+a.daysLeft+' يومًا). نوع الدورة: '+({salary:'من نزول الراتب إلى التالي',day:'يوم ثابت من الشهر',month:'الشهر الميلادي'}[st.cycleMode]||st.cycleMode)+'.');
   L.push((st.budget>0?'الميزانية المحددة للدورة: '+r2(st.budget):'لا ميزانية محددة؛ الحد يُحسب من الدخل')+(st.saveGoal?' · هدف الادخار: '+st.saveGoal+'% من الدخل':''));
@@ -1978,7 +1988,7 @@ function vbars(el,dat,o){
   function y(v){return pT+ph-(v/max)*ph}
   function cx(i){return W-pR-step*(i+0.5)}
   var s='<svg class="chart" viewBox="0 0 '+W+' '+H+'" role="img" aria-label="'+esc(o.aria||'')+'">';
-  [0,max/2,max].forEach(function(t){var yy=y(t);s+='<line class="grid'+(t===0?' base':'')+'" x1="'+pL+'" x2="'+(W-pR)+'" y1="'+yy.toFixed(1)+'" y2="'+yy.toFixed(1)+'"/><text class="ax" x="'+(W-pR+6)+'" y="'+(yy+4).toFixed(1)+'">'+fmt0(t)+'</text>'});
+  [0,max/2,max].forEach(function(t){var yy=y(t);s+='<line class="grid'+(t===0?' base':'')+'" x1="'+pL+'" x2="'+(W-pR)+'" y1="'+yy.toFixed(1)+'" y2="'+yy.toFixed(1)+'"/><text class="ax" x="'+(W-pR+6)+'" y="'+(yy+4).toFixed(1)+'">'+fax(t)+'</text>'});
   var every=o.every||Math.max(1,Math.ceil(n/(W<380?6:9)));
   dat.forEach(function(d,i){
     var x=cx(i);
@@ -1998,7 +2008,7 @@ function cumChart(el,c,cum,lastIdx,limit){
   function x(i){return W-pR-(n>1?pw*i/(n-1):0)}
   function y(v){return pT+ph-(v/max)*ph}
   var s='<svg class="chart" viewBox="0 0 '+W+' '+H+'" role="img" aria-label="الإنفاق التراكمي">';
-  [0,max/2,max].forEach(function(t){var yy=y(t);s+='<line class="grid'+(t===0?' base':'')+'" x1="'+pL+'" x2="'+(W-pR)+'" y1="'+yy.toFixed(1)+'" y2="'+yy.toFixed(1)+'"/><text class="ax" x="'+(W-pR+6)+'" y="'+(yy+4).toFixed(1)+'">'+fmt0(t)+'</text>'});
+  [0,max/2,max].forEach(function(t){var yy=y(t);s+='<line class="grid'+(t===0?' base':'')+'" x1="'+pL+'" x2="'+(W-pR)+'" y1="'+yy.toFixed(1)+'" y2="'+yy.toFixed(1)+'"/><text class="ax" x="'+(W-pR+6)+'" y="'+(yy+4).toFixed(1)+'">'+fax(t)+'</text>'});
   if(limit>0)s+='<path class="pace" d="M'+x(0).toFixed(1)+','+y(limit/n).toFixed(1)+'L'+x(n-1).toFixed(1)+','+y(limit).toFixed(1)+'"/>';
   var line='';
   for(var i=0;i<=lastIdx;i++)line+=(i?'L':'M')+x(i).toFixed(1)+','+y(cum[i]).toFixed(1);
@@ -2023,7 +2033,7 @@ function dayChart(el,c,vals,cnts,lastIdx,o){
   function x(i){return W-pR-(n>1?pw*i/(n-1):0)}
   function y(v){return pT+ph-(v/max)*ph}
   var s='<svg class="chart" viewBox="0 0 '+W+' '+H+'" role="img" aria-label="الصرف اليومي">';
-  [0,max/2,max].forEach(function(t){var yy=y(t);s+='<line class="grid'+(t===0?' base':'')+'" x1="'+pL+'" x2="'+(W-pR)+'" y1="'+yy.toFixed(1)+'" y2="'+yy.toFixed(1)+'"/><text class="ax" x="'+(W-pR+6)+'" y="'+(yy+4).toFixed(1)+'">'+fmt0(t)+'</text>'});
+  [0,max/2,max].forEach(function(t){var yy=y(t);s+='<line class="grid'+(t===0?' base':'')+'" x1="'+pL+'" x2="'+(W-pR)+'" y1="'+yy.toFixed(1)+'" y2="'+yy.toFixed(1)+'"/><text class="ax" x="'+(W-pR+6)+'" y="'+(yy+4).toFixed(1)+'">'+fax(t)+'</text>'});
   if(o.avg>0)s+='<path class="pace" d="M'+x(0).toFixed(1)+','+y(o.avg).toFixed(1)+'L'+x(n-1).toFixed(1)+','+y(o.avg).toFixed(1)+'"/>';
   if(o.ref>0)s+='<line class="ref" x1="'+x(0).toFixed(1)+'" x2="'+x(n-1).toFixed(1)+'" y1="'+y(o.ref).toFixed(1)+'" y2="'+y(o.ref).toFixed(1)+'"/>';
   var line='';
@@ -2037,7 +2047,7 @@ function dayChart(el,c,vals,cnts,lastIdx,o){
     else{tt+='\n'+(vals[k]>0?fmt(vals[k])+' ر.س · '+ops(cnts[k]):'بلا صرف متغيّر');if(o.ref>0&&vals[k]>o.ref)tt+='\nفوق المتاح لكل يوم بـ '+fmt(vals[k]-o.ref)}
     s+='<g class="col" data-tip="'+esc(tt)+'"><rect class="hit" x="'+(dx-step/2).toFixed(1)+'" y="'+pT+'" width="'+step.toFixed(1)+'" height="'+(ph+pB)+'"/><line class="guide" x1="'+dx.toFixed(1)+'" x2="'+dx.toFixed(1)+'" y1="'+pT+'" y2="'+(pT+ph)+'"/></g>';
   }
-  function lab(i,cls){var ex=x(i),ey=y(vals[i]),lx=Math.max(pL+30,Math.min(W-pR-30,ex));return '<text class="ax end'+(cls||'')+'" x="'+lx.toFixed(1)+'" y="'+Math.max(12,ey-9).toFixed(1)+'" text-anchor="middle">'+fmt0(vals[i])+'</text>'}
+  function lab(i,cls){var ex=x(i),ey=y(vals[i]),lx=Math.max(pL+30,Math.min(W-pR-30,ex));return '<text class="ax end'+(cls||'')+'" x="'+lx.toFixed(1)+'" y="'+Math.max(12,ey-9).toFixed(1)+'" text-anchor="middle">'+(_hideM?HIDE_DOTS:fmt0(vals[i]))+'</text>'}
   if(mi>=0&&vals[mi]>0)s+=lab(mi);
   if(lastIdx>=0&&o.live){s+='<circle class="dotp" cx="'+x(lastIdx).toFixed(1)+'" cy="'+y(vals[lastIdx]).toFixed(1)+'" r="4.5"/>';if(lastIdx!==mi&&Math.abs(x(lastIdx)-x(mi))>34&&vals[lastIdx]>0)s+=lab(lastIdx)}
   [0,Math.floor((n-1)/2),n-1].forEach(function(k,j2){s+='<text class="ax" x="'+x(k).toFixed(1)+'" y="'+(H-8)+'" text-anchor="'+(j2===0?'end':j2===2?'start':'middle')+'">'+esc(dayLabel(addDays(c.start,k)))+'</text>'});
@@ -2056,7 +2066,7 @@ function hbars(rows,total){
   return rows.map(function(r){
     var w=max>0?Math.max(1.5,r.v/max*100):0,p=total>0?Math.round(r.v/total*100):0;
     var tt=r.tip||r.name+': '+fmt(r.v)+' ر.س ('+p+'%)'+(r.count?' · '+ops(r.count)+'':'')+(r.deltaTip?'\n'+r.deltaTip:'');
-    return '<div class="hb" data-tip="'+esc(tt)+'"><div class="nm">'+esc(r.name)+(r.delta?'<div class="delta">'+esc(r.delta)+'</div>':'')+'</div><div class="track"><div class="fill" style="width:'+w.toFixed(1)+'%"></div></div><div class="v"><span class="vi">'+money(r.v)+'<small class="num">'+p+'%</small></span></div></div>';
+    return '<div class="hb" data-tip="'+esc(tt)+'"><div class="nm">'+esc(r.name)+(r.delta?'<div class="delta">'+esc(r.delta)+'</div>':'')+'</div><div class="track"><div class="fill" style="width:'+w.toFixed(1)+'%"></div></div><div class="v"><span class="vi">'+(r.txt!=null?'<span class="num">'+esc(r.txt)+'</span>':money(r.v))+'<small class="num">'+p+'%</small></span></div></div>';
   }).join('');
 }
 
@@ -2512,7 +2522,7 @@ function renderStats(){
   vbars($('#chWeek'),wsum.map(function(s2,i){var v=wcnt[i]?s2/wcnt[i]:0;return {v:v,label:AR_DAYS_S[i],tip:AR_DAYS[i]+'\nالمتوسط: '+fmt(v)+' ر.س\n(من '+wcnt[i]+' '+AR_DAYS[i]+')'}}),{h:140,every:1,maxBw:30,aria:'متوسط الصرف حسب يوم الأسبوع'});
   if(hk>=3){
     vbars($('#chHour'),hv.map(function(v,i){return {v:v,label:h12(i),cls:i===pk&&v>0?'hl':'',tip:h12(i)+'–'+h12(i+1)+'\n'+(hc[i]?fmt(hs[i])+' ر.س · '+ops(hc[i])+(hc[i]>1?'\nمتوسط العملية '+fmt(hs[i]/hc[i])+' ر.س':''):'لا عمليات')}}),{h:140,every:3,maxBw:12,aria:'الصرف حسب ساعات اليوم'});
-    $('#partBars').innerHTML=hbars(parts.map(function(p2){var v=hBy==='cnt'?p2.count:p2.amt;return {name:p2.name,v:v,delta:p2.rng,tip:p2.name+' ('+p2.rng+'): '+fmt(p2.amt)+' ر.س · '+ops(p2.count)}}),ptot);
+    $('#partBars').innerHTML=hbars(parts.map(function(p2){var v=hBy==='cnt'?p2.count:p2.amt;return {name:p2.name,v:v,txt:hBy==='cnt'?String(p2.count):null,delta:p2.rng,tip:p2.name+' ('+p2.rng+'): '+fmt(p2.amt)+' ر.س · '+ops(p2.count)}}),ptot);
   }
 
   // trend + savings table
@@ -3294,7 +3304,7 @@ function chartCategories(rows,w){ // horizontal bars, labels on the right
       var y=top+i*rowH+rowH/2,bw=Math.max(2,(right-left)*r.v/max);
       x.textBaseline='middle';x.direction='rtl';x.textAlign='right';x.fillStyle='#3B4843';x.font='13px '+CHART_FONT;var lb=r.l;while(lb.length>2&&x.measureText(lb).width>labW-8)lb=lb.slice(0,-1);x.fillText(lb===r.l?lb:lb+'…',w-12,y);
       x.fillStyle=i===0?'#0A7556':'#4FA987';rrect(x,right-bw,y-9,bw,18,4);
-      x.direction='ltr';x.textAlign='right';x.fillStyle='#1C2622';x.font='bold 12px '+CHART_FONT;x.fillText(fmt(r.v),right-bw-6,y);
+      x.direction='ltr';x.textAlign='right';x.fillStyle='#1C2622';x.font='bold 12px '+CHART_FONT;x.fillText(fmtRaw(r.v),right-bw-6,y);
     });
   })};
 }
@@ -3374,7 +3384,7 @@ function buildReport(X,c){
   card(10,2,'المصروف الثابت',f('SUMIFS('+rng('E')+','+rng('C')+',"مصروف",'+rng('J')+',"نعم")',fixSum),NUM,expSum?Math.round(fixSum/expSum*100)+'% من المصروف':'',RC.ink2);
   card(10,4,'المصروف المتغيّر',f('D7-B11',expSum-fixSum),NUM,expSum?Math.round((expSum-fixSum)/expSum*100)+'% من المصروف':'',RC.ink2);
   card(10,6,'المتوسط اليومي',f('D7/'+elapsed,expSum/elapsed),NUM,'خلال '+daysTxt(elapsed),RC.ink2);
-  card(10,8,'مقارنة بالفترة السابقة',prevSum>0?f('(D7-'+prevSum+')/'+prevSum,(expSum-prevSum)/prevSum):'—','+0%;-0%;0%',prevSum>0?'السابقة: '+fmt(prevSum):'لا توجد بيانات سابقة',prevSum>0&&expSum>prevSum?RC.red:RC.ink2);
+  card(10,8,'مقارنة بالفترة السابقة',prevSum>0?f('(D7-'+prevSum+')/'+prevSum,(expSum-prevSum)/prevSum):'—','+0%;-0%;0%',prevSum>0?'السابقة: '+fmtRaw(prevSum):'لا توجد بيانات سابقة',prevSum>0&&expSum>prevSum?RC.red:RC.ink2);
 
   var row=14;
   function section(title){sm.mergeCells(row,2,row,9);var cl=sm.getCell(row,2);cl.value=title;cl.font=font({bold:true,size:13,color:{argb:RC.greenDark}});cl.alignment={horizontal:'right',vertical:'middle'};
@@ -3384,11 +3394,11 @@ function buildReport(X,c){
   var cats=Object.keys(byCat).sort(function(a,b){return byCat[b]-byCat[a]});
   var big=exp.slice().sort(function(a,b){return b.amt-a.amt})[0];
   var notes=[];
-  if(cats.length)notes.push('أعلى فئة صرف هي «'+cats[0]+'» بمبلغ '+fmt(byCat[cats[0]])+' ر.س، وتمثّل '+Math.round(byCat[cats[0]]/expSum*100)+'% من المصروف.');
-  if(incSum>0)notes.push(net>=0?'بقي من دخل الفترة '+fmt(net)+' ر.س، أي '+Math.round(net/incSum*100)+'% من الدخل.':'المصروف تجاوز دخل الفترة بمقدار '+fmt(-net)+' ر.س.');
-  if(expSum)notes.push('المصروف الثابت '+fmt(fixSum)+' ر.س، والمتغيّر '+fmt(expSum-fixSum)+' ر.س.');
-  if(big)notes.push('أكبر عملية صرف «'+(big.note||big.cat)+'» بمبلغ '+fmt(big.amt)+' ر.س يوم '+dayLabel(big.date)+'.');
-  if(prevSum>0)notes.push('المصروف '+(expSum>=prevSum?'أعلى':'أقل')+' من الفترة السابقة بمبلغ '+fmt(Math.abs(expSum-prevSum))+' ر.س.');
+  if(cats.length)notes.push('أعلى فئة صرف هي «'+cats[0]+'» بمبلغ '+fmtRaw(byCat[cats[0]])+' ر.س، وتمثّل '+Math.round(byCat[cats[0]]/expSum*100)+'% من المصروف.');
+  if(incSum>0)notes.push(net>=0?'بقي من دخل الفترة '+fmtRaw(net)+' ر.س، أي '+Math.round(net/incSum*100)+'% من الدخل.':'المصروف تجاوز دخل الفترة بمقدار '+fmtRaw(-net)+' ر.س.');
+  if(expSum)notes.push('المصروف الثابت '+fmtRaw(fixSum)+' ر.س، والمتغيّر '+fmtRaw(expSum-fixSum)+' ر.س.');
+  if(big)notes.push('أكبر عملية صرف «'+(big.note||big.cat)+'» بمبلغ '+fmtRaw(big.amt)+' ر.س يوم '+dayLabel(big.date)+'.');
+  if(prevSum>0)notes.push('المصروف '+(expSum>=prevSum?'أعلى':'أقل')+' من الفترة السابقة بمبلغ '+fmtRaw(Math.abs(expSum-prevSum))+' ر.س.');
   if(notes.length){section('أبرز الملاحظات');notes.forEach(function(t){sm.mergeCells(row,2,row,9);var cl=sm.getCell(row,2);cl.value='•  '+t;cl.font=font({size:10.5});cl.alignment={horizontal:'right',vertical:'middle',wrapText:true};sm.getRow(row).height=20;row++});row++}
   // categories: table + chart
   if(cats.length){
@@ -3666,6 +3676,9 @@ $('#rSweep').addEventListener('change',function(){$('#rAmt').disabled=this.check
 $('#rAuto').addEventListener('change',function(){if(S.recEdit)S.recEdit.autoTouched=true});
 function syncVary(){var on=!$('#rVaryWrap').hidden&&$('#rVary').checked;$('#rVaryHint').hidden=!on;$('#rAmtLbl').textContent=on?'المبلغ التقديري':'المبلغ الشهري';if(on){$('#rStepsWrap').hidden=true}else $('#rStepsWrap').hidden=$('#rSweep').checked&&!$('#rSweepWrap').hidden}
 $('#rVary').addEventListener('change',syncVary);
+function syncHideBtn(){var b=$('#btnHide');b.setAttribute('aria-pressed',String(_hideM));b.setAttribute('aria-label',_hideM?'إظهار المبالغ':'إخفاء المبالغ');b.title=b.getAttribute('aria-label')}
+$('#btnHide').addEventListener('click',function(){_hideM=!_hideM;pref('hideMoney',_hideM?1:0);document.documentElement.classList.toggle('hide-money',_hideM);syncHideBtn();render();toast(_hideM?'المبالغ مخفية':'المبالغ ظاهرة')});
+syncHideBtn();
 $('#rWk').addEventListener('change',function(){updateStartOpts(false);renderMonthPicker()});
 $('#recForm').addEventListener('submit',function(e){
   e.preventDefault();if(S.demo){demoBlock().catch(function(){});return}
