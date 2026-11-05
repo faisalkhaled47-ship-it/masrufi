@@ -375,6 +375,11 @@ button.sc{border:0;font-family:inherit;color:var(--ink);cursor:pointer}
 .about{text-align:center!important;color:var(--muted);font-size:12.5px;line-height:1.7;margin:14px 0 4px}
 .cv-h{font-size:13px;font-weight:700;color:var(--ink-2);margin:10px 0 4px}
 .cv-list{display:grid;gap:2px}
+.cv-row{display:flex;align-items:center;gap:6px}
+.cv-row .check{flex:1;min-width:0}
+.cv-mv{width:32px;height:32px;border:0;border-radius:999px;background:var(--surface-2);color:var(--ink-2);display:grid;place-items:center;cursor:pointer;padding:0;flex:none}
+.cv-mv svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round}
+.cv-mv:disabled{opacity:.3;cursor:default}
 .fold > .card-h{position:relative;padding-inline-end:38px;cursor:pointer;-webkit-tap-highlight-color:transparent}
 .fold-tog{position:absolute;inset-inline-end:-4px;top:50%;transform:translateY(-50%);width:34px;height:34px;border:0;border-radius:999px;background:var(--surface-2);color:var(--ink-2);display:grid;place-items:center;cursor:pointer;padding:0}
 .fold-tog svg{width:18px;height:18px;transition:transform .2s}
@@ -1146,8 +1151,8 @@ html.kb nav.tabs{display:none!important}
       <h3>التصميم</h3><div class="seg" role="group" aria-label="التصميم"><button type="button" data-skin-set="pro">الجديد</button><button type="button" data-skin-set="classic">السابق</button></div>
       <div id="themeSec" class="sub-grid" hidden><h3>الألوان</h3><div class="seg" role="group" aria-label="المظهر"><button type="button" data-theme-set="auto">تلقائي</button><button type="button" data-theme-set="light">فاتح</button><button type="button" data-theme-set="dark">داكن</button></div></div>
     </div>
-    <div class="sec sfold" id="setCards"><div class="card-h"><h2>البطاقات الظاهرة</h2><span class="hint" id="cvSum"></span></div>
-      <p class="fhint" style="margin:0">البطاقة اللي تطفئها تختفي من صفحتها، وترجع متى ما شغّلتها.</p>
+    <div class="sec sfold" id="setCards"><div class="card-h"><h2>ترتيب البطاقات</h2><span class="hint" id="cvSum"></span></div>
+      <p class="fhint" style="margin:0">الأسهم ترفع البطاقة أو تنزلها في صفحتها، والعلامة تظهرها أو تخفيها.</p>
       <div class="cv-h">الميزانية</div><div class="cv-list" id="cvBudget"></div>
       <div class="cv-h">الإحصائيات</div><div class="cv-list" id="cvStats"></div>
     </div>
@@ -1229,7 +1234,7 @@ var PAYS=['مدى','أبل باي','بطاقة ائتمانية','نقدي','ت�
 var WK_RULES={none:'لا يتغير',salary:'الجمعة ← الخميس قبله، السبت ← الأحد بعده',sun:'ينتقل إلى الأحد بعده',thu:'ينتقل إلى الخميس قبله'};
 var WK_SHORT={salary:'العطلة: جمعة←خميس، سبت←أحد',sun:'العطلة ← الأحد',thu:'العطلة ← الخميس'};
 var DEFAULT_BANKS=['الراجحي','الأهلي','الإنماء','الرياض','البلاد','STC Bank'];
-var APP_VER='1.36',APP_BUILT='2026-11-05'; // set by the build from the number of published versions
+var APP_VER='1.37',APP_BUILT='2026-11-05'; // set by the build from the number of published versions
 /* reward programs for the points calculator; the default rates are what the programs showed on redemption (Nov 2026) */
 var PTS_PROGS=[{id:'rajhi',name:'مكافأة الراجحي',pts:19571,sar:71.16},{id:'qitaf',name:'قطاف',pts:25,sar:5}];
 var DEFAULT_SETTINGS={budget:0,saveGoal:0,cycleMode:'salary',cycleRec:'',cycleDay:27,cats:DEFAULT_CATS.slice(),incCats:DEFAULT_INC_CATS.slice(),banks:DEFAULT_BANKS.slice(),catBudgets:{},recurring:[]};
@@ -3644,6 +3649,10 @@ document.addEventListener('click',function(e){
   if(d.act==='pts-rates')return openPtsRates();
   if(d.pcsel){S.ptsSel=d.pcsel;pref('ptsSel',d.pcsel);renderPoints();return}
   if(d.dconv){S.dconv=d.dconv==='h'?'h':'g';renderDC();return}
+  if(d.cvmv){var mv=d.cvmv.split('|'),pg=mv[0],o=cardOrder(pg),oi=o.indexOf(mv[1]),oj=oi+(+mv[2]);if(oi<0||oj<0||oj>=o.length)return;
+    o.splice(oi,1);o.splice(oj,0,mv[1]);var om=Object.assign({},pref('cardsOrder')||{});om[pg]=o;pref('cardsOrder',om);
+    if(pg==='budget')orderBudget();else if(S.tab==='stats')renderStats();renderCardVis();
+    var nb=$('[data-cvmv="'+d.cvmv+'"]');if(nb&&!nb.disabled)nb.focus();return}
   if(d.stab){var sp=d.stab.split(':'),gc=el.closest('.sgrp'),tm=Object.assign({},pref('stTabs')||{});tm[sp[0]]=+sp[1];pref('stTabs',tm);
     if(gc){gc.querySelectorAll('[data-stab]').forEach(function(b){b.setAttribute('aria-pressed',String(b===el))});gc.querySelectorAll('.spane').forEach(function(p){p.hidden=p.dataset.pane!==d.stab})}fitTiles();return}
   if(d.act==='hrby'){S.stats.hrBy=d.v==='cnt'?'cnt':'amt';renderStats();return}
@@ -3891,7 +3900,8 @@ function groupStats(){ // runs after the charts are drawn, so moving them keeps 
   if(!hero&&!Object.keys(by).length)return; // an empty period keeps its message
   var tabs=pref('stTabs')||{},frag=document.createDocumentFragment();
   if(hero)rest=rest.filter(function(c){if(!c.classList.contains('tiles'))return true;c.classList.add('hero-tiles');hero.appendChild(c);return false}); // the summary numbers join the summary card
-  [hero,adv].concat(rest).forEach(function(c){if(c)frag.appendChild(c)});
+  var keyed={hero:hero,advice:adv};
+  rest.forEach(function(c){frag.appendChild(c)}); // messages for an empty period come first
   STATS_GROUPS.forEach(function(g){
     var mem=g.tabs.filter(function(t){return by[t[0]]});if(!mem.length)return;
     var sel=Math.min(Math.max(0,+tabs[g.id]||0),mem.length-1),card=document.createElement('div');
@@ -3903,12 +3913,13 @@ function groupStats(){ // runs after the charts are drawn, so moving them keeps 
       pane.innerHTML='<p class="pane-cap">'+esc(hh?hh.querySelector('h2').textContent:t[1])+(hint&&hint.textContent.trim()&&hint.textContent.trim()!=='ر.س'?' · '+hint.innerHTML:'')+'</p>';
       if(hh)hh.remove();while(src.firstChild)pane.appendChild(src.firstChild);card.appendChild(pane);delete by[t[0]];
     });
-    frag.appendChild(card);
+    keyed['g:'+g.id]=card;
   });
-  Object.keys(by).forEach(function(k){frag.appendChild(by[k])}); // a card outside the groups stays as it is
   if(xl){var tl=document.createElement('div'),xb=xl.querySelector('[data-act="xlsx"]');tl.className='card stools';tl.dataset.key='tools';
     tl.innerHTML='<div class="tools-row"><button type="button" class="btn" data-ai="money">✦ حلّل مع Claude</button></div>';
-    if(xb){xb.classList.remove('full');xb.textContent='تقرير Excel';tl.firstChild.appendChild(xb)}frag.appendChild(tl)}
+    if(xb){xb.classList.remove('full');xb.textContent='تقرير Excel';tl.firstChild.appendChild(xb)}keyed.tools=tl}
+  cardOrder('stats').forEach(function(k){if(keyed[k])frag.appendChild(keyed[k])});
+  Object.keys(by).forEach(function(k){frag.appendChild(by[k])}); // a card outside the groups stays as it is
   body.innerHTML='';body.appendChild(frag);
 }
 function statsKey(c){
@@ -3927,7 +3938,7 @@ function foldPrep(card,key,opened){
 }
 function applyCardPrefs(){
   var hid=cardsHidden(),op=pref('cardsOpen')||{};
-  $$('#v-budget > .card[id]').forEach(function(c){foldPrep(c,c.id,op);c.classList.toggle('card-off',!!hid[c.id])});
+  $$('#v-budget > .card[id]').forEach(function(c){if(!NOFOLD[c.id])foldPrep(c,c.id,op);c.classList.toggle('card-off',!!hid[c.id])});
   $$('#setSheet .sfold[id]').forEach(function(c){foldPrep(c,'set:'+c.id,op)});
   $$('#statsBody > .card').forEach(function(c){var k=statsKey(c);if(!k)return;c.classList.toggle('card-off',!!hid['s:'+k]);foldPrep(c,'s:'+k,op)}); // charts are drawn before this, at full width
 }
@@ -3946,6 +3957,12 @@ var BUDGET_GROUPS=[
   {id:'gCommit',name:'الالتزامات',tabs:[['fixCard','الثابت الشهري'],['remCard','الدفعات السنوية']]},
   {id:'gTools',name:'أدوات',tabs:[['ptsCard','حاسبة النقاط'],['dcCard','تحويل التاريخ']]}
 ];
+var BUDGET_ORDER=['calCard','gMoney','gCommit','gBudget','gTools'],NOFOLD={calCard:1}; // the calendar stays open at the top
+function cardOrder(page){ // the order you set in the settings, with any new card added at the end
+  var def=page==='budget'?BUDGET_ORDER:STATS_CARDS.map(function(x){return x[0]}),o=(pref('cardsOrder')||{})[page];
+  o=Array.isArray(o)?o.filter(function(k){return def.indexOf(k)>=0}):[];def.forEach(function(k){if(o.indexOf(k)<0)o.push(k)});return o;
+}
+function orderBudget(){var v=$('#v-budget');cardOrder('budget').forEach(function(id){var c=$('#'+id);if(c&&c.parentNode===v)v.appendChild(c)})}
 (function(){
   var v=$('#v-budget'),tabs=pref('stTabs')||{};
   BUDGET_GROUPS.forEach(function(g){
@@ -3957,13 +3974,18 @@ var BUDGET_GROUPS=[
     mem.forEach(function(t,i){var c=$('#'+t[0]);c.classList.remove('card');c.classList.add('spane','bpane');c.dataset.pane=g.id+':'+i;c.hidden=i!==sel;card.appendChild(c)});
     v.appendChild(card);
   });
+  orderBudget();
 })();
 applyCardPrefs();
 function renderCardVis(){
-  var hid=cardsHidden(),noAi=document.documentElement.classList.contains('no-ai');
-  function row(k,l){return '<label class="check"><input type="checkbox" data-cv="'+esc(k)+'"'+(hid[k]?'':' checked')+'><span>'+esc(l)+'</span></label>'}
-  $('#cvBudget').innerHTML=$$('#v-budget > .card[id]').map(function(c){return row(c.id,c.querySelector('h2').textContent)}).join('');
-  $('#cvStats').innerHTML=STATS_CARDS.filter(function(x){return !(noAi&&x[0]==='ai')}).map(function(x){return row('s:'+x[0],x[1]||x[0])}).join('');
+  var hid=cardsHidden(),UP='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 15l6-6 6 6"/></svg>',DN='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>';
+  function rows(page,list){return list.map(function(x,i){var k=page==='stats'?'s:'+x[0]:x[0];
+    return '<div class="cv-row"><label class="check"><input type="checkbox" data-cv="'+esc(k)+'"'+(hid[k]?'':' checked')+'><span>'+esc(x[1])+'</span></label>'+
+      '<button type="button" class="cv-mv" data-cvmv="'+page+'|'+esc(x[0])+'|-1" aria-label="'+esc(x[1])+' لأعلى"'+(i?'':' disabled')+'>'+UP+'</button>'+
+      '<button type="button" class="cv-mv" data-cvmv="'+page+'|'+esc(x[0])+'|1" aria-label="'+esc(x[1])+' لأسفل"'+(i<list.length-1?'':' disabled')+'>'+DN+'</button></div>'}).join('')}
+  $('#cvBudget').innerHTML=rows('budget',cardOrder('budget').map(function(id){var c=$('#'+id);return [id,c?c.querySelector('h2').textContent:id]}));
+  var names={};STATS_CARDS.forEach(function(x){names[x[0]]=x[1]});
+  $('#cvStats').innerHTML=rows('stats',cardOrder('stats').map(function(k){return [k,names[k]]}));
   cvSum();
 }
 function cvSum(){var ok=$$('#v-budget > .card[id]').map(function(c){return c.id}).concat(STATS_CARDS.map(function(x){return 's:'+x[0]})),n=Object.keys(cardsHidden()).filter(function(k){return ok.indexOf(k)>=0}).length;$('#cvSum').textContent=n?(n===1?'بطاقة مخفية':n===2?'بطاقتان مخفيتان':n+(n<=10?' بطاقات مخفية':' بطاقة مخفية')):''}
