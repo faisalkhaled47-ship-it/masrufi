@@ -1242,7 +1242,7 @@ var PAYS=['مدى','أبل باي','بطاقة ائتمانية','نقدي','ت�
 var WK_RULES={none:'لا يتغير',salary:'الجمعة ← الخميس قبله، السبت ← الأحد بعده',sun:'ينتقل إلى الأحد بعده',thu:'ينتقل إلى الخميس قبله'};
 var WK_SHORT={salary:'العطلة: جمعة←خميس، سبت←أحد',sun:'العطلة ← الأحد',thu:'العطلة ← الخميس'};
 var DEFAULT_BANKS=['الراجحي','الأهلي','الإنماء','الرياض','البلاد','STC Bank'];
-var APP_VER='1.41',APP_BUILT='2026-11-06'; // set by the build from the number of published versions
+var APP_VER='1.42',APP_BUILT='2026-11-06'; // set by the build from the number of published versions
 /* reward programs for the points calculator; the default rates are what the programs showed on redemption (Nov 2026) */
 var PTS_PROGS=[{id:'rajhi',name:'مكافأة الراجحي',pts:19571,sar:71.16},{id:'qitaf',name:'قطاف',pts:25,sar:5}];
 var DEFAULT_SETTINGS={budget:0,saveGoal:0,cycleMode:'salary',cycleRec:'',cycleDay:27,cats:DEFAULT_CATS.slice(),incCats:DEFAULT_INC_CATS.slice(),banks:DEFAULT_BANKS.slice(),catBudgets:{},recurring:[]};
@@ -2086,7 +2086,7 @@ document.addEventListener('click',function(e){var t=e.target.closest&&e.target.c
 window.addEventListener('scroll',hideTip,{passive:true});
 
 /* ---------- charts ---------- */
-function niceMax(v){if(v<=0)return 1;var p=Math.pow(10,Math.floor(Math.log10(v))),f=v/p;var n=f<=1?1:f<=2?2:f<=2.5?2.5:f<=5?5:10;return n*p}
+function niceMax(v){if(v<=0)return 1;var p=Math.pow(10,Math.floor(Math.log10(v))),f=v/p;var st=[1,1.2,1.5,2,2.5,3,4,5,6,8,10],n=10;for(var i=0;i<st.length;i++)if(f<=st[i]){n=st[i];break}return n*p} // a scale close to the highest value
 function barPath(x,w,y0,y1,r){var h=y0-y1;if(h<=0)return '';r=Math.min(r,w/2,h);return 'M'+x.toFixed(1)+','+y0.toFixed(1)+'V'+(y1+r).toFixed(1)+'Q'+x.toFixed(1)+','+y1.toFixed(1)+' '+(x+r).toFixed(1)+','+y1.toFixed(1)+'H'+(x+w-r).toFixed(1)+'Q'+(x+w).toFixed(1)+','+y1.toFixed(1)+' '+(x+w).toFixed(1)+','+(y1+r).toFixed(1)+'V'+y0.toFixed(1)+'Z'}
 function cw(el){return Math.max(260,Math.floor(el.clientWidth||320))}
 /* vertical bars; index 0 drawn at the right (RTL time) */
