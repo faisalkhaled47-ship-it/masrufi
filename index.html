@@ -396,6 +396,7 @@ html[data-skin=classic] .fold > .card-h{padding-inline:38px}
 .pt-rate:last-child{border-bottom:0}
 .pt-rate .nm{grid-column:1/-1;font-weight:700}
 .dc-h3{display:grid;grid-template-columns:1fr 2fr 1.3fr;gap:8px;margin-top:10px}
+.df-g{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .dc-out{margin-top:12px;padding:12px 14px;border-radius:14px;background:var(--surface-2);text-align:center}
 .dc-out b{display:block;font-size:19px;line-height:1.5}
 .dc-out span{color:var(--ink-2);font-size:13.5px}
@@ -972,6 +973,16 @@ try{var _p0=JSON.parse(localStorage.getItem('masrufi.pref.v1')||'{}');if(_p0.hid
       </div>
       <p class="fhint" id="pcOut"></p>
     </div>
+    <div class="card" id="dfCard">
+      <div class="card-h"><h2>المدة بين تاريخين</h2></div>
+      <div class="seg" role="group" aria-label="التقويم"><button type="button" data-dfcal="g" aria-pressed="true">ميلادي</button><button type="button" data-dfcal="h" aria-pressed="false">هجري</button></div>
+      <div class="df-g" style="margin-top:10px"><div><label class="lbl" for="dfA">من</label><input id="dfA" type="date" class="field"></div><div><label class="lbl" for="dfB">إلى</label><input id="dfB" type="date" class="field"></div></div>
+      <div class="df-h" hidden>
+        <label class="lbl">من</label><div class="dc-h3" style="margin-top:0"><select id="dfAd" class="field" aria-label="اليوم"></select><select id="dfAm" class="field" aria-label="الشهر"></select><input id="dfAy" class="field" inputmode="numeric" maxlength="4" aria-label="السنة"></div>
+        <label class="lbl" style="margin-top:8px">إلى</label><div class="dc-h3" style="margin-top:0"><select id="dfBd" class="field" aria-label="اليوم"></select><select id="dfBm" class="field" aria-label="الشهر"></select><input id="dfBy" class="field" inputmode="numeric" maxlength="4" aria-label="السنة"></div>
+      </div>
+      <div class="dc-out" id="dfOut" aria-live="polite"></div>
+    </div>
     <div class="card" id="dcCard">
       <div class="card-h"><h2>تحويل التاريخ</h2><span class="hint">تقويم أم القرى</span></div>
       <div class="seg" role="group" aria-label="اتجاه التحويل"><button type="button" data-dconv="g" aria-pressed="true">ميلادي ← هجري</button><button type="button" data-dconv="h" aria-pressed="false">هجري ← ميلادي</button></div>
@@ -1242,7 +1253,7 @@ var PAYS=['مدى','أبل باي','بطاقة ائتمانية','نقدي','ت�
 var WK_RULES={none:'لا يتغير',salary:'الجمعة ← الخميس قبله، السبت ← الأحد بعده',sun:'ينتقل إلى الأحد بعده',thu:'ينتقل إلى الخميس قبله'};
 var WK_SHORT={salary:'العطلة: جمعة←خميس، سبت←أحد',sun:'العطلة ← الأحد',thu:'العطلة ← الخميس'};
 var DEFAULT_BANKS=['الراجحي','الأهلي','الإنماء','الرياض','البلاد','STC Bank'];
-var APP_VER='1.45',APP_BUILT='2026-11-06'; // set by the build from the number of published versions
+var APP_VER='1.46',APP_BUILT='2026-11-07'; // set by the build from the number of published versions
 /* reward programs for the points calculator; the default rates are what the programs showed on redemption (Nov 2026) */
 var PTS_PROGS=[{id:'rajhi',name:'مكافأة الراجحي',pts:19571,sar:71.16},{id:'qitaf',name:'قطاف',pts:25,sar:5}];
 var DEFAULT_SETTINGS={budget:0,saveGoal:0,cycleMode:'salary',cycleRec:'',cycleDay:27,cats:DEFAULT_CATS.slice(),incCats:DEFAULT_INC_CATS.slice(),banks:DEFAULT_BANKS.slice(),catBudgets:{},recurring:[]};
@@ -3111,7 +3122,7 @@ function payRem(id){
 }
 function renderBudget(){
   var st=settings(),c=cycleAt(0),a=allowance(c),tN=dnum(todayStr());
-  renderPoints();renderDC();renderBalances();
+  renderPoints();renderDC();renderDF();renderBalances();
   $('#bCycle').textContent=cycleName(c);
   var bi=$('#budgetIn'),gi=$('#goalIn');
   if(document.activeElement!==bi)bi.value=st.budget>0?st.budget:'';
@@ -3669,6 +3680,7 @@ document.addEventListener('click',function(e){
     if(gone)saveSettings().then(function(){toast('حُذفت الحركة',{action:{label:'تراجع',fn:function(){st1.savMoves=st1.savMoves.concat([gone]);saveSettings().catch(failToast)}}})}).catch(failToast);return}
   if(d.act==='pts-rates')return openPtsRates();
   if(d.pcsel){S.ptsSel=d.pcsel;pref('ptsSel',d.pcsel);renderPoints();return}
+  if(d.dfcal){S.dfcal=d.dfcal;renderDF();return}
   if(d.dconv){S.dconv=d.dconv==='h'?'h':'g';renderDC();return}
   if(d.cvmv){var mv=d.cvmv.split('|'),pg=mv[0],o=cardOrder(pg),oi=o.indexOf(mv[1]),oj=oi+(+mv[2]);if(oi<0||oj<0||oj>=o.length)return;
     o.splice(oi,1);o.splice(oj,0,mv[1]);var om=Object.assign({},pref('cardsOrder')||{});om[pg]=o;pref('cardsOrder',om);
@@ -3880,6 +3892,33 @@ function hijToG(hy,hm,hd){ // search around an estimate; null when that day does
 }
 function yearsTxt(n){return n===1?'سنة':n===2?'سنتان':n<=10?n+' سنوات':n+' سنة'}
 function monthsTxt2(n){return n===1?'شهر':n===2?'شهران':n<=10?n+' أشهر':n+' شهراً'}
+/* time between two dates, Gregorian or Hijri (Umm al-Qura) */
+function weeksTxt(n){var w=Math.floor(n/7),r=n%7;return (w===1?'أسبوع':w===2?'أسبوعان':w<=10?w+' أسابيع':fmt0(w)+' أسبوعاً')+(r?' و'+daysTxt(r):'')}
+function ymdDiff(a,b){ // whole years, months and days from a to b (a<=b), each as [y,m,d]
+  var y=b[0]-a[0],m=b[1]-a[1],d=b[2]-a[2];if(d<0){m--;d+=a[3]}if(m<0){y--;m+=12}return [y,m,d];
+}
+function renderDF(){
+  if(!renderDF.init){renderDF.init=1;
+    var d='';for(var i=1;i<=30;i++)d+='<option value="'+i+'">'+i+'</option>';var mo=HIJRI_MONTHS.map(function(m,j){return '<option value="'+(j+1)+'">'+(j+1)+' · '+m+'</option>'}).join('');
+    ['#dfAd','#dfBd'].forEach(function(q){$(q).innerHTML=d});['#dfAm','#dfBm'].forEach(function(q){$(q).innerHTML=mo});
+    $('#dfA').value=todayStr();$('#dfB').value=todayStr();var t=hijParts(utcNoon(todayStr()));
+    if(t)['A','B'].forEach(function(k){$('#df'+k+'d').value=String(t.d);$('#df'+k+'m').value=String(t.m);$('#df'+k+'y').value=String(t.y)});
+    ['#dfA','#dfB','#dfAd','#dfAm','#dfAy','#dfBd','#dfBm','#dfBy'].forEach(function(q){$(q).addEventListener('input',renderDF);$(q).addEventListener('change',renderDF)});
+  }
+  var h=S.dfcal==='h',out=$('#dfOut'),ga,gb;
+  $$('[data-dfcal]').forEach(function(x){x.setAttribute('aria-pressed',String(x.dataset.dfcal===(h?'h':'g')))});
+  $('#dfCard .df-g').hidden=h;$('#dfCard .df-h').hidden=!h;
+  if(h){var hp=function(k){var y=parseInt(String($('#df'+k+'y').value).replace(/[٠-٩]/g,function(c){return c.charCodeAt(0)-1632}),10),m=+$('#df'+k+'m').value,dd=+$('#df'+k+'d').value;return y>=1300&&y<=1500?hijToG(y,m,dd):null};
+    ga=hp('A');gb=hp('B');if(!ga||!gb){out.className='dc-out bad';out.innerHTML='<b>تاريخ هجري غير صحيح</b>';return}}
+  else{ga=$('#dfA').value;gb=$('#dfB').value;if(!ga||!gb){out.className='dc-out';out.innerHTML='<span>اختر التاريخين</span>';return}}
+  var n=dnum(gb)-dnum(ga),neg=n<0;if(neg){var t2=ga;ga=gb;gb=t2;n=-n}
+  var parts;
+  if(h){var A=hijParts(utcNoon(ga)),B=hijParts(utcNoon(gb)),ml=29;var pm=B.m===1?[B.y-1,12]:[B.y,B.m-1],f=hijToG(pm[0],pm[1],30);ml=f?30:29;parts=ymdDiff([A.y,A.m,A.d,ml],[B.y,B.m,B.d])}
+  else{var a=parseYmd(ga),b=parseYmd(gb),pml=new Date(b.getFullYear(),b.getMonth(),0).getDate();parts=ymdDiff([a.getFullYear(),a.getMonth()+1,a.getDate(),pml],[b.getFullYear(),b.getMonth()+1,b.getDate()])}
+  var bits=[];if(parts[0])bits.push(yearsTxt(parts[0]));if(parts[1])bits.push(monthsTxt2(parts[1]));if(parts[2])bits.push(daysTxt(parts[2]));
+  out.className='dc-out';
+  out.innerHTML=n?'<b>'+(bits.join(' و')||daysTxt(n))+'</b><span>'+(bits.length>1||parts[0]||parts[1]?'= '+(n>10?fmt0(n)+' يوماً':daysTxt(n))+(n>=7?' · '+weeksTxt(n):''):(n>=7?weeksTxt(n):''))+(neg?' · التاريخ الثاني قبل الأول':'')+'</span>':'<b>نفس اليوم</b>';
+}
 function relDays(ds){
   var n=dnum(ds)-dnum(todayStr()),a=Math.abs(n),t;if(!n)return 'اليوم';
   if(a<365)t=daysTxt(a);else{var y=Math.floor(a/365.2425),m=Math.floor((a-y*365.2425)/30.437);t='نحو '+yearsTxt(y)+(m?' و'+monthsTxt2(m):'')}
@@ -3981,7 +4020,7 @@ var BUDGET_GROUPS=[
   {id:'calCard'},
   {id:'gMoney',name:'الأرصدة',tabs:[['balCard','البنوك'],['savCard','المدخرات']]},
   {id:'gCommit',name:'الالتزامات',tabs:[['fixCard','الثابت الشهري'],['remCard','الدفعات السنوية']]},
-  {id:'gTools',name:'أدوات',tabs:[['ptsCard','حاسبة النقاط'],['dcCard','تحويل التاريخ']]}
+  {id:'gTools',name:'أدوات',tabs:[['ptsCard','حاسبة النقاط'],['dcCard','تحويل التاريخ'],['dfCard','المدة بين تاريخين']]}
 ];
 var BUDGET_ORDER=['calCard','gMoney','gCommit','gBudget','gTools'],NOFOLD={calCard:1}; // the calendar stays open at the top
 function cardOrder(page){ // the order you set in the settings, with any new card added at the end
