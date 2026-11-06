@@ -1242,7 +1242,7 @@ var PAYS=['مدى','أبل باي','بطاقة ائتمانية','نقدي','ت�
 var WK_RULES={none:'لا يتغير',salary:'الجمعة ← الخميس قبله، السبت ← الأحد بعده',sun:'ينتقل إلى الأحد بعده',thu:'ينتقل إلى الخميس قبله'};
 var WK_SHORT={salary:'العطلة: جمعة←خميس، سبت←أحد',sun:'العطلة ← الأحد',thu:'العطلة ← الخميس'};
 var DEFAULT_BANKS=['الراجحي','الأهلي','الإنماء','الرياض','البلاد','STC Bank'];
-var APP_VER='1.42',APP_BUILT='2026-11-06'; // set by the build from the number of published versions
+var APP_VER='1.43',APP_BUILT='2026-11-06'; // set by the build from the number of published versions
 /* reward programs for the points calculator; the default rates are what the programs showed on redemption (Nov 2026) */
 var PTS_PROGS=[{id:'rajhi',name:'مكافأة الراجحي',pts:19571,sar:71.16},{id:'qitaf',name:'قطاف',pts:25,sar:5}];
 var DEFAULT_SETTINGS={budget:0,saveGoal:0,cycleMode:'salary',cycleRec:'',cycleDay:27,cats:DEFAULT_CATS.slice(),incCats:DEFAULT_INC_CATS.slice(),banks:DEFAULT_BANKS.slice(),catBudgets:{},recurring:[]};
@@ -2587,7 +2587,7 @@ function renderStatsCore(){
     }
     h+='</div>';
   }
-  h+='<div class="card"><div class="card-h"><h2>متوسط الصرف حسب اليوم</h2><span class="hint">آخر 90 يوماً</span></div><div id="chWeek"></div></div>';
+  h+='<div class="card"><div class="card-h"><h2>صرف هذا الأسبوع</h2><span class="hint">المتغيّر</span></div><div id="chWeek"></div></div>';
   // hours of the day, same 90 days
   var hEnd=Math.min(c.e,tN),hStart=Math.max(hEnd-89,exp.length?exp[exp.length-1].n:hEnd),hs=new Array(24).fill(0),hc=new Array(24).fill(0),hk=0,hAll=0,hSum=0;
   exp.forEach(function(it){if(it.n<hStart||it.n>hEnd||isFixed(it))return;hAll++;var hr=itemHour(it);if(hr==null)return;hk++;hs[hr]+=it.amt;hc[hr]++;hSum+=it.amt});
@@ -2627,7 +2627,10 @@ function renderStatsCore(){
   var firstN=exp.length?exp[exp.length-1].n:endN;startN=Math.max(startN,firstN);
   for(var dn=startN;dn<=endN;dn++)wcnt[new Date(dn*864e5).getUTCDay()]++;
   exp.forEach(function(it){if(it.n>=startN&&it.n<=endN&&!isFixed(it))wsum[new Date(it.n*864e5).getUTCDay()]+=it.amt});
-  vbars($('#chWeek'),wsum.map(function(s2,i){var v=wcnt[i]?s2/wcnt[i]:0;return {v:v,label:AR_DAYS_S[i],tip:AR_DAYS[i]+'\nالمتوسط: '+fmt(v)+' ر.س\n(من '+wcnt[i]+' '+AR_DAYS[i]+')'}}),{h:140,every:1,maxBw:30,aria:'متوسط الصرف حسب يوم الأسبوع'});
+  // the week (Sunday to Saturday) that holds the period's last day: what you actually spent each day, with your usual for that day in the tip
+  var wk0=endN-new Date(endN*864e5).getUTCDay(),wnow=[0,0,0,0,0,0,0];
+  exp.forEach(function(it){if(it.n>=wk0&&it.n<=wk0+6&&!isFixed(it))wnow[it.n-wk0]+=it.amt});
+  vbars($('#chWeek'),wnow.map(function(v,i){var av=wcnt[i]?wsum[i]/wcnt[i]:0,later=wk0+i>tN;return {v:v,label:AR_DAYS_S[i],cls:wk0+i===tN?'hl':'',tip:AR_DAYS[i]+' '+dayLabel(ymd(new Date((wk0+i)*864e5)))+'\n'+(later?'لم يأتِ بعد':fmt(v)+' ر.س')+'\nمعدلك فيه: '+fmt(av)+' ر.س'}}),{h:140,every:1,maxBw:30,aria:'صرف هذا الأسبوع'});
   if(hk>=3){
     vbars($('#chHour'),hv.map(function(v,i){return {v:v,label:h12(i),cls:i===pk&&v>0?'hl':'',tip:h12(i)+'–'+h12(i+1)+'\n'+(hc[i]?fmt(hs[i])+' ر.س · '+ops(hc[i])+(hc[i]>1?'\nمتوسط العملية '+fmt(hs[i]/hc[i])+' ر.س':''):'لا عمليات')}}),{h:140,every:3,maxBw:12,aria:'الصرف حسب ساعات اليوم'});
     $('#partBars').innerHTML=hbars(parts.map(function(p2){var v=hBy==='cnt'?p2.count:p2.amt;return {name:p2.name,v:v,txt:hBy==='cnt'?String(p2.count):null,delta:p2.rng,tip:p2.name+' ('+p2.rng+'): '+fmt(p2.amt)+' ر.س · '+ops(p2.count)}}),ptot);
@@ -3911,7 +3914,7 @@ var STATS_CARDS=[['hero','الملخص'],['advice','الخلاصة والنصا�
 var STATS_GROUPS=[
   {id:'flow',name:'الإنفاق خلال الفترة',tabs:[['الإنفاق التراكمي','التراكمي'],['الصرف اليومي','اليومي']]},
   {id:'where',name:'توزيع المصروف',tabs:[['المصروفات حسب الفئة','الفئات'],['حسب طريقة الدفع','طريقة الدفع'],['أكبر 5 مصروفات','الأكبر']]},
-  {id:'habits',name:'عاداتك في الصرف',tabs:[['تحليل المصروف المتغيّر','المتغيّر'],['متوسط الصرف حسب اليوم','أيام الأسبوع'],['الصرف حسب ساعات اليوم','الساعات']]},
+  {id:'habits',name:'عاداتك في الصرف',tabs:[['تحليل المصروف المتغيّر','المتغيّر'],['صرف هذا الأسبوع','أيام الأسبوع'],['الصرف حسب ساعات اليوم','الساعات']]},
   {id:'money',name:'الدخل والبنوك',tabs:[['الدخل حسب المصدر','مصادر الدخل'],['حسب البنك','البنوك']]},
   {id:'trend',name:'مقارنة بالدورات السابقة',tabs:[['المصروفات في آخر 6 دورات','المصروفات'],['الدخل والادخار حسب الدورة','الدخل والادخار']]},
   {id:'health',name:'المؤشرات والالتزامات',tabs:[['المؤشرات المالية','المؤشرات'],['commit','الالتزامات']]}
