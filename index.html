@@ -12,7 +12,13 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icon-180.png?v=2">
 <link rel="icon" type="image/png" href="icon-192.png?v=2">
-<style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px system-ui,-apple-system,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style>
+<style>:root{color-scheme:light;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px system-ui,-apple-system,sans-serif}img{max-width:100%}[hidden]{display:none!important}
+.subsec{display:flex;flex-direction:column;gap:10px;border-top:1px dashed var(--line,var(--bd,rgba(128,128,128,.25)));padding-top:14px;margin-top:6px}
+.card-h + .subsec{border-top:0;padding-top:4px;margin-top:0}
+.subsec[hidden]{display:none}
+.sub-h{display:flex;justify-content:space-between;align-items:baseline;gap:10px}
+.sub-h .set-sub{margin:0;color:var(--ink,inherit);font-size:15px;font-weight:700}
+</style>
 <title>مصروفي</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -1164,8 +1170,8 @@ try{var _p0=JSON.parse(localStorage.getItem('masrufi.pref.v1')||'{}');if(_p0.hid
     <div class="grab"></div>
     <div class="panel-h"><h2 id="setTitle">الإعدادات</h2><button type="button" class="link" data-close>إغلاق</button></div>
     <div class="sec" id="storeSec" hidden><div id="migrate" hidden></div></div>
-    <div class="set-grp">عام</div>
-    <div class="sec sfold" id="setLook"><div class="card-h"><h2>المظهر</h2></div>
+    <div class="sec sfold" id="grpLook"><div class="card-h"><h2>المظهر والترتيب</h2></div>
+<div class="subsec" id="setLook"><div class="sub-h"><h4 class="set-sub">المظهر</h4></div>
       <h3>التصميم</h3><div class="seg" role="group" aria-label="التصميم"><button type="button" data-skin-set="pro">الجديد</button><button type="button" data-skin-set="classic">السابق</button></div>
       <h3>الخط</h3><select id="fontSel" class="field" aria-label="الخط"></select>
       <p class="font-sample" id="fontSample">صرفت اليوم <span class="num">1,234.50</span> ر.س · الخميس 25 جمادى الأولى</p>
@@ -1173,12 +1179,13 @@ try{var _p0=JSON.parse(localStorage.getItem('masrufi.pref.v1')||'{}');if(_p0.hid
       <p class="fhint" id="fontWts" style="margin:0" hidden></p>
       <div id="themeSec" class="sub-grid" hidden><h3>الألوان</h3><div class="seg" role="group" aria-label="المظهر"><button type="button" data-theme-set="auto">تلقائي</button><button type="button" data-theme-set="light">فاتح</button><button type="button" data-theme-set="dark">داكن</button></div></div>
     </div>
-    <div class="sec sfold" id="setCards"><div class="card-h"><h2>ترتيب البطاقات</h2><span class="hint" id="cvSum"></span></div>
+    <div class="subsec" id="setCards"><div class="sub-h"><h4 class="set-sub">ترتيب البطاقات</h4><span class="hint" id="cvSum"></span></div>
       <div class="cv-h">الميزانية</div><div class="cv-list" id="cvBudget"></div>
       <div class="cv-h">الإحصائيات</div><div class="cv-list" id="cvStats"></div>
     </div>
-    <div class="set-grp">الميزانية</div>
-    <div class="sec sfold" id="setCycle"><div class="card-h"><h2>الدورة المالية</h2></div>
+    </div>
+<div class="sec sfold" id="grpBudget"><div class="card-h"><h2>الميزانية</h2></div>
+<div class="subsec" id="setCycle"><div class="sub-h"><h4 class="set-sub">الدورة المالية</h4></div>
       <label for="cycleMode" class="lbl">فترة الإحصائيات والميزانية</label>
       <select id="cycleMode" class="field">
         <option value="salary">من نزول دخل ثابت إلى نزوله التالي</option>
@@ -1189,11 +1196,11 @@ try{var _p0=JSON.parse(localStorage.getItem('masrufi.pref.v1')||'{}');if(_p0.hid
       <div id="cycleDayWrap"><label for="cycleDay" class="lbl" id="cycleDayLbl">اليوم</label><select id="cycleDay" class="field"></select></div>
       <details id="cyclesAhead"><summary class="link" style="list-style:none;cursor:pointer" id="cyclesSum">عرض الدورات حتى نهاية السنة القادمة</summary><div id="cyclesTbl" class="tbl-wrap" style="margin-top:8px"></div></details>
     </div>
-    <div class="sec sfold" id="setEdu"><div class="card-h"><h2>التقويم الدراسي</h2></div>
+    <div class="subsec" id="setEdu"><div class="sub-h"><h4 class="set-sub">التقويم الدراسي</h4></div>
       <label for="eduReg" class="lbl">يظهر في تقويم الدورة</label>
       <select id="eduReg" class="field"><option value="std">باقي مناطق المملكة</option><option value="west">مكة المكرمة والمدينة المنورة وجدة والطائف</option><option value="off">لا تعرض التقويم الدراسي</option></select>
     </div>
-    <div class="sec sfold" id="setCats"><div class="card-h"><h2>الفئات</h2></div>
+    <div class="subsec" id="setCats"><div class="sub-h"><h4 class="set-sub">الفئات</h4></div>
       <h3>فئات المصروفات</h3>
       <div id="catEdit" class="chips catedit"></div>
       <form id="catForm" class="inline-form" style="grid-template-columns:minmax(0,1fr) auto" novalidate>
@@ -1207,7 +1214,7 @@ try{var _p0=JSON.parse(localStorage.getItem('masrufi.pref.v1')||'{}');if(_p0.hid
         <button class="btn accent" type="submit">إضافة</button>
       </form>
     </div>
-    <div class="sec sfold" id="setBanks"><div class="card-h"><h2>البنوك</h2></div>
+    <div class="subsec" id="setBanks"><div class="sub-h"><h4 class="set-sub">البنوك</h4></div>
       <h3>البنوك</h3>
       <div id="bankEdit" class="bankrows"></div>
       <form id="bankForm" class="inline-form" style="grid-template-columns:minmax(0,1fr) auto" novalidate>
@@ -1215,18 +1222,20 @@ try{var _p0=JSON.parse(localStorage.getItem('masrufi.pref.v1')||'{}');if(_p0.hid
         <button class="btn accent" type="submit">إضافة</button>
       </form>
     </div>
-    <div class="set-grp">الربط</div>
-    <div class="sec sfold" id="aiWrap"><div class="card-h"><h2>المساعد الذكي (Claude)</h2></div><div class="ai-sec" id="aiSec"></div></div>
-    <div class="sec sfold" id="sbWrap" hidden><div class="card-h"><h2>المزامنة بين أجهزتك</h2><span class="hint">Supabase</span></div><div id="sbSec" class="sub-grid"></div></div>
-    <div class="set-grp">البيانات</div>
-    <div class="sec sfold" id="setData"><div class="card-h"><h2>النسخ الاحتياطي والتصدير</h2></div>
+    </div>
+<div class="sec sfold" id="aiWrap"><div class="card-h"><h2>المساعد الذكي (Claude)</h2></div><div class="ai-sec" id="aiSec"></div></div>
+    <div class="sec sfold" id="grpData"><div class="card-h"><h2>البيانات والمزامنة</h2></div>
+<div class="subsec" id="sbWrap" hidden><div class="sub-h"><h4 class="set-sub">المزامنة بين أجهزتك</h4><span class="hint">Supabase</span></div><div id="sbSec" class="sub-grid"></div></div>
+    <div class="subsec" id="setData"><div class="sub-h"><h4 class="set-sub">النسخ الاحتياطي والتصدير</h4></div>
       <div class="btns">
         <button type="button" class="btn accent" id="expXlsx">تقرير Excel للدورة</button>
         <button type="button" class="btn" id="expCsv">تصدير CSV</button>
         <button type="button" class="btn" id="expJson">نسخة احتياطية JSON</button>
         <label class="btn filelbl">استيراد نسخة<input type="file" id="impFile" accept=".json,application/json"></label>
       </div>
+      <p class="fhint" id="bkInfo" style="margin:0"></p>
       <div id="expFallback" hidden><p>انسخ النص التالي واحفظه في ملف:</p><textarea id="expText" class="field" readonly></textarea><button type="button" class="btn" id="expCopy">نسخ</button></div>
+    </div>
     </div>
     <p class="about" id="aboutTxt"></p>
   </div>
@@ -3227,6 +3236,7 @@ function renderCyclesAhead(){
 }
 function applyTheme(){if(!STANDALONE)return;var v=pref('theme')||'auto';if(v==='auto')document.documentElement.removeAttribute('data-theme');else document.documentElement.setAttribute('data-theme',v)}
 function renderSettings(){
+  (function(){var l=pref('lastBackup')||0,e=$('#bkInfo');if(e)e.textContent=l?'آخر نسخة احتياطية: '+(Math.floor((Date.now()-l)/864e5)<=0?'اليوم':'قبل '+Math.floor((Date.now()-l)/864e5)+' يوم')+'.':'لم تحفظ نسخة احتياطية بعد.'})();
   renderCardVis();renderFontSel();
   $('#aboutTxt').innerHTML='مصروفي · الإصدار <span class="num">'+APP_VER+'</span><br>'+esc(dayLabel(APP_BUILT)+' '+APP_BUILT.slice(0,4));
   var sk=pref('skin')==='classic'?'classic':'pro';$$('[data-skin-set]').forEach(function(b){b.setAttribute('aria-pressed',String(b.dataset.skinSet===sk))});
