@@ -18,6 +18,13 @@
 .subsec[hidden]{display:none}
 .sub-h{display:flex;justify-content:space-between;align-items:baseline;gap:10px}
 .sub-h .set-sub{margin:0;color:var(--ink,inherit);font-size:15px;font-weight:700}
+
+.ai-sec .ai-row{display:flex;flex-direction:column;align-items:stretch;gap:8px;margin-top:6px}
+.ai-sec .ai-btn{width:100%;padding:14px 16px;border-radius:14px;font-size:15.5px}
+.ai-sec .ai-mut:last-child{font-size:12.5px}
+.ai-sec a{color:var(--accent,#0a6a72)}
+.ai-state{font-size:12.5px;font-weight:600;color:var(--muted,#6b7a75);margin-inline-start:10px}
+.ai-state.on{color:var(--accent,#0a6a72)}
 </style>
 <title>مصروفي</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -1223,7 +1230,7 @@ try{var _p0=JSON.parse(localStorage.getItem('masrufi.pref.v1')||'{}');if(_p0.hid
       </form>
     </div>
     </div>
-<div class="sec sfold" id="aiWrap"><div class="card-h"><h2>المساعد الذكي</h2></div><div class="ai-sec" id="aiSec"></div></div>
+<div class="sec sfold" id="aiWrap"><div class="card-h"><h2>المساعد الذكي</h2><span class="hint" id="aiSum"></span></div><div class="ai-sec" id="aiSec"></div></div>
     <div class="sec sfold" id="grpData"><div class="card-h"><h2>البيانات والمزامنة</h2></div>
 <div class="subsec" id="sbWrap" hidden><div class="sub-h"><h4 class="set-sub">المزامنة بين أجهزتك</h4><span class="hint">Supabase</span></div><div id="sbSec" class="sub-grid"></div></div>
     <div class="subsec" id="setData"><div class="sub-h"><h4 class="set-sub">النسخ الاحتياطي والتصدير</h4></div>
@@ -1662,7 +1669,7 @@ function aiSettingsHtml() { // the section inside the app's settings
     '<label class="ai-lbl" for="cl-key">مفتاح API</label><input type="password" id="cl-key" dir="ltr" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="sk-ant-…" value="' + esc(aiCfg().key || '') + '">' +
     '<label class="ai-lbl" for="cl-model">النموذج</label><select id="cl-model">' + AI_MODELS.map(function (x) { return '<option value="' + x[0] + '"' + (x[0] === aiModel() ? ' selected' : '') + '>' + x[1] + '</option>'; }).join('') + '</select>' +
     '<div class="ai-row"><button type="button" class="ai-btn" data-ai="test">' + (on ? 'جرّب المفتاح' : 'احفظ وجرّب المفتاح') + '</button><span class="ai-mut" id="cl-test"></span></div>' +
-    '<p class="ai-mut"><a href="https://platform.claude.com/" target="_blank" rel="noopener">platform.claude.com</a></p>';
+    '<p class="ai-mut">من <a href="https://platform.claude.com/" target="_blank" rel="noopener">platform.claude.com</a>. يبقى على جهازك فقط، ولا يدخل في النسخة الاحتياطية ولا المزامنة.</p>';
 }
 function aiDraw() {
   var ch = AI_CUR; if (!ch) return;
@@ -3243,7 +3250,7 @@ function renderSettings(){
   $('#cyclesSum').textContent='عرض الدورات حتى نهاية '+(new Date().getFullYear()+1);
   $('#themeSec').hidden=!STANDALONE;var tv=pref('theme')||'auto';$$('[data-theme-set]').forEach(function(b){b.setAttribute('aria-pressed',String(b.dataset.themeSet===tv))});
   sbRender();
-  var aiS=$('#aiSec');if(aiS&&!aiS.contains(document.activeElement))aiS.innerHTML=aiSettingsHtml();
+  var aiSm=$('#aiSum');if(aiSm)aiSm.textContent=aiCfg().key?'مفعّل':'غير مفعّل';var aiS=$('#aiSec');if(aiS&&!aiS.contains(document.activeElement))aiS.innerHTML=aiSettingsHtml();
   var st=settings(),ms=mainSalary();
   var n=S.mode==='cloud'?localPendingCount():0,mg=$('#migrate');
   mg.hidden=!n;$('#storeSec').hidden=!n;if(n)mg.innerHTML='<button type="button" class="btn accent" data-act="migrate">نقل '+ops(n)+' من هذا الجهاز إلى حسابك</button>';
